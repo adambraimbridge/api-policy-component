@@ -1,13 +1,12 @@
 package com.ft.up.apipolicy;
 
 import com.ft.api.util.buildinfo.BuildInfoResource;
-import com.ft.mustachemods.SwitchableMustacheViewBundle;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.resources.ReaderEndpointsResource;
 import io.dropwizard.Application;
-import io.dropwizard.assets.AssetsBundle;
+
 import io.dropwizard.servlets.SlowRequestFilter;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -24,8 +23,6 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
 
     @Override
     public void initialize(final Bootstrap bootstrap) {
-        bootstrap.addBundle(new SwitchableMustacheViewBundle());
-        bootstrap.addBundle(new AssetsBundle("/views"));
         bootstrap.addBundle(new AdvancedHealthCheckBundle());
     }
 

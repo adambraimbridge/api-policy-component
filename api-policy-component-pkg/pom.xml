@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>policy-component-service</artifactId>
+            <artifactId>api-policy-component-service</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
@@ -51,7 +51,7 @@
                         <configuration>
                           <artifactItems>
                             <artifactItem>
-                                  <groupId>com.ft.up.apipolicy</groupId>
+                                  <groupId>com.ft.up.apipolicycomponent</groupId>
                                   <artifactId>api-policy-component-service</artifactId>
                                   <version>${project.version}</version>
                                   <type>jar</type>
