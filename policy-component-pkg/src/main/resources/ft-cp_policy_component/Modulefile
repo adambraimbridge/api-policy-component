@@ -1,0 +1,13 @@
+name    'ft-cp_policy_component'
+version '${project.version}'
+source 'UNKNOWN'
+author 'ft'
+license 'UNKNOWN'
+summary 'UNKNOWN'
+description 'UNKNOWN'
+project_page 'UNKNOWN'
+
+## Add dependencies, if any:
+dependency 'ft/common_pp_up', '>=0.0.1'
+dependency 'ft/jdk', '>=0.1.0'
+dependency 'ft/splunk_client', '>=0.1.1'
