@@ -1,4 +1,4 @@
-# Class: cp_policy_component
+# Class: api_policy_component
 # vim: ts=4 sts=4 sw=4 et sr smartindent:
 # This module manages content viewer
 #
@@ -10,10 +10,10 @@
 #
 # Sample Usage:
 #
-class cp_policy_component {
+class api_policy_component {
 
-    $jar_name = 'policy-component-service.jar'
-    $dir_heap_dumps = "/var/log/apps/policy-component-heap-dumps"
+    $jar_name = 'api-policy-component-service.jar'
+    $dir_heap_dumps = "/var/log/apps/api-policy-component-heap-dumps"
 
     class { 'content_platform_nagios::client': }
     class { 'hosts::export': hostname => "$certname" }

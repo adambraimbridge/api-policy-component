@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.ft.up.policycomponent</groupId>
-        <artifactId>policy-component</artifactId>
+        <groupId>com.ft.up.apipolicycomponent</groupId>
+        <artifactId>api-policy-component</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>policy-component-pkg</artifactId>
+    <artifactId>api-policy-component-pkg</artifactId>
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>
     <properties>
@@ -51,12 +51,12 @@
                         <configuration>
                           <artifactItems>
                             <artifactItem>
-                                  <groupId>com.ft.up.policycomponent</groupId>
-                                  <artifactId>policy-component-service</artifactId>
+                                  <groupId>com.ft.up.apipolicy</groupId>
+                                  <artifactId>api-policy-component-service</artifactId>
                                   <version>${project.version}</version>
                                   <type>jar</type>
-                                   <outputDirectory>${project.build.directory}/ft-cp_policy_component/files</outputDirectory>
-                                  <destFileName>policy-component-service.jar</destFileName>
+                                   <outputDirectory>${project.build.directory}/ft-api_policy_component/files</outputDirectory>
+                                  <destFileName>api-policy-component-service.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

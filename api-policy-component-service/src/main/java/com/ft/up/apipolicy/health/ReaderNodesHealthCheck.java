@@ -1,11 +1,11 @@
-package com.ft.up.policycomponent.health;
+package com.ft.up.apipolicy.health;
 
 import com.ft.platform.dropwizard.AdvancedHealthCheck;
 import com.ft.platform.dropwizard.AdvancedResult;
 
-public class HelloworldHealthCheck extends AdvancedHealthCheck {
+public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
-    public HelloworldHealthCheck(final String name) {
+    public ReaderNodesHealthCheck(final String name) {
 
         super(name);
     }

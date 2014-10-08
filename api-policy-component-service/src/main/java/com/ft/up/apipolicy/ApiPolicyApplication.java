@@ -1,11 +1,11 @@
-package com.ft.up.policycomponent;
+package com.ft.up.apipolicy;
 
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.mustachemods.SwitchableMustacheViewBundle;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
-import com.ft.up.policycomponent.configuration.ApplicationConfiguration;
-import com.ft.up.policycomponent.health.HelloworldHealthCheck;
-import com.ft.up.policycomponent.resources.HelloWorldResource;
+import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
+import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
+import com.ft.up.apipolicy.resources.ReaderEndpointsResource;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.servlets.SlowRequestFilter;
@@ -16,10 +16,10 @@ import io.dropwizard.util.Duration;
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
 
-public class PolicyComponentApplication extends Application<ApplicationConfiguration> {
+public class ApiPolicyApplication extends Application<ApplicationConfiguration> {
 
     public static void main(final String[] args) throws Exception {
-        new PolicyComponentApplication().run(args);
+        new ApiPolicyApplication().run(args);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class PolicyComponentApplication extends Application<ApplicationConfigura
     @Override
     public void run(final ApplicationConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
-        environment.jersey().register(new HelloWorldResource());
+        environment.jersey().register(new ReaderEndpointsResource());
 
         environment.servlets().addFilter(
                 "Slow Servlet Filter",
@@ -41,7 +41,7 @@ public class PolicyComponentApplication extends Application<ApplicationConfigura
                 false,
                 configuration.getSlowRequestPattern());
 
-        environment.healthChecks().register("My Health", new HelloworldHealthCheck("replace me"));
+        environment.healthChecks().register("My Health", new ReaderNodesHealthCheck("replace me"));
 
     }
 

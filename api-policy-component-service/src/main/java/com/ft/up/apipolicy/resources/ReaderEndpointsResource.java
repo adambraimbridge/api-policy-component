@@ -1,4 +1,4 @@
-package com.ft.up.policycomponent.resources;
+package com.ft.up.apipolicy.resources;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -7,7 +7,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Path("/")
-public class HelloWorldResource {
+public class ReaderEndpointsResource {
 
     private static final String CHARSET_UTF_8 = ";charset=utf-8";
 

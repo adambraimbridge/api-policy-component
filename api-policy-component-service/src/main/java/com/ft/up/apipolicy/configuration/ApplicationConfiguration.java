@@ -1,4 +1,4 @@
-package com.ft.up.policycomponent.configuration;
+package com.ft.up.apipolicy.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;

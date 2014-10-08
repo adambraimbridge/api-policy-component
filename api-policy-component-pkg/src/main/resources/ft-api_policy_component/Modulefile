@@ -1,4 +1,4 @@
-name    'ft-cp_policy_component'
+name    'ft-api_policy_component'
 version '${project.version}'
 source 'UNKNOWN'
 author 'ft'
