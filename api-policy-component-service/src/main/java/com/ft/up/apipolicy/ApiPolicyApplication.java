@@ -40,6 +40,8 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
 
         environment.healthChecks().register("My Health", new ReaderNodesHealthCheck("replace me"));
 
+
+
     }
 
 }

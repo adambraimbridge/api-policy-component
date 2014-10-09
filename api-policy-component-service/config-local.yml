@@ -5,11 +5,11 @@ server:
 
   applicationConnectors:
     - type: http
-      port: 8080
+      port: 20080
 
   adminConnectors:
       - type: http
-        port: 8082
+        port: 20082
 
   requestLog:
 
