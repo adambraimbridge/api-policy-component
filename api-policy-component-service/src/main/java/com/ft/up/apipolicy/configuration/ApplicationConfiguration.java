@@ -12,6 +12,7 @@ public class ApplicationConfiguration extends Configuration {
     @NotNull
     @JsonProperty
     private long slowRequestTimeout;
+
     @NotNull
     @JsonProperty
     private String slowRequestPattern;

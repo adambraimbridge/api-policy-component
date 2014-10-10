@@ -66,6 +66,12 @@
         <artifactId>resilient-jersey-wrapper</artifactId>
         <version>0.2.52</version>
       </dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.1.1</version>
+        <scope>runtime</scope>
+      </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -136,24 +142,6 @@
                         <phase>package</phase>
                         <goals>
                             <goal>jxr</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${checkstyle.version}</version>
-                <configuration>
-                    <configLocation>checkstyle/ft_checks.xml</configLocation>
-                    <failOnViolation>true</failOnViolation>
-                    <failsOnError>true</failsOnError>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>checkstyle</goal>
                         </goals>
                     </execution>
                 </executions>

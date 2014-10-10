@@ -14,23 +14,23 @@ public enum KnownEndpoints {
 
     CONTENT("^/content/") {
         @Override
-        public HttpPipeline pipeline(PipelineConfiguration config, RequestForwarder forwarder) {
+        public HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder) {
             return new HttpPipeline(forwarder, new WebUrlCalculator(config.getWebUrlTemplates()));
         }
     },
     NOTIFICATIONS("^/content/notifications") {
         @Override
-        public HttpPipeline pipeline(PipelineConfiguration config, RequestForwarder forwarder) {
+        public HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder) {
             return new HttpPipeline(forwarder);
         }
     };
 
     private final String uriRegex;
 
-    KnownEndpoints(String uriRegex) {
+    KnownEndpoints(final String uriRegex) {
         this.uriRegex = uriRegex;
     }
 
-    public abstract HttpPipeline pipeline(PipelineConfiguration config,RequestForwarder forwarder);
+    public abstract HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder);
 
 }

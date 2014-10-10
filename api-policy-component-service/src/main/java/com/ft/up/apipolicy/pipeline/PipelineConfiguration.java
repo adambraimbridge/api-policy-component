@@ -8,6 +8,7 @@ import java.util.Map;
  * @author Simon.Gibbs
  */
 public class PipelineConfiguration {
+
     private Map<String, String> webUrlTemplates;
 
     public Map<String, String> getWebUrlTemplates() {

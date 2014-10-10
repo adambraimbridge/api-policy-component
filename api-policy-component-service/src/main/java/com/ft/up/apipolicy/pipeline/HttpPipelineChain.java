@@ -10,17 +10,16 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HttpPipelineChain {
 
-    private HttpPipeline pipeline;
-    int pointer =0;
+    private final HttpPipeline pipeline;
+    private int pointer = 0;
 
-    HttpPipelineChain(HttpPipeline pipeline) {
-
+    HttpPipelineChain(final HttpPipeline pipeline) {
         this.pipeline = pipeline;
     }
 
-    public void callNextFilter(HttpServletRequest request, HttpServletResponse response) {
+    public void callNextFilter(final HttpServletRequest request, final HttpServletResponse response) {
         ApiFilter nextFilter = pipeline.getFilter(pointer++);
-        if(nextFilter==null) {
+        if (nextFilter == null) {
             pipeline.forwardRequest(request, response);
         } else {
            nextFilter.processRequest(request, response, this);

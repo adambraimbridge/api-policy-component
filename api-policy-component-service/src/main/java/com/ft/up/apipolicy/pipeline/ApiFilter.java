@@ -10,6 +10,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface ApiFilter {
 
-    public void processRequest(HttpServletRequest request, HttpServletResponse response, HttpPipelineChain chain);
+    void processRequest(HttpServletRequest request, HttpServletResponse response, HttpPipelineChain chain);
 
 }

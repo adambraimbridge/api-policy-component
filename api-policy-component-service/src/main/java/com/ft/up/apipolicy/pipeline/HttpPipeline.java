@@ -13,19 +13,19 @@ public class HttpPipeline {
     private RequestForwarder forwarder;
     private ApiFilter[] filters;
 
-    public HttpPipeline(RequestForwarder forwarder, ApiFilter... filters) {
+    public HttpPipeline(final RequestForwarder forwarder, final ApiFilter... filters) {
         this.forwarder = forwarder;
         this.filters = filters;
     }
 
-    public ApiFilter getFilter(int pointer) {
-        if(pointer>=filters.length) {
+    public ApiFilter getFilter(final int pointer) {
+        if (pointer >= filters.length) {
             return null;
         }
         return filters[pointer];
     }
 
-    public void forwardRequest(HttpServletRequest request, HttpServletResponse response) {
-        forwarder.forwardRequest(request,response);
+    public void forwardRequest(final HttpServletRequest request, final HttpServletResponse response) {
+        forwarder.forwardRequest(request, response);
     }
 }

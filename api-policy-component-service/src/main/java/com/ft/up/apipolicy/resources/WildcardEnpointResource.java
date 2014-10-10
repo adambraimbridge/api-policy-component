@@ -16,12 +16,12 @@ import javax.ws.rs.core.UriInfo;
 
 
 @Path("/{path:.*}")
-public class ReaderEndpointsResource {
+public class WildcardEnpointResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ReaderEndpointsResource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WildcardEnpointResource.class);
 
     @GET @Consumes(MediaType.WILDCARD) @Produces(MediaType.WILDCARD)
-    public void service(@Context HttpServletRequest request, @Context HttpServletResponse response, @Context UriInfo uriInfo ) {
+    public void service(@Context final HttpServletRequest request, @Context final HttpServletResponse response, @Context final UriInfo uriInfo) {
         LOGGER.info(uriInfo.getRequestUri().toString());
     }
 

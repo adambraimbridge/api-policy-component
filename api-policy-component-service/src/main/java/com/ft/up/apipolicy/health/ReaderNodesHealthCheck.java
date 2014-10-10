@@ -5,16 +5,17 @@ import com.ft.platform.dropwizard.AdvancedHealthCheck;
 import com.ft.platform.dropwizard.AdvancedResult;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import org.apache.http.HttpStatus;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
 public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
-    private EndpointConfiguration endpoint;
-    private Client client;
+    private final EndpointConfiguration endpoint;
+    private final Client client;
 
-    public ReaderNodesHealthCheck(final String name, EndpointConfiguration endpoint, Client client) {
+    public ReaderNodesHealthCheck(final String name, final EndpointConfiguration endpoint, final Client client) {
         super(name);
         this.endpoint = endpoint;
         this.client = client;
@@ -33,17 +34,17 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
         ClientResponse response = null;
         try {
             // resilient client provides "works at least once" semantics.
-            response = client.resource(healthcheckUri).header("Cache-Control","max-age=0").get(ClientResponse.class);
+            response = client.resource(healthcheckUri).header("Cache-Control", "max-age=0").get(ClientResponse.class);
 
-            if (response.getStatus()==200) {
+            if (response.getStatus() == HttpStatus.SC_OK) {
                 return AdvancedResult.healthy("All is ok");
             }
 
-            return AdvancedResult.error(this, "Unexpected response status: " + response.getStatus() );
+            return AdvancedResult.error(this, "Unexpected response status: " + response.getStatus());
         } catch (Exception e) {
-            return AdvancedResult.error(this, "Could not connect",e);
+            return AdvancedResult.error(this, "Could not connect", e);
         } finally {
-            if(response!=null) {
+            if (response != null) {
                 response.close();
             }
         }

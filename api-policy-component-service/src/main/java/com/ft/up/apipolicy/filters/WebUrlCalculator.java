@@ -14,16 +14,14 @@ import java.util.Map;
  */
 public class WebUrlCalculator implements ApiFilter {
 
-    private Map<String, String> urlTemplates;
+    private final Map<String, String> urlTemplates;
 
-    public WebUrlCalculator(Map<String, String> urlTemplates) {
+    public WebUrlCalculator(final Map<String, String> urlTemplates) {
         this.urlTemplates = urlTemplates;
     }
 
     @Override
-    public void processRequest(HttpServletRequest request, HttpServletResponse response, HttpPipelineChain chain) {
-
+    public void processRequest(final HttpServletRequest request, final HttpServletResponse response, final HttpPipelineChain chain) {
         chain.callNextFilter(request, response);
-
     }
 }

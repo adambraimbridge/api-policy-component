@@ -5,7 +5,7 @@ import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
-import com.ft.up.apipolicy.resources.ReaderEndpointsResource;
+import com.ft.up.apipolicy.resources.WildcardEnpointResource;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
 
@@ -31,7 +31,7 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
     @Override
     public void run(final ApplicationConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
-        environment.jersey().register(new ReaderEndpointsResource());
+        environment.jersey().register(new WildcardEnpointResource());
 
         environment.servlets().addFilter(
                 "Slow Servlet Filter",
@@ -45,7 +45,7 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
 
         environment.healthChecks()
                 .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity",configuration.getVarnish(),client));
+                        new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
 
 
 
