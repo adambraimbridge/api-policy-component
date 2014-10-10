@@ -1,10 +1,12 @@
 package com.ft.up.apipolicy;
 
 import com.ft.api.util.buildinfo.BuildInfoResource;
+import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.resources.ReaderEndpointsResource;
+import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
 
 import io.dropwizard.servlets.SlowRequestFilter;
@@ -38,7 +40,12 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
                 false,
                 configuration.getSlowRequestPattern());
 
-        environment.healthChecks().register("My Health", new ReaderNodesHealthCheck("replace me"));
+        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
+
+
+        environment.healthChecks()
+                .register("Reader API Connectivity",
+                        new ReaderNodesHealthCheck("Reader API Connectivity",configuration.getVarnish(),client));
 
 
 

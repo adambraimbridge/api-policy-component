@@ -56,6 +56,16 @@
             <artifactId>jaxrs-build-info-resource</artifactId>
             <version>${jaxrs-build-info-resource.version}</version>
         </dependency>
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-server</artifactId>
+        <version>${jersey-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.ft.resilient-jersey-wrapper</groupId>
+        <artifactId>resilient-jersey-wrapper</artifactId>
+        <version>0.2.52</version>
+      </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -73,11 +83,6 @@
             <artifactId>hamcrest-library</artifactId>
             <version>1.2</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-            <version>${jersey-version}</version>
         </dependency>
     </dependencies>
 

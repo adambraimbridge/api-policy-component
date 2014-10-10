@@ -1,3 +1,13 @@
+
+varnish:
+  shortName: "semanticReaderVarnish"
+  path: content/
+  jerseyClient:
+      timeout: 2000ms
+  primaryNodes: ["localhost:9090:9091"]
+  secondaryNodes: null
+
+
 slowRequestPattern: '*.html'
 slowRequestTimeout: 1000  #1 second
 
