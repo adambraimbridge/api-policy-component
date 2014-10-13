@@ -31,6 +31,10 @@ public enum KnownEndpoints {
         this.uriRegex = uriRegex;
     }
 
+    public String getUriRegex() {
+        return uriRegex;
+    }
+
     public abstract HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder);
 
 }

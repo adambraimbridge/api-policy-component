@@ -1,8 +1,5 @@
 package com.ft.up.apipolicy.pipeline;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * ApiFilter
  *
@@ -10,6 +7,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface ApiFilter {
 
-    void processRequest(HttpServletRequest request, HttpServletResponse response, HttpPipelineChain chain);
+    MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain);
 
 }

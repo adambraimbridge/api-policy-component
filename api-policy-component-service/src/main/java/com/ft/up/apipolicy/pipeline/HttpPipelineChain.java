@@ -1,7 +1,5 @@
 package com.ft.up.apipolicy.pipeline;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * HttpPipelineChain
@@ -13,16 +11,16 @@ public class HttpPipelineChain {
     private final HttpPipeline pipeline;
     private int pointer = 0;
 
-    HttpPipelineChain(final HttpPipeline pipeline) {
+    public HttpPipelineChain(final HttpPipeline pipeline) {
         this.pipeline = pipeline;
     }
 
-    public void callNextFilter(final HttpServletRequest request, final HttpServletResponse response) {
+    public MutableResponse callNextFilter(final MutableRequest request) {
         ApiFilter nextFilter = pipeline.getFilter(pointer++);
         if (nextFilter == null) {
-            pipeline.forwardRequest(request, response);
+            return pipeline.forwardRequest(request);
         } else {
-           nextFilter.processRequest(request, response, this);
+            return nextFilter.processRequest(request, this);
         }
     }
 }

@@ -64,7 +64,7 @@
       <dependency>
         <groupId>com.ft.resilient-jersey-wrapper</groupId>
         <artifactId>resilient-jersey-wrapper</artifactId>
-        <version>0.2.52</version>
+        <version>0.2.53</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>

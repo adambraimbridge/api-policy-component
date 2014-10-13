@@ -25,7 +25,7 @@ public class HttpPipeline {
         return filters[pointer];
     }
 
-    public void forwardRequest(final HttpServletRequest request, final HttpServletResponse response) {
-        forwarder.forwardRequest(request, response);
+    public MutableResponse forwardRequest(final MutableRequest request) {
+        return forwarder.forwardRequest(request);
     }
 }

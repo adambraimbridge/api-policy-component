@@ -1,8 +1,5 @@
 package com.ft.up.apipolicy.pipeline;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * DummyFilter
  *
@@ -10,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class DummyFilter implements ApiFilter {
     @Override
-    public void processRequest(HttpServletRequest request, HttpServletResponse response, HttpPipelineChain chain) {
-        chain.callNextFilter(request, response);
+    public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
+        return chain.callNextFilter(request);
     }
 }

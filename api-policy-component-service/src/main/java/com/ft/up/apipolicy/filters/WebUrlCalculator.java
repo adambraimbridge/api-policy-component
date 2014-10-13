@@ -2,9 +2,9 @@ package com.ft.up.apipolicy.filters;
 
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
+import com.ft.up.apipolicy.pipeline.MutableRequest;
+import com.ft.up.apipolicy.pipeline.MutableResponse;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 /**
@@ -21,7 +21,15 @@ public class WebUrlCalculator implements ApiFilter {
     }
 
     @Override
-    public void processRequest(final HttpServletRequest request, final HttpServletResponse response, final HttpPipelineChain chain) {
-        chain.callNextFilter(request, response);
+    public MutableResponse processRequest(final MutableRequest request, final HttpPipelineChain chain) {
+
+
+
+        MutableResponse response = chain.callNextFilter(request);
+
+
+
+        return response;
+
     }
 }
