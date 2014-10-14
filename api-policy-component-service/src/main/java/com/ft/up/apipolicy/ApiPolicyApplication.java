@@ -4,8 +4,12 @@ import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
+import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
+import com.ft.up.apipolicy.pipeline.RequestForwarder;
+import com.ft.up.apipolicy.resources.KnownEndpoint;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
@@ -17,6 +21,8 @@ import io.dropwizard.util.Duration;
 
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ApiPolicyApplication extends Application<ApplicationConfiguration> {
 
@@ -32,7 +38,14 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
     @Override
     public void run(final ApplicationConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
-        environment.jersey().register(new WildcardEndpointResource(configuration.getPipelineConfiguration(), null, new MutableHttpTranslator()));
+
+		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
+		RequestForwarder requestForwarder = null;
+		knownEndpoints.add(new KnownEndpoint("^/content/.*",
+				new HttpPipeline(requestForwarder, new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates()))));
+		knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
+				new HttpPipeline(requestForwarder)));
+        environment.jersey().register(new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints));
 
         environment.servlets().addFilter(
                 "Slow Servlet Filter",

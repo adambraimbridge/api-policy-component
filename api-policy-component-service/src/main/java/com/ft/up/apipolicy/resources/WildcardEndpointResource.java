@@ -6,9 +6,6 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.ft.up.apipolicy.pipeline.PipelineConfiguration;
-import com.ft.up.apipolicy.pipeline.RequestForwarder;
-import com.sun.jersey.api.client.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +18,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 
@@ -32,16 +28,12 @@ public class WildcardEndpointResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WildcardEndpointResource.class);
 
-    Map<KnownEndpoints, HttpPipeline> pipelines;
+    private SortedSet<KnownEndpoint> knownEndpoints;
     private MutableHttpTranslator translator;
 
-    public WildcardEndpointResource(PipelineConfiguration config, RequestForwarder forwarder, MutableHttpTranslator translator) {
+    public WildcardEndpointResource(MutableHttpTranslator translator, SortedSet<KnownEndpoint> knownEndpoints) {
         this.translator = translator;
-        pipelines = new HashMap<>();
-
-        for(KnownEndpoints endpoint : KnownEndpoints.values()) {
-            pipelines.put(endpoint,endpoint.pipeline(config, forwarder));
-        }
+		this.knownEndpoints = knownEndpoints;
     }
 
     @GET @Consumes(MediaType.WILDCARD) @Produces(MediaType.WILDCARD)
@@ -49,16 +41,15 @@ public class WildcardEndpointResource {
 
         MutableRequest mutableRequest = translator.translateFrom(request);
 
-        for(KnownEndpoints candidate : pipelines.keySet()) {
-            if(Pattern.matches(candidate.getUriRegex(),uriInfo.getAbsolutePath().toString())) {
+        for(KnownEndpoint candidate : knownEndpoints) {
+            if(Pattern.matches(candidate.getUriRegex(), uriInfo.getAbsolutePath().toString())) {
 
-                LOGGER.debug("Matched request to pipeline=" + candidate.name());
+                LOGGER.debug("Matched request to pipeline=" + candidate);
 
-                HttpPipelineChain chain = new HttpPipelineChain(pipelines.get(candidate));
+                HttpPipelineChain chain = new HttpPipelineChain(candidate.getPipeline());
                 MutableResponse clientResponse = chain.callNextFilter(mutableRequest);
 
                 translator.writeMutableResponseIntoActualResponse(clientResponse, response);
-
 
                 break; //  STOP! Cannot use more than one pipeline.
             }
