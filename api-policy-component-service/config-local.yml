@@ -7,6 +7,12 @@ varnish:
   primaryNodes: ["localhost:9090:9091"]
   secondaryNodes: null
 
+pipeline:
+  webUrlTemplates:
+    "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/2/{{originatingIdentifier}}.html"
+    "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft/{{originatingIdentifier}}"
+
+
 
 slowRequestPattern: '*.html'
 slowRequestTimeout: 1000  #1 second

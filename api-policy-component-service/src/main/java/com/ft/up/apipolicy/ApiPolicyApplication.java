@@ -5,7 +5,8 @@ import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
-import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
+import com.ft.up.apipolicy.pipeline.MutableHttpToServletsHttpTranslator;
+import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
@@ -31,8 +32,17 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
 
     @Override
     public void run(final ApplicationConfiguration configuration, final Environment environment) throws Exception {
-        environment.jersey().register(new BuildInfoResource());
-        environment.jersey().register(new WildcardEndpointResource(configuration.getPipelineConfiguration(), null, new MutableHttpTranslator()));
+
+        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
+
+        RequestForwarder requestForwarder = new JerseyRequestForwarder(client, configuration.getVarnish());
+
+        environment.jersey().register(
+                new WildcardEndpointResource(configuration.getPipelineConfiguration(),
+                    requestForwarder,
+                    new MutableHttpToServletsHttpTranslator(),
+                    environment.getObjectMapper())
+                );
 
         environment.servlets().addFilter(
                 "Slow Servlet Filter",
@@ -41,9 +51,9 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
                 false,
                 configuration.getSlowRequestPattern());
 
-        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
 
 
+        environment.jersey().register(new BuildInfoResource());
         environment.healthChecks()
                 .register("Reader API Connectivity",
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));

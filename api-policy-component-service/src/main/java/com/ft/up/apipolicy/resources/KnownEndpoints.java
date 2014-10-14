@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy.resources;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.PipelineConfiguration;
@@ -14,13 +15,13 @@ public enum KnownEndpoints {
 
     CONTENT("^/content/") {
         @Override
-        public HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder) {
-            return new HttpPipeline(forwarder, new WebUrlCalculator(config.getWebUrlTemplates()));
+        public HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder, ObjectMapper objectMapper) {
+            return new HttpPipeline(forwarder, new WebUrlCalculator(config.getWebUrlTemplates(), objectMapper));
         }
     },
     NOTIFICATIONS("^/content/notifications") {
         @Override
-        public HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder) {
+        public HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder, ObjectMapper objectMapper) {
             return new HttpPipeline(forwarder);
         }
     };
@@ -35,6 +36,6 @@ public enum KnownEndpoints {
         return uriRegex;
     }
 
-    public abstract HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder);
+    public abstract HttpPipeline pipeline(final PipelineConfiguration config, final RequestForwarder forwarder, ObjectMapper objectMapper);
 
 }

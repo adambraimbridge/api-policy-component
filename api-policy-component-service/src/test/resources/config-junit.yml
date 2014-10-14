@@ -1,0 +1,49 @@
+
+varnish:
+  shortName: "semanticReaderVarnish"
+  path: content/
+  jerseyClient:
+      timeout: 2000ms
+  primaryNodes: ["localhost:9090:9091"]
+  secondaryNodes: null
+
+
+pipeline:
+  webUrlTemplates:
+    ftcom: http://www.ft.com/cms/s/2/{{uuid}}.html
+
+
+slowRequestPattern: '*.html'
+slowRequestTimeout: 1000  #1 second
+
+server:
+
+  applicationConnectors:
+    - type: http
+      port: 20080
+
+  adminConnectors:
+      - type: http
+        port: 20082
+
+  requestLog:
+
+    appenders:
+
+      - type: console
+
+        # The timezone used to format dates. HINT: USE THE DEFAULT, UTC.
+        timeZone: UTC
+
+
+logging:
+
+  level: INFO
+
+  loggers:
+    io.dropwizard: DEBUG
+
+  appenders:
+
+    - type: console
+

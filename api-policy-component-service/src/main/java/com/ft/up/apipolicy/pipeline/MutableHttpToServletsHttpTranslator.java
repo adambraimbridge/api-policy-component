@@ -5,20 +5,22 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpUtils;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * MutableHttpTranslator
+ * MutableHttpToServletsHttpTranslator
  *
  * @author Simon.Gibbs
  */
-public class MutableHttpTranslator {
+public class MutableHttpToServletsHttpTranslator {
 
 
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList("Host","Connection","Accept-Encoding","Content-Length","Transfer-Encoding"));
@@ -44,7 +46,19 @@ public class MutableHttpTranslator {
             }
         }
 
-        return new MutableRequest(headers);
+        MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl();
+        for(String queryParam : realRequest.getParameterMap().keySet()) {
+            queryParameters.put(queryParam, Arrays.asList(realRequest.getParameterMap().get(queryParam)));
+        }
+
+        String absolutePath = URI.create(realRequest.getRequestURL().toString()).getPath();
+
+        MutableRequest request = new MutableRequest();
+        request.setAbsolutePath(absolutePath);
+        request.setQueryParameters(queryParameters);
+        request.setHeaders(headers);
+
+        return request;
     }
 
     public void writeMutableResponseIntoActualResponse(MutableResponse mutableResponse, HttpServletResponse actualResponse) {

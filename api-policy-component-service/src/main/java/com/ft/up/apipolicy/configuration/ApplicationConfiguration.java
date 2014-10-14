@@ -21,6 +21,9 @@ public class ApplicationConfiguration extends Configuration {
     @NotNull
     @JsonProperty @Valid
     private EndpointConfiguration varnish;
+
+    @NotNull
+    @JsonProperty("pipeline") @Valid
     private PipelineConfiguration pipelineConfiguration;
 
     public long getSlowRequestTimeout() {

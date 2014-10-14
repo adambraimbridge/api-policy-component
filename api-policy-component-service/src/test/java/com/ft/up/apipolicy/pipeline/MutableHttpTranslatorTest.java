@@ -15,9 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MultivaluedMap;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Vector;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -84,7 +82,7 @@ public class MutableHttpTranslatorTest {
 
         when(request.getHeaderNames()).thenReturn(headersPresent.elements());
 
-        MutableHttpTranslator translator = new MutableHttpTranslator();
+        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
 
         MutableRequest result = translator.translateFrom(request);
 
@@ -106,7 +104,7 @@ public class MutableHttpTranslatorTest {
 
         when(request.getHeaderNames()).thenReturn(headersPresent.elements());
 
-        MutableHttpTranslator translator = new MutableHttpTranslator();
+        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
 
         MutableRequest result = translator.translateFrom(request);
 
@@ -129,7 +127,7 @@ public class MutableHttpTranslatorTest {
 
         MutableResponse inputResponse = new MutableResponse(headersPresent,"hello".getBytes(Charsets.UTF_8));
 
-        MutableHttpTranslator translator = new MutableHttpTranslator();
+        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
 
         translator.writeMutableResponseIntoActualResponse(inputResponse,response);
 
@@ -149,7 +147,7 @@ public class MutableHttpTranslatorTest {
         MutableResponse inputResponse = new MutableResponse(headersPresent,"hello".getBytes(Charsets.UTF_8));
 
 
-        MutableHttpTranslator translator = new MutableHttpTranslator();
+        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
 
         translator.writeMutableResponseIntoActualResponse(inputResponse,response);
 
