@@ -3,7 +3,6 @@ package com.ft.up.apipolicy.pipeline;
 import com.google.common.base.Charsets;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -11,13 +10,10 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import java.io.IOException;
 import java.util.Vector;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -68,7 +64,7 @@ public class MutableHttpTranslatorTest {
 
         when(request.getHeaderNames()).thenReturn(headersPresent.elements());
 
-        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
+        MutableHttpTranslator translator = new MutableHttpTranslator();
 
         MutableRequest result = translator.translateFrom(request);
 
@@ -90,7 +86,7 @@ public class MutableHttpTranslatorTest {
 
         when(request.getHeaderNames()).thenReturn(headersPresent.elements());
 
-        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
+        MutableHttpTranslator translator = new MutableHttpTranslator();
 
         MutableRequest result = translator.translateFrom(request);
 
@@ -113,9 +109,9 @@ public class MutableHttpTranslatorTest {
 
         MutableResponse inputResponse = new MutableResponse(headersPresent,"hello".getBytes(Charsets.UTF_8));
 
-        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
+        MutableHttpTranslator translator = new MutableHttpTranslator();
 
-        Response response =  translator.writeMutableResponseIntoActualResponse(inputResponse);
+        Response response =  translator.translateTo(inputResponse);
 
         assertThat((String) response.getMetadata().getFirst("Foo"), is("01"));
         assertThat((String) response.getMetadata().getFirst("Bar"), is("02"));
@@ -133,9 +129,9 @@ public class MutableHttpTranslatorTest {
         MutableResponse inputResponse = new MutableResponse(headersPresent,"hello".getBytes(Charsets.UTF_8));
 
 
-        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
+        MutableHttpTranslator translator = new MutableHttpTranslator();
 
-        Response response = translator.writeMutableResponseIntoActualResponse(inputResponse);
+        Response response = translator.translateTo(inputResponse);
 
         assertThat((String)response.getMetadata().getFirst("Foo"),is("01"));
         assertThat((String) response.getMetadata().getFirst("Bar"), is("02"));
@@ -147,7 +143,7 @@ public class MutableHttpTranslatorTest {
 
     @Test
     public void shouldRecordPathElementOfOriginalURI() {
-        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
+        MutableHttpTranslator translator = new MutableHttpTranslator();
 
         MutableRequest result = translator.translateFrom(request);
 

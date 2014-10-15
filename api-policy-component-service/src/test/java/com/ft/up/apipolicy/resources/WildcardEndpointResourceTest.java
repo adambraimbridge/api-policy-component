@@ -3,7 +3,7 @@ package com.ft.up.apipolicy.resources;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
-import com.ft.up.apipolicy.pipeline.MutableHttpToServletsHttpTranslator;
+import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
@@ -12,7 +12,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.UriInfo;
@@ -56,7 +55,7 @@ public class WildcardEndpointResourceTest {
 		knownEndpoints.add(new KnownEndpoint("^/content/.*", contentPipeline));
 		notificationsPipeline = spy(new HttpPipeline(requestForwarder));
 		knownEndpoints.add(new KnownEndpoint("^/content/notifications.*", notificationsPipeline));
-		wildcardEndpointResource = new WildcardEndpointResource(new MutableHttpToServletsHttpTranslator(), knownEndpoints);
+		wildcardEndpointResource = new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints);
 
 		request = mock(HttpServletRequest.class);
 		when(request.getHeaderNames()).thenReturn(Collections.<String>emptyEnumeration());

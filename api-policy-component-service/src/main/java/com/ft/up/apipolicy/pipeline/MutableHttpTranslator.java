@@ -1,8 +1,6 @@
 package com.ft.up.apipolicy.pipeline;
 
-import com.ft.up.apipolicy.resources.FailedToWriteToResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,8 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -19,14 +15,14 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * MutableHttpToServletsHttpTranslator
+ * MutableHttpTranslator
  *
  * @author Simon.Gibbs
  */
-public class MutableHttpToServletsHttpTranslator {
+public class MutableHttpTranslator {
 
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MutableHttpToServletsHttpTranslator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MutableHttpTranslator.class);
 
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList("Host","Connection","Accept-Encoding","Content-Length","Transfer-Encoding"));
 
@@ -70,7 +66,7 @@ public class MutableHttpToServletsHttpTranslator {
         return request;
     }
 
-    public Response writeMutableResponseIntoActualResponse(MutableResponse mutableResponse) {
+    public Response translateTo(MutableResponse mutableResponse) {
 
         Response.ResponseBuilder responseBuilder = Response.status(mutableResponse.getStatus());
 

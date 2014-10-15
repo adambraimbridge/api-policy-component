@@ -2,14 +2,13 @@ package com.ft.up.apipolicy.resources;
 
 
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
-import com.ft.up.apipolicy.pipeline.MutableHttpToServletsHttpTranslator;
+import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -29,9 +28,9 @@ public class WildcardEndpointResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(WildcardEndpointResource.class);
 
     private SortedSet<KnownEndpoint> knownEndpoints;
-    private MutableHttpToServletsHttpTranslator translator;
+    private MutableHttpTranslator translator;
 
-    public WildcardEndpointResource(MutableHttpToServletsHttpTranslator translator, SortedSet<KnownEndpoint> knownEndpoints) {
+    public WildcardEndpointResource(MutableHttpTranslator translator, SortedSet<KnownEndpoint> knownEndpoints) {
         this.translator = translator;
 		this.knownEndpoints = knownEndpoints;
     }
@@ -55,7 +54,7 @@ public class WildcardEndpointResource {
                 HttpPipelineChain chain = new HttpPipelineChain(candidate.getPipeline());
                 MutableResponse clientResponse = chain.callNextFilter(mutableRequest);
 
-                return translator.writeMutableResponseIntoActualResponse(clientResponse);
+                return translator.translateTo(clientResponse);
             }
         }
 

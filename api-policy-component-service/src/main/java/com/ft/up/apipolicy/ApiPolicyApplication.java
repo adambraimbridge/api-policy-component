@@ -7,10 +7,9 @@ import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.KnownEndpoint;
-import com.ft.up.apipolicy.pipeline.MutableHttpToServletsHttpTranslator;
-import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
@@ -57,7 +56,7 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
         knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));
 
 
-        environment.jersey().register(new WildcardEndpointResource(new MutableHttpToServletsHttpTranslator(), knownEndpoints));
+        environment.jersey().register(new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints));
 
         environment.servlets().addFilter(
                 "Slow Servlet Filter",
