@@ -25,11 +25,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -38,7 +34,6 @@ import static org.mockito.Mockito.when;
  * @author Simon.Gibbs
  */
 @RunWith(MockitoJUnitRunner.class)
-@Ignore("Simon will fix it.")
 public class MutableHttpTranslatorTest {
 
     @Mock

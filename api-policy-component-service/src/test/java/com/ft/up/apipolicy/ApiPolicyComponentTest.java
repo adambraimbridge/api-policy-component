@@ -31,7 +31,6 @@ import static org.junit.Assume.assumeThat;
  *
  * @author Simon.Gibbs
  */
-@Ignore("Simon will fix it.")
 public class ApiPolicyComponentTest {
 
     public static final String EXAMPLE_PATH = "/example";
