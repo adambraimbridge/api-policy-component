@@ -1,6 +1,5 @@
 package com.ft.up.apipolicy;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
@@ -19,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
@@ -42,7 +40,7 @@ public class ApiPolicyComponentTest {
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
 
     @Rule
-    public DropwizardAppRule<ApplicationConfiguration> ingester = new DropwizardAppRule<>(
+    public DropwizardAppRule<ApplicationConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
             resourceFilePath("config-junit.yml"),
             config("varnish.primaryNodes",
@@ -68,8 +66,8 @@ public class ApiPolicyComponentTest {
 
     @Before
     public void setup() {
-        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON)));
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)));
+        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON).withStatus(200)));
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withStatus(200)));
 
         this.client = Client.create();
 
@@ -79,9 +77,12 @@ public class ApiPolicyComponentTest {
 
     @Test
     public void assumingWeCanGetAnArbitraryExample() {
-        URI uri  = fromWiremock(EXAMPLE_PATH);
+        URI uri  = fromFacade(EXAMPLE_PATH);
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+
         try {
             assumeThat(response.getStatus(), is(200));
             assumeThat(response.getEntity(String.class), is(EXAMPLE_JSON));
@@ -93,7 +94,7 @@ public class ApiPolicyComponentTest {
 
     @Test
     public void shouldGetTheContentWithExtraWebUrlField() throws IOException {
-        URI uri  = fromWiremock(CONTENT_PATH);
+        URI uri  = fromFacade(CONTENT_PATH);
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
@@ -116,8 +117,8 @@ public class ApiPolicyComponentTest {
         return new TypeReference<HashMap<String,Object>>() {};
     }
 
-    private URI fromWiremock(String path) {
-        return UriBuilder.fromPath(path).host("localhost").port(wireMockForVarnish.port()).scheme("http").build();
+    private URI fromFacade(String path) {
+        return UriBuilder.fromPath(path).host("localhost").port(policyComponent.getLocalPort()).scheme("http").build();
     }
 
 

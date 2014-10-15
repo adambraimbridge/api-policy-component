@@ -53,7 +53,7 @@ public class WebUrlCalculator implements ApiFilter {
 
         String webUrl = template.replace("{{originatingIdentifier}}",originatingIdentifier);
 
-        contentOrigin.put("webUrl",webUrl);
+        content.put("webUrl",webUrl);
 
         try {
             response.setEntity(objectMapper.writeValueAsBytes(content));

@@ -40,14 +40,22 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
     public void run(final ApplicationConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
 
-		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
-		RequestForwarder requestForwarder = null;
+        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
 
+
+
+		RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
+
+        SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
 				new HttpPipeline(requestForwarder, new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),environment.getObjectMapper()))));
 
         knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
-				new HttpPipeline(requestForwarder)));
+                new HttpPipeline(requestForwarder)));
+
+        // DEFAULT CASE: Just forward it
+        knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));
+
 
         environment.jersey().register(new WildcardEndpointResource(new MutableHttpToServletsHttpTranslator(), knownEndpoints));
 
@@ -58,7 +66,7 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
                 false,
                 configuration.getSlowRequestPattern());
 
-        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
+
 
 
         environment.healthChecks()

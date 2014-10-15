@@ -12,6 +12,7 @@ import javax.ws.rs.core.MultivaluedMap;
 public class MutableResponse {
     private byte[] entity;
     private MultivaluedMap<String, String> headers;
+    private int status;
 
     public MutableResponse() {
         headers = new MultivaluedMapImpl();
@@ -36,5 +37,13 @@ public class MutableResponse {
 
     public void setHeaders(MultivaluedMap<String, String> headers) {
         this.headers = headers;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }

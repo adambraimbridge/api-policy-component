@@ -16,8 +16,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.SortedSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -35,24 +37,29 @@ public class WildcardEndpointResource {
     }
 
     @GET @Consumes(MediaType.WILDCARD) @Produces(MediaType.WILDCARD)
-    public void service(@Context final HttpServletRequest request, @Context final HttpServletResponse response, @Context final UriInfo uriInfo) {
+    public Response service(@Context final HttpServletRequest request, @Context final UriInfo uriInfo) {
 
         MutableRequest mutableRequest = translator.translateFrom(request);
 
         for(KnownEndpoint candidate : knownEndpoints) {
-            if(Pattern.matches(candidate.getUriRegex(), uriInfo.getAbsolutePath().toString())) {
+
+            Pattern compiledUriRegex = candidate.getUriPattern();
+
+            String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath();
+            Matcher matcher = compiledUriRegex.matcher(pathPart);
+
+            if(matcher.find()) {
 
                 LOGGER.debug("Matched request to pipeline=" + candidate);
 
                 HttpPipelineChain chain = new HttpPipelineChain(candidate.getPipeline());
                 MutableResponse clientResponse = chain.callNextFilter(mutableRequest);
 
-                translator.writeMutableResponseIntoActualResponse(clientResponse, response);
-
-                break; //  STOP! Cannot use more than one pipeline.
+                return translator.writeMutableResponseIntoActualResponse(clientResponse);
             }
         }
 
+        return Response.serverError().build();
     }
 
 

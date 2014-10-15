@@ -2,11 +2,14 @@ package com.ft.up.apipolicy.pipeline;
 
 import com.ft.up.apipolicy.resources.FailedToWriteToResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpUtils;
+
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
@@ -23,6 +26,8 @@ import java.util.TreeSet;
 public class MutableHttpToServletsHttpTranslator {
 
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MutableHttpToServletsHttpTranslator.class);
+
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList("Host","Connection","Accept-Encoding","Content-Length","Transfer-Encoding"));
 
 
@@ -32,18 +37,22 @@ public class MutableHttpToServletsHttpTranslator {
         MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
 
         Enumeration<String> headerNames = realRequest.getHeaderNames();
-        while(headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
+        if(headerNames!=null) {
+            while(headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
 
-            if(HEADER_BLACKLIST.contains(headerName)) {
-                continue;
-            }
+                if(HEADER_BLACKLIST.contains(headerName)) {
+                    continue;
+                }
 
-            Enumeration<String> values = realRequest.getHeaders(headerName);
-            while(values.hasMoreElements()) {
-                String value = values.nextElement();
-                headers.add(headerName, value);
+                Enumeration<String> values = realRequest.getHeaders(headerName);
+                while(values.hasMoreElements()) {
+                    String value = values.nextElement();
+                    headers.add(headerName, value);
+                }
             }
+        } else {
+            LOGGER.debug("No headers");
         }
 
         MultivaluedMap<String, String> queryParameters = new MultivaluedMapImpl();
@@ -61,23 +70,22 @@ public class MutableHttpToServletsHttpTranslator {
         return request;
     }
 
-    public void writeMutableResponseIntoActualResponse(MutableResponse mutableResponse, HttpServletResponse actualResponse) {
+    public Response writeMutableResponseIntoActualResponse(MutableResponse mutableResponse) {
+
+        Response.ResponseBuilder responseBuilder = Response.status(mutableResponse.getStatus());
 
         for(String headerName : mutableResponse.getHeaders().keySet()) {
             if(HEADER_BLACKLIST.contains(headerName)) {
                 continue;
             }
             for(String value : mutableResponse.getHeaders().get(headerName)) {
-                actualResponse.addHeader(headerName, value);
+                responseBuilder.header(headerName, value);
             }
         }
 
-        try {
-            OutputStream out = actualResponse.getOutputStream();
-            out.write(mutableResponse.getEntity());
-        } catch (IOException e) {
-            throw new FailedToWriteToResponse();
-        }
+        responseBuilder.entity(mutableResponse.getEntity());
+
+        return responseBuilder.build();
     }
 
 }

@@ -14,6 +14,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 import java.io.IOException;
 import java.util.Vector;
@@ -41,9 +42,6 @@ public class MutableHttpTranslatorTest {
     @Mock
     HttpServletRequest request;
 
-    @Mock
-    HttpServletResponse response;
-
     @Before
     public void setup() {
 
@@ -59,17 +57,8 @@ public class MutableHttpTranslatorTest {
         };
 
         when(request.getHeaders(anyString())).then(answerWithPrefixedName);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://example.com:89999/test"));
 
-        try {
-            when(response.getOutputStream()).thenReturn(new ServletOutputStream() {
-                @Override
-                public void write(int b) throws IOException {
-                    // not written anywhere, instance acts as a byte sink.
-                }
-            });
-        } catch (IOException e) {
-            // should not occur during mock set up
-        }
     }
 
     @Test
@@ -129,11 +118,11 @@ public class MutableHttpTranslatorTest {
 
         MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
 
-        translator.writeMutableResponseIntoActualResponse(inputResponse,response);
+        Response response =  translator.writeMutableResponseIntoActualResponse(inputResponse);
 
-        verify(response).addHeader("Foo","01");
-        verify(response).addHeader("Bar","02");
-        verify(response).addHeader("Baz","03");
+        assertThat((String) response.getMetadata().getFirst("Foo"), is("01"));
+        assertThat((String) response.getMetadata().getFirst("Bar"), is("02"));
+        assertThat((String) response.getMetadata().getFirst("Baz"), is("03"));
 
     }
 
@@ -149,11 +138,24 @@ public class MutableHttpTranslatorTest {
 
         MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
 
-        translator.writeMutableResponseIntoActualResponse(inputResponse,response);
+        Response response = translator.writeMutableResponseIntoActualResponse(inputResponse);
 
-        verify(response).addHeader("Foo","01");
-        verify(response).addHeader("Bar","02");
-        verify(response,never()).addHeader(eq("Host"),anyString());
+        assertThat((String)response.getMetadata().getFirst("Foo"),is("01"));
+        assertThat((String) response.getMetadata().getFirst("Bar"), is("02"));
+
+        assertThat(response.getMetadata().containsKey("Host"),is(false));
+
+    }
+
+
+    @Test
+    public void shouldRecordPathElementOfOriginalURI() {
+        MutableHttpToServletsHttpTranslator translator = new MutableHttpToServletsHttpTranslator();
+
+        MutableRequest result = translator.translateFrom(request);
+
+
+        assertThat(result.getAbsolutePath(),is("/test"));
     }
 
 

@@ -59,13 +59,6 @@ public class WildcardEndpointResourceTest {
 		request = mock(HttpServletRequest.class);
 		when(request.getHeaderNames()).thenReturn(Collections.<String>emptyEnumeration());
 
-		response = mock(HttpServletResponse.class);
-		when(response.getOutputStream()).thenReturn(new ServletOutputStream() {
-			@Override
-			public void write(int i) throws IOException {
-
-			}
-		});
 
 		uriInfo = mock(UriInfo.class);
 	}
@@ -73,7 +66,7 @@ public class WildcardEndpointResourceTest {
 	@Test
 	public void shouldUseNotificationsPipelineWhenNotificationsUrlPassed() throws URISyntaxException {
 		when(uriInfo.getAbsolutePath()).thenReturn(new URI("/content/notifications"));
-		wildcardEndpointResource.service(request, response, uriInfo);
+		wildcardEndpointResource.service(request, uriInfo);
 		verify(contentPipeline, never()).forwardRequest(any(MutableRequest.class));
 		verify(notificationsPipeline, times(1)).forwardRequest(any(MutableRequest.class));
 	}
@@ -81,7 +74,7 @@ public class WildcardEndpointResourceTest {
 	@Test
 	public void shouldUseContentPipelineWhenContentUrlPassed() throws URISyntaxException {
 		when(uriInfo.getAbsolutePath()).thenReturn(new URI("/content/54307a12-37fa-11e3-8f44-002128161462"));
-		wildcardEndpointResource.service(request, response, uriInfo);
+		wildcardEndpointResource.service(request, uriInfo);
 		verify(contentPipeline, times(1)).forwardRequest(any(MutableRequest.class));
 		verify(notificationsPipeline, never()).forwardRequest(any(MutableRequest.class));
 	}
@@ -89,7 +82,7 @@ public class WildcardEndpointResourceTest {
 	@Test
 	public void shouldNotUseAnyPipelineWhenUnknownUrlPassed() throws URISyntaxException {
 		when(uriInfo.getAbsolutePath()).thenReturn(new URI("/you_ready_folks?"));
-		wildcardEndpointResource.service(request, response, uriInfo);
+		wildcardEndpointResource.service(request, uriInfo);
 		verify(contentPipeline, never()).forwardRequest(any(MutableRequest.class));
 		verify(notificationsPipeline, never()).forwardRequest(any(MutableRequest.class));
 	}

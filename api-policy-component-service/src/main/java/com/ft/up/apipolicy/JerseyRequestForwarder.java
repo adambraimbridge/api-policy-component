@@ -29,7 +29,10 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
     @Override
     public MutableResponse forwardRequest(MutableRequest request) {
-        UriBuilder builder = UriBuilder.fromPath(request.getAbsolutePath()).host(varnish.getHost()).port(varnish.getPort());
+        UriBuilder builder = UriBuilder.fromPath(request.getAbsolutePath())
+                .scheme("http")
+                .host(varnish.getHost())
+                .port(varnish.getPort());
 
         for(String parameterName : request.getQueryParameters().keySet()) {
             builder.queryParam(parameterName,request.getQueryParameters().get(parameterName));
@@ -45,6 +48,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
         try {
             result.setEntity(IOUtils.toByteArray(clientResponse.getEntityInputStream()));
+            result.setStatus(clientResponse.getStatus());
 
         } catch (IOException e) {
             throw new ForwarderException(e);
