@@ -32,6 +32,7 @@ server:
     appenders:
 
       - type: console
+        logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
 
         # The timezone used to format dates. HINT: USE THE DEFAULT, UTC.
         timeZone: UTC
@@ -40,6 +41,7 @@ server:
 
         # The file to which current statements will be logged.
         currentLogFilename: /var/log/apps/policy-component-dw-access.log
+        logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
 
         # When the log file rotates, the archived log will be renamed to this and gzipped. The
         # %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
@@ -62,8 +64,10 @@ logging:
   appenders:
 
     - type: console
+      logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
 
     - type: file
+      logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
       # Do not write log statements below this threshold to the file.
       threshold: ALL
 

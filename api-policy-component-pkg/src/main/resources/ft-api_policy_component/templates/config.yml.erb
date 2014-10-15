@@ -1,3 +1,17 @@
+
+varnish:
+  shortName: "semanticReaderVarnish"
+  path: content/
+  jerseyClient:
+      timeout: 2000ms
+  primaryNodes:  <%=scope.function_hiera('semanticReaderLocalNodes')%>
+  secondaryNodes: <%=scope.function_hiera('semanticReaderRemoteNodes','null')%>
+
+pipeline:
+  webUrlTemplates:
+    "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/2/{{originatingIdentifier}}.html"
+    "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft/{{originatingIdentifier}}"
+
 slowRequestPattern: '*.html'
 slowRequestTimeout: 1000  #1 second
 
@@ -15,6 +29,7 @@ server:
 
     appenders:
       - type: file
+        logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
 
         # The file to which current statements will be logged.
         currentLogFilename: /var/log/apps/policy-component-dw-access.log
@@ -39,6 +54,7 @@ logging:
 
   appenders:
     - type: file
+      logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
       # Do not write log statements below this threshold to the file.
       threshold: ALL
 
