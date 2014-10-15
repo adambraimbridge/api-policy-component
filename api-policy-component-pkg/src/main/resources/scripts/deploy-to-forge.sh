@@ -3,7 +3,7 @@
 export PATH=$PATH:/usr/local/bin:/usr/bin:/usr/sbin:/bin
 
 start_time=`date +%s`
-MODULEFULLPATH="${project.build.directory}/ft-cp_content_viewer"
+MODULEFULLPATH="${project.build.directory}/ft-api_policy_component"
 
 /usr/local/bin/forge-admin.py --publish --source "$MODULEFULLPATH"
 ERROR_CODE=$?
