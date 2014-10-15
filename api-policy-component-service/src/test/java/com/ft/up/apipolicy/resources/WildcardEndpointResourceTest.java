@@ -1,8 +1,9 @@
 package com.ft.up.apipolicy.resources;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
-import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
+import com.ft.up.apipolicy.pipeline.MutableHttpToServletsHttpTranslator;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
@@ -45,12 +46,15 @@ public class WildcardEndpointResourceTest {
 		MutableResponse mutableResponse = new MutableResponse(new MultivaluedMapImpl(), "response".getBytes());
 		when(requestForwarder.forwardRequest(any(MutableRequest.class))).thenReturn(mutableResponse);
 
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
 		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
-		contentPipeline = spy(new HttpPipeline(requestForwarder, new WebUrlCalculator(Collections.<String, String>emptyMap())));
+		contentPipeline = spy(new HttpPipeline(requestForwarder, new WebUrlCalculator(Collections.<String, String>emptyMap(),objectMapper)));
 		knownEndpoints.add(new KnownEndpoint("^/content/.*", contentPipeline));
 		notificationsPipeline = spy(new HttpPipeline(requestForwarder));
 		knownEndpoints.add(new KnownEndpoint("^/content/notifications.*", notificationsPipeline));
-		wildcardEndpointResource = new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints);
+		wildcardEndpointResource = new WildcardEndpointResource(new MutableHttpToServletsHttpTranslator(), knownEndpoints);
 
 		request = mock(HttpServletRequest.class);
 		when(request.getHeaderNames()).thenReturn(Collections.<String>emptyEnumeration());

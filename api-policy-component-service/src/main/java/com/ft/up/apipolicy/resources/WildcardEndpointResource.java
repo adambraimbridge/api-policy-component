@@ -1,9 +1,8 @@
 package com.ft.up.apipolicy.resources;
 
 
-import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
-import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
+import com.ft.up.apipolicy.pipeline.MutableHttpToServletsHttpTranslator;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import org.slf4j.Logger;
@@ -19,7 +18,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 
@@ -29,9 +27,9 @@ public class WildcardEndpointResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(WildcardEndpointResource.class);
 
     private SortedSet<KnownEndpoint> knownEndpoints;
-    private MutableHttpTranslator translator;
+    private MutableHttpToServletsHttpTranslator translator;
 
-    public WildcardEndpointResource(MutableHttpTranslator translator, SortedSet<KnownEndpoint> knownEndpoints) {
+    public WildcardEndpointResource(MutableHttpToServletsHttpTranslator translator, SortedSet<KnownEndpoint> knownEndpoints) {
         this.translator = translator;
 		this.knownEndpoints = knownEndpoints;
     }

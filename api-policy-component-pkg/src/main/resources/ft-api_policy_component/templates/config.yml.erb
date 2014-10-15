@@ -14,12 +14,6 @@ server:
   requestLog:
 
     appenders:
-
-      - type: console
-
-        # The timezone used to format dates. HINT: USE THE DEFAULT, UTC.
-        timeZone: UTC
-
       - type: file
 
         # The file to which current statements will be logged.
@@ -44,9 +38,6 @@ logging:
     io.dropwizard: DEBUG
 
   appenders:
-
-    - type: console
-
     - type: file
       # Do not write log statements below this threshold to the file.
       threshold: ALL

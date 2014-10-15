@@ -42,10 +42,13 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
 
 		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 		RequestForwarder requestForwarder = null;
+
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder, new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates()))));
-		knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
+				new HttpPipeline(requestForwarder, new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),environment.getObjectMapper()))));
+
+        knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
 				new HttpPipeline(requestForwarder)));
+
         environment.jersey().register(new WildcardEndpointResource(new MutableHttpToServletsHttpTranslator(), knownEndpoints));
 
         environment.servlets().addFilter(
