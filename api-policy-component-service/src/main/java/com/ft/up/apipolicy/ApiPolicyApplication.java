@@ -4,7 +4,11 @@ import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
+import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.ft.up.apipolicy.pipeline.RequestForwarder;
+import com.ft.up.apipolicy.resources.KnownEndpoint;
 import com.ft.up.apipolicy.pipeline.MutableHttpToServletsHttpTranslator;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
@@ -18,6 +22,8 @@ import io.dropwizard.util.Duration;
 
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ApiPolicyApplication extends Application<ApplicationConfiguration> {
 
@@ -32,17 +38,15 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
 
     @Override
     public void run(final ApplicationConfiguration configuration, final Environment environment) throws Exception {
+        environment.jersey().register(new BuildInfoResource());
 
-        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
-
-        RequestForwarder requestForwarder = new JerseyRequestForwarder(client, configuration.getVarnish());
-
-        environment.jersey().register(
-                new WildcardEndpointResource(configuration.getPipelineConfiguration(),
-                    requestForwarder,
-                    new MutableHttpToServletsHttpTranslator(),
-                    environment.getObjectMapper())
-                );
+		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
+		RequestForwarder requestForwarder = null;
+		knownEndpoints.add(new KnownEndpoint("^/content/.*",
+				new HttpPipeline(requestForwarder, new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates()))));
+		knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
+				new HttpPipeline(requestForwarder)));
+        environment.jersey().register(new WildcardEndpointResource(new MutableHttpToServletsHttpTranslator(), knownEndpoints));
 
         environment.servlets().addFilter(
                 "Slow Servlet Filter",
@@ -51,9 +55,9 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
                 false,
                 configuration.getSlowRequestPattern());
 
+        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
 
 
-        environment.jersey().register(new BuildInfoResource());
         environment.healthChecks()
                 .register("Reader API Connectivity",
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
