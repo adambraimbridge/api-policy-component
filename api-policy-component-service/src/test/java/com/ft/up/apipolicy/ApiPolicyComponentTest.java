@@ -34,7 +34,8 @@ import static org.junit.Assume.assumeThat;
 public class ApiPolicyComponentTest {
 
     public static final String EXAMPLE_PATH = "/example";
-    private static final int SOME_PORT = 44333;
+    private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
+
     public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
 
     @Rule
