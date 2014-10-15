@@ -1,6 +1,6 @@
 # Class: api_policy_component
 # vim: ts=4 sts=4 sw=4 et sr smartindent:
-# This module manages content viewer
+# This module manages api_policy_component
 #
 # Parameters:
 #
@@ -22,9 +22,9 @@ class api_policy_component {
 
     content_runnablejar { "${module_name}_runnablejar":
         service_name        => "${module_name}",
-        service_description => 'Content Viewer',
+        service_description => 'API Policy Component',
         jar_name            => "${jar_name}",
-        artifact_location   => "${module_name}/$jar_name",
+        artifact_location   => "${module_name}/api-policy-component.jar",
         config_file_content => template("${module_name}/config.yml.erb"),
         status_check_url    => "http://localhost:8081/ping";
     }
