@@ -24,7 +24,7 @@ class api_policy_component {
         service_name        => "${module_name}",
         service_description => 'API Policy Component',
         jar_name            => "${jar_name}",
-        artifact_location   => "${module_name}/api-policy-component.jar",
+        artifact_location   => "${module_name}/${jar_name}",
         config_file_content => template("${module_name}/config.yml.erb"),
         status_check_url    => "http://localhost:8081/ping";
     }
