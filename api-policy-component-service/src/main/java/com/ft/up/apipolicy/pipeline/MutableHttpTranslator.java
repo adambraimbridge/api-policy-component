@@ -63,9 +63,11 @@ public class MutableHttpTranslator {
 
         MultivaluedMap<String, String> queryParameters = new LinkedMultivalueMap();
         Enumeration<String> parameterNames = realRequest.getParameterNames();
-        while(parameterNames.hasMoreElements()) {
-            String queryParam = parameterNames.nextElement();
-            queryParameters.put(queryParam, Arrays.asList(realRequest.getParameterMap().get(queryParam)));
+        if(parameterNames!=null) {
+            while(parameterNames.hasMoreElements()) {
+                String queryParam = parameterNames.nextElement();
+                queryParameters.put(queryParam, Arrays.asList(realRequest.getParameterMap().get(queryParam)));
+            }
         }
 
         String absolutePath = URI.create(realRequest.getRequestURL().toString()).getPath();

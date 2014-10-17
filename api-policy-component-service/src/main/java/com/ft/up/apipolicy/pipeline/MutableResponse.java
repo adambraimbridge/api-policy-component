@@ -1,6 +1,7 @@
 package com.ft.up.apipolicy.pipeline;
 
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -18,11 +19,12 @@ public class MutableResponse {
         headers = new MultivaluedMapImpl();
     }
 
-    public MutableResponse(MultivaluedMap<String,String> headers, byte[] entity) {
+    public MutableResponse(MultivaluedMap<String,String> headers, @SuppressWarnings("EI_EXPOSE_REP2") byte[] entity) {
         this.headers = new MultivaluedMapImpl(headers);
         this.entity = entity;
     }
 
+    @SuppressWarnings("EI_EXPOSE_REP2")
     public byte[] getEntity() {
         return entity;
     }

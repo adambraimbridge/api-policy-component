@@ -10,6 +10,7 @@ import java.util.Map;
  */
 public class PipelineConfiguration {
 
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("UWF_UNWRITTEN_FIELD")
     private Map<String, String> webUrlTemplates;
 
     @NotNull
