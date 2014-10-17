@@ -11,6 +11,8 @@ import javax.ws.rs.core.MultivaluedMap;
  * @author Simon.Gibbs
  */
 public class MutableResponse {
+
+    @SuppressWarnings("EI_EXPOSE_REP2")
     private byte[] entity;
     private MultivaluedMap<String, String> headers;
     private int status;
@@ -19,12 +21,11 @@ public class MutableResponse {
         headers = new MultivaluedMapImpl();
     }
 
-    public MutableResponse(MultivaluedMap<String,String> headers, @SuppressWarnings("EI_EXPOSE_REP2") byte[] entity) {
+    public MutableResponse(MultivaluedMap<String,String> headers,  byte[] entity) {
         this.headers = new MultivaluedMapImpl(headers);
         this.entity = entity;
     }
 
-    @SuppressWarnings("EI_EXPOSE_REP2")
     public byte[] getEntity() {
         return entity;
     }
