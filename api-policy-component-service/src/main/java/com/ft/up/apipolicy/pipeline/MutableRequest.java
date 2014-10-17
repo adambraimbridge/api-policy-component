@@ -1,6 +1,8 @@
 package com.ft.up.apipolicy.pipeline;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * MutableRequest
@@ -13,7 +15,18 @@ public class MutableRequest {
     private MultivaluedMap<String, String> queryParameters;
     private String absolutePath;
 
-    public MutableRequest() {
+    private final Set<String> policies;
+
+    public MutableRequest(final Set<String> policies) {
+        this.policies = Collections.unmodifiableSet(policies);
+    }
+
+    public Set<String> getPolicies() {
+        return policies;
+    }
+
+    public boolean policyIs(String policySymbol) {
+        return policies.contains(policySymbol);
     }
 
     public MultivaluedMap<String,String> getHeaders() {

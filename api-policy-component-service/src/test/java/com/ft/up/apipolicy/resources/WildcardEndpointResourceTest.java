@@ -1,6 +1,7 @@
 package com.ft.up.apipolicy.resources;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
@@ -48,10 +49,10 @@ public class WildcardEndpointResourceTest {
 		when(requestForwarder.forwardRequest(any(MutableRequest.class))).thenReturn(mutableResponse);
 
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        JsonConverter converter = new JsonConverter(new ObjectMapper());
 
 		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
-		contentPipeline = spy(new HttpPipeline(requestForwarder, new WebUrlCalculator(Collections.<String, String>emptyMap(),objectMapper)));
+		contentPipeline = spy(new HttpPipeline(requestForwarder, new WebUrlCalculator(Collections.<String, String>emptyMap(), converter)));
 		knownEndpoints.add(new KnownEndpoint("^/content/.*", contentPipeline));
 		notificationsPipeline = spy(new HttpPipeline(requestForwarder));
 		knownEndpoints.add(new KnownEndpoint("^/content/notifications.*", notificationsPipeline));

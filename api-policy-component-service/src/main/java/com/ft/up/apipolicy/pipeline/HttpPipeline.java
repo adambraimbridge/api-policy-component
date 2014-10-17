@@ -1,14 +1,13 @@
 package com.ft.up.apipolicy.pipeline;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * HttpPipeline
  *
  * @author Simon.Gibbs
  */
 public class HttpPipeline {
+
+    public static final String POLICY_HEADER_NAME = "X-Policy";
 
     private RequestForwarder forwarder;
     private ApiFilter[] filters;

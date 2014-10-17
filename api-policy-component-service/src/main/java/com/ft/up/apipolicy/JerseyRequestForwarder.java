@@ -35,7 +35,9 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 .port(varnish.getPort());
 
         for(String parameterName : request.getQueryParameters().keySet()) {
-            builder.queryParam(parameterName,request.getQueryParameters().get(parameterName));
+            for(String value : request.getQueryParameters().get(parameterName)) {
+                builder.queryParam(parameterName, value);
+            }
         }
 
         WebResource resource = client.resource(builder.build());
@@ -49,14 +51,14 @@ public class JerseyRequestForwarder implements RequestForwarder {
         try {
             result.setEntity(IOUtils.toByteArray(clientResponse.getEntityInputStream()));
             result.setStatus(clientResponse.getStatus());
-
+            result.setHeaders(clientResponse.getHeaders());
         } catch (IOException e) {
             throw new ForwarderException(e);
         } finally {
             clientResponse.close();
         }
 
-        result.setHeaders(clientResponse.getHeaders());
+
 
         return result;
 

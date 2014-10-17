@@ -1,14 +1,11 @@
 package com.ft.up.apipolicy.filters;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,16 +16,15 @@ import java.util.Map;
  */
 public class WebUrlCalculator implements ApiFilter {
 
-    public static final TypeReference<HashMap<String,Object>> JSON_MAP_TYPE = new TypeReference<HashMap<String, Object>>() {
-    };
+
 
 
     private final Map<String, String> urlTemplates;
-    private ObjectMapper objectMapper;
+    private JsonConverter jsonConverter;
 
-    public WebUrlCalculator(final Map<String, String> urlTemplates, ObjectMapper objectMapper) {
+    public WebUrlCalculator(final Map<String, String> urlTemplates, JsonConverter converter) {
         this.urlTemplates = urlTemplates;
-        this.objectMapper = objectMapper;
+        this.jsonConverter = converter;
     }
 
     @Override
@@ -37,36 +33,28 @@ public class WebUrlCalculator implements ApiFilter {
 
         MutableResponse response = chain.callNextFilter(request);
 
-        HashMap<String, Object> content = null;
-        try {
-            content = objectMapper.readValue(response.getEntity(), jsonMapType());
-        } catch (IOException e) {
-            throw new FilterException(e);
-        }
+        HashMap<String, Object> content = jsonConverter.readEntity(response);
 
-        Map<String,String> contentOrigin = (Map<String, String>) content.get("contentOrigin");
+        Map<String,String> contentOrigin = expectOriginIn(content);
 
         String originSystem = contentOrigin.get("originatingSystem");
         String originatingIdentifier = contentOrigin.get("originatingIdentifier");
 
         String template = urlTemplates.get(originSystem);
 
-        String webUrl = template.replace("{{originatingIdentifier}}",originatingIdentifier);
+        String webUrl = template.replace("{{originatingIdentifier}}", originatingIdentifier);
 
         content.put("webUrl",webUrl);
 
-        try {
-            response.setEntity(objectMapper.writeValueAsBytes(content));
-        } catch (JsonProcessingException e) {
-            throw new FilterException(e);
-        }
+        jsonConverter.replaceEntity(response, content);
 
         return response;
 
     }
 
-    private TypeReference<HashMap<String, Object>> jsonMapType() {
-        return JSON_MAP_TYPE;
+    @SuppressWarnings("unchecked")
+    private Map<String, String> expectOriginIn(HashMap<String, Object> content) {
+        return (Map<String, String>) content.get("contentOrigin");
     }
 
 }

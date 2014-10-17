@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -38,7 +40,7 @@ public class MutableHttpTranslatorTest {
     @Before
     public void setup() {
 
-        Answer<java.util.Enumeration<java.lang.String> > answerWithPrefixedName = new Answer<java.util.Enumeration<java.lang.String> >() {
+        Answer<java.util.Enumeration<java.lang.String>> answerWithPrefixedName = new Answer<java.util.Enumeration<java.lang.String> >() {
             @Override
             public java.util.Enumeration<java.lang.String>  answer(InvocationOnMock invocationOnMock) throws Throwable {
                 Vector<String> strings = new Vector<>();
@@ -107,7 +109,7 @@ public class MutableHttpTranslatorTest {
         headersPresent.putSingle("Bar","02");
         headersPresent.putSingle("Baz","03");
 
-        MutableResponse inputResponse = new MutableResponse(headersPresent,"hello".getBytes(Charsets.UTF_8));
+        MutableResponse inputResponse = new MutableResponse(headersPresent, dummyEntity());
 
         MutableHttpTranslator translator = new MutableHttpTranslator();
 
@@ -126,7 +128,7 @@ public class MutableHttpTranslatorTest {
         headersPresent.putSingle("Bar","02");
         headersPresent.putSingle("Host","varnishnode01.ft.com");
 
-        MutableResponse inputResponse = new MutableResponse(headersPresent,"hello".getBytes(Charsets.UTF_8));
+        MutableResponse inputResponse = new MutableResponse(headersPresent, dummyEntity());
 
 
         MutableHttpTranslator translator = new MutableHttpTranslator();
@@ -151,6 +153,32 @@ public class MutableHttpTranslatorTest {
         assertThat(result.getAbsolutePath(),is("/test"));
     }
 
+    @Test
+    public void shouldAddAllPoliciesFromXPolicyHeader() {
+        MultivaluedMap<String,String> headersPresent = new MultivaluedMapImpl();
+        headersPresent.add(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT, FASTFT_CONTENT_ONLY");
+        headersPresent.add(HttpPipeline.POLICY_HEADER_NAME, "INCLUDE_FASTFT_CONTENT");
+
+        Vector<String> headerNames = new Vector<>(headersPresent.keySet());
+
+        when(request.getHeaderNames()).thenReturn(headerNames.elements());
+
+        for(Map.Entry<String,List<String>> header : headersPresent.entrySet()) {
+            Vector<String> values = new Vector<>(header.getValue());
+            when(request.getHeaders(header.getKey())).thenReturn(values.elements());
+        }
+
+        MutableHttpTranslator translator = new MutableHttpTranslator();
+
+        MutableRequest result  = translator.translateFrom(request);
+        assertThat(result.getPolicies(),hasItems("EXCLUDE_FASTFT_CONTENT","FASTFT_CONTENT_ONLY","INCLUDE_FASTFT_CONTENT"));
+
+
+    }
+
+    private byte[] dummyEntity() {
+        return "hello".getBytes(Charsets.UTF_8);
+    }
 
 
 }

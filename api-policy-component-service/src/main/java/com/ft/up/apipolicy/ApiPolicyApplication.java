@@ -4,6 +4,7 @@ import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
+import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -45,12 +46,14 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
 
 		RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
 
+        JsonConverter tweaker = new JsonConverter(environment.getObjectMapper());
+
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder, new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),environment.getObjectMapper()))));
+				new HttpPipeline(requestForwarder, new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),tweaker))));
 
         knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
-                new HttpPipeline(requestForwarder)));
+                new HttpPipeline(requestForwarder, new AddBrandFilterParameters(tweaker))));
 
         // DEFAULT CASE: Just forward it
         knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));
@@ -66,12 +69,9 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
                 configuration.getSlowRequestPattern());
 
 
-
-
         environment.healthChecks()
                 .register("Reader API Connectivity",
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
-
 
 
     }

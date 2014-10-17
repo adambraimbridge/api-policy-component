@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -35,7 +37,8 @@ public class WildcardEndpointResource {
 		this.knownEndpoints = knownEndpoints;
     }
 
-    @GET @Consumes(MediaType.WILDCARD) @Produces(MediaType.WILDCARD)
+    @GET
+    @Consumes(MediaType.WILDCARD) @Produces(MediaType.WILDCARD)
     public Response service(@Context final HttpServletRequest request, @Context final UriInfo uriInfo) {
 
         MutableRequest mutableRequest = translator.translateFrom(request);
