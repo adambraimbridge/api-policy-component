@@ -11,14 +11,22 @@ import com.google.common.io.Resources;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+import org.apache.commons.io.IOUtils;
+import org.fest.util.Strings;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.UriBuilder;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,6 +54,8 @@ public class ApiPolicyComponentTest {
     public static final String FILTERED_FASTFT_ONLY_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&forBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
     public static final String FILTERED_NO_FASTFT_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&notForBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentTest.class);
 
     @Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
@@ -100,8 +110,10 @@ public class ApiPolicyComponentTest {
         WireMock.reset();
     }
 
+
+
     @Test
-    public void assumingWeCanGetAnArbitraryExample() {
+    public void shouldAllowUnknownRequestsThrough() {
         URI uri  = fromFacade(EXAMPLE_PATH).build();
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
@@ -109,8 +121,8 @@ public class ApiPolicyComponentTest {
         verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
         try {
-            assumeThat(response.getStatus(), is(200));
-            assumeThat(response.getEntity(String.class), is(EXAMPLE_JSON));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), is(EXAMPLE_JSON));
 
         } finally {
             response.close();
@@ -141,18 +153,15 @@ public class ApiPolicyComponentTest {
     @Test
     public void givenPolicyFASTFT_CONTENT_ONLYShouldGetNotificationsWithExtraParameterAndStripItFromBody() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
-        URI apiGeeUri  = fromFacade("/content/notifications")
-                .queryParam("since","2014-10-15")
-                .build();
+        URI facadeUri  = sinceSomeDateFromFacade();
 
-        stubFor(get(urlEqualTo(FILTERED_FASTFT_ONLY_NOTIFICATION_FEED))
-                .willReturn(aResponse().withBody(FASTFT_NOTIFICATIONS_JSON)));
+        stubForNotificationsWithOnlyFastFT();
 
-        ClientResponse response = client.resource(apiGeeUri)
+        ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY")
                 .get(ClientResponse.class);
 
-        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_ONLY_NOTIFICATION_FEED)));
+        assertFastFTOnlyRequestedFromBackend();
 
         String requestUrl = expectRequestUrl(response);
 
@@ -162,16 +171,81 @@ public class ApiPolicyComponentTest {
     }
 
     @Test
+    public void shouldTreatMultiplePolicyHeadersTheSame() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        stubForNotificationsWithOnlyFastFT();
+
+        /*
+
+        Drop to the TCP layer to simulate a strangely formatted HTTP request
+        Making sure this works is important for simplifying ApiGee and since socket programming
+        is really easy what's the harm?
+
+        ;-)
+
+        */
+
+        Socket socket = new Socket(facadeUri.getHost(), facadeUri.getPort());
+
+        PrintWriter writer = new PrintWriter( socket.getOutputStream() );
+        BufferedReader reader = new BufferedReader( new InputStreamReader( socket.getInputStream() )); // the buffer enables readLine()
+
+        try {
+            writer.println("GET /content/notifications?since=2014-10-15 HTTP/1.1");
+            writer.println("Host: " + facadeUri.getAuthority()); // I think we want the port number so "authority" not "host"
+            writer.println("X-Policy: FASTFT_CONTENT_ONLY");
+            writer.println("X-Policy: EXCLUDE_FASTFT_CONTENT");
+            writer.println();
+
+            // SEND the request
+            writer.flush();
+
+            String line = reader.readLine();
+
+            // stop at the blank line, so we don't wait on the buffer refilling.
+            while(!Strings.isNullOrEmpty(line)) {
+                LOGGER.info(line);
+                line = reader.readLine();
+            }
+
+        } finally {
+            IOUtils.closeQuietly(writer);
+            IOUtils.closeQuietly(reader);
+        }
+
+        // after all that, we're only really interested in whether the app called the varnish layer with the same parameters.
+        assertFastFTOnlyRequestedFromBackend();
+
+    }
+
+
+    @Test
+    public void givenListedPoliciesFASTFT_CONTENT_ONLYCommaEXCLUDE_FASTFT_CONTENTShouldrequestFastFtOnly() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        stubForNotificationsWithOnlyFastFT();
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY, EXCLUDE_FASTFT_CONTENT")
+                .get(ClientResponse.class);
+
+
+        assertFastFTOnlyRequestedFromBackend();
+
+    }
+
+
+    @Test
     public void givenPolicyEXCLUDE_FASTFT_CONTENTShouldGetNotificationsWithExtraParameterAndStripItFromBody() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
-        URI apiGeeUri  = fromFacade("/content/notifications")
-                .queryParam("since","2014-10-15")
-                .build();
+        URI facadeUri  = sinceSomeDateFromFacade();
 
-        stubFor(get(urlEqualTo(FILTERED_NO_FASTFT_NOTIFICATION_FEED))
-                .willReturn(aResponse().withBody(NOT_FASTFT_NOTIFICATIONS_JSON)));
+        stubForNotificationsWithoutFastFT();
 
-        ClientResponse response = client.resource(apiGeeUri)
+        ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT")
                 .get(ClientResponse.class);
 
@@ -182,6 +256,26 @@ public class ApiPolicyComponentTest {
         assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
 
 
+    }
+
+    private void assertFastFTOnlyRequestedFromBackend() {
+        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_ONLY_NOTIFICATION_FEED)));
+    }
+
+    private URI sinceSomeDateFromFacade() {
+        return fromFacade("/content/notifications")
+                .queryParam("since","2014-10-15")
+                .build();
+    }
+
+    private void stubForNotificationsWithOnlyFastFT() {
+        stubFor(get(urlEqualTo(FILTERED_FASTFT_ONLY_NOTIFICATION_FEED))
+                .willReturn(aResponse().withBody(FASTFT_NOTIFICATIONS_JSON)));
+    }
+
+    private void stubForNotificationsWithoutFastFT() {
+        stubFor(get(urlEqualTo(FILTERED_NO_FASTFT_NOTIFICATION_FEED))
+                .willReturn(aResponse().withBody(NOT_FASTFT_NOTIFICATIONS_JSON)));
     }
 
     @Test
