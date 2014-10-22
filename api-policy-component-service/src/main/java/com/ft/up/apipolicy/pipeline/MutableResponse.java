@@ -4,6 +4,10 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * MutableResponse
@@ -11,6 +15,8 @@ import javax.ws.rs.core.MultivaluedMap;
  * @author Simon.Gibbs
  */
 public class MutableResponse {
+
+    public static final String VARY_HEADER = "Vary";
 
     @SuppressWarnings("EI_EXPOSE_REP2")
     private byte[] entity;
@@ -48,5 +54,17 @@ public class MutableResponse {
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public Set<String> getHeadersInVaryList() {
+        Set<String> varyByHeadersSet = new LinkedHashSet<>();
+        if(headers.containsKey(VARY_HEADER)) {
+            List<String> headerListsFromVaryHeaders = headers.get(VARY_HEADER);
+            for(String headerListFromAVaryHeader : headerListsFromVaryHeaders) {
+                String [] varyByHeaders = headerListFromAVaryHeader.split("[, ]");
+                varyByHeadersSet.addAll(Arrays.asList(varyByHeaders));
+            }
+        }
+        return varyByHeadersSet;
     }
 }

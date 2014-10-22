@@ -91,7 +91,7 @@ public class MutableHttpTranslator {
         return request;
     }
 
-    public Response translateTo(MutableResponse mutableResponse) {
+    public Response.ResponseBuilder translateTo(MutableResponse mutableResponse) {
 
         Response.ResponseBuilder responseBuilder = Response.status(mutableResponse.getStatus());
 
@@ -106,7 +106,7 @@ public class MutableHttpTranslator {
 
         responseBuilder.entity(mutableResponse.getEntity());
 
-        return responseBuilder.build();
+        return responseBuilder;
     }
 
 }

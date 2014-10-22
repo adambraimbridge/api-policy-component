@@ -6,6 +6,7 @@ import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -19,10 +20,13 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
@@ -38,6 +42,7 @@ public class ApiPolicyComponentTest {
     private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
 
     public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
+    public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
     public static final String FILTERED_FASTFT_ONLY_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&forBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
     public static final String FILTERED_NO_FASTFT_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&notForBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
@@ -177,6 +182,61 @@ public class ApiPolicyComponentTest {
         assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
 
 
+    }
+
+    @Test
+    public void givenVaryHeaderWithAcceptShouldAddXPolicy() {
+        URI uri  = fromFacade(CONTENT_PATH_2).build();
+
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withStatus(200).withHeader("Vary","Accept")));
+
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+        try {
+            assumeThat(response.getStatus(), is(200));
+            assertThat(response.getHeaders().get("Vary").size(), is(1));
+
+            List<String> varyHeaderValue = atomise(response.getHeaders().get("Vary"));
+            assertThat(varyHeaderValue, hasItems("Accept",HttpPipeline.POLICY_HEADER_NAME));
+
+
+        } finally {
+            response.close();
+        }
+    }
+
+    private List<String> atomise(List<String> varyHeaderValues) {
+        List<String> result = Lists.newArrayList();
+        for(String varyHeaderValue : varyHeaderValues) {
+            result.addAll(Arrays.asList(varyHeaderValue.split("[ ,]")));
+        }
+
+        return result;
+    }
+
+    @Test
+    public void shouldAddVaryHeaderWithXPolicy() {
+        URI uri  = fromFacade(CONTENT_PATH_2).build();
+
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withStatus(200)));
+
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+        try {
+            assumeThat(response.getStatus(), is(200));
+
+            List<String> varyHeaderValue = response.getHeaders().get("Vary");
+
+            assertThat(varyHeaderValue.size(), is(1));
+            assertThat(varyHeaderValue, hasItems(HttpPipeline.POLICY_HEADER_NAME));
+
+        } finally {
+            response.close();
+        }
     }
 
     private String expectRequestUrl(ClientResponse response) throws IOException {

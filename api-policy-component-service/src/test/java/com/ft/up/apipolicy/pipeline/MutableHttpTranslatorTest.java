@@ -113,7 +113,7 @@ public class MutableHttpTranslatorTest {
 
         MutableHttpTranslator translator = new MutableHttpTranslator();
 
-        Response response =  translator.translateTo(inputResponse);
+        Response response =  translator.translateTo(inputResponse).build();
 
         assertThat((String) response.getMetadata().getFirst("Foo"), is("01"));
         assertThat((String) response.getMetadata().getFirst("Bar"), is("02"));
@@ -133,7 +133,7 @@ public class MutableHttpTranslatorTest {
 
         MutableHttpTranslator translator = new MutableHttpTranslator();
 
-        Response response = translator.translateTo(inputResponse);
+        Response response = translator.translateTo(inputResponse).build();
 
         assertThat((String)response.getMetadata().getFirst("Foo"),is("01"));
         assertThat((String) response.getMetadata().getFirst("Bar"), is("02"));
