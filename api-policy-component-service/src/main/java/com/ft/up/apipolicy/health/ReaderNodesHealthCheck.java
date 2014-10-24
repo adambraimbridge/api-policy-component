@@ -33,7 +33,7 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
         ClientResponse response = null;
         try {
-            // resilient client provides "works at least once" semantics.
+            // resilient client provides "works at least once" semantics. TODO - does it though?
             response = client.resource(healthcheckUri).header("Cache-Control", "max-age=0").get(ClientResponse.class);
 
             if (response.getStatus() == HttpStatus.SC_OK) {
@@ -68,6 +68,7 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
     @Override
     protected String panicGuideUrl() {
+        //TODO add correct url
         return "http://mypanicguide.com";
     }
 

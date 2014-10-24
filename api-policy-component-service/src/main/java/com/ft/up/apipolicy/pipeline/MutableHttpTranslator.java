@@ -27,6 +27,7 @@ public class MutableHttpTranslator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MutableHttpTranslator.class);
 
+    // TODO - why are we removing these from the request and the response?
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList(
             "Host",
             "Connection",

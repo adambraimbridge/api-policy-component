@@ -25,6 +25,12 @@ public class AddBrandFilterParameters implements ApiFilter {
 
     @Override
     public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
+        
+        // TODO - revisit this logic. We shouldn't have this complexity here and are free to change Apigee to set appropriate headers
+        // There are 3 conditions:
+        // 1. EXCLUDE_FAST_FT
+        // 2. FAST_FT_ONLY
+        // 3. ALL (no manipulation needed)
 
         /*
         <Step>

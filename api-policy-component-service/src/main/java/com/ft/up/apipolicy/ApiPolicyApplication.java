@@ -3,7 +3,7 @@ package com.ft.up.apipolicy;
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
-import com.ft.up.apipolicy.configuration.ApplicationConfiguration;
+import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
@@ -25,19 +25,19 @@ import java.util.EnumSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class ApiPolicyApplication extends Application<ApplicationConfiguration> {
+public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
     }
 
     @Override
-    public void initialize(final Bootstrap bootstrap) {
+    public void initialize(final Bootstrap<ApiPolicyConfiguration> bootstrap) {
         bootstrap.addBundle(new AdvancedHealthCheckBundle());
     }
 
     @Override
-    public void run(final ApplicationConfiguration configuration, final Environment environment) throws Exception {
+    public void run(final ApiPolicyConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
 
         Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
@@ -60,14 +60,6 @@ public class ApiPolicyApplication extends Application<ApplicationConfiguration> 
 
 
         environment.jersey().register(new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints));
-
-        environment.servlets().addFilter(
-                "Slow Servlet Filter",
-                new SlowRequestFilter(Duration.milliseconds(configuration.getSlowRequestTimeout()))).addMappingForUrlPatterns(
-                EnumSet.of(DispatcherType.REQUEST),
-                false,
-                configuration.getSlowRequestPattern());
-
 
         environment.healthChecks()
                 .register("Reader API Connectivity",

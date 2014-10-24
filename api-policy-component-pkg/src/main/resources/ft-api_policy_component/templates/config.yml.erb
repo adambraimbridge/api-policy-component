@@ -10,10 +10,7 @@ varnish:
 pipeline:
   webUrlTemplates:
     "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/{{originatingIdentifier}}.html"
-    "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft/{{originatingIdentifier}}"
-
-slowRequestPattern: '*.html'
-slowRequestTimeout: 1000  #1 second
+    "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft?post={{originatingIdentifier}}"
 
 server:
 
