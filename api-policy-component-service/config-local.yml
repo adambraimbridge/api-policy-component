@@ -10,12 +10,8 @@ varnish:
 pipeline:
   webUrlTemplates:
     "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/{{originatingIdentifier}}.html"
-    "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft/{{originatingIdentifier}}"
+    "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft?post={{originatingIdentifier}}"
 
-
-
-slowRequestPattern: '*.html'
-slowRequestTimeout: 1000  #1 second
 
 server:
 
@@ -40,13 +36,13 @@ server:
       - type: file
 
         # The file to which current statements will be logged.
-        currentLogFilename: /var/log/apps/policy-component-dw-access.log
+        currentLogFilename: /var/log/apps/api-policy-component-dw-access.log
         logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
 
         # When the log file rotates, the archived log will be renamed to this and gzipped. The
         # %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
         # by passing a SimpleDateFormat-compatible format as an argument: "%d{yyyy-MM-dd-hh}".
-        archivedLogFilenamePattern: /var/log/apps/policy-component-dw-access-%d.log.gz
+        archivedLogFilenamePattern: /var/log/apps/api-policy-component-dw-access-%d.log.gz
 
         # The number of archived files to keep.
         archivedFileCount: 6
@@ -72,12 +68,12 @@ logging:
       threshold: ALL
 
       # The file to which current statements will be logged.
-      currentLogFilename: /var/log/apps/policy-component-dw-app.log
+      currentLogFilename: /var/log/apps/api-policy-component-dw-app.log
 
       # When the log file rotates, the archived log will be renamed to this and gzipped. The
       # %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
       # by passing a SimpleDateFormat-compatible format as an argument: "%d{yyyy-MM-dd-hh}".
-      archivedLogFilenamePattern: /var/log/apps/policy-component-dw-app-%d.log.gz
+      archivedLogFilenamePattern: /var/log/apps/api-policy-component-dw-app-%d.log.gz
 
       # The number of archived files to keep.
       archivedFileCount: 5

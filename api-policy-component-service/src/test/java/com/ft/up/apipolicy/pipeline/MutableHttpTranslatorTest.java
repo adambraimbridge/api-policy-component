@@ -154,10 +154,11 @@ public class MutableHttpTranslatorTest {
     }
 
     @Test
-    public void shouldAddAllPoliciesFromXPolicyHeader() {
+    public void shouldAddAllPoliciesFromXPolicyHeaderHoweverConfigured() {
+        // supports multiple values in one header AND multiple versions of the header
         MultivaluedMap<String,String> headersPresent = new MultivaluedMapImpl();
-        headersPresent.add(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT, FASTFT_CONTENT_ONLY");
-        headersPresent.add(HttpPipeline.POLICY_HEADER_NAME, "INCLUDE_FASTFT_CONTENT");
+        headersPresent.add(HttpPipeline.POLICY_HEADER_NAME, "POLICY_ONE, POLICY_TWO");
+        headersPresent.add(HttpPipeline.POLICY_HEADER_NAME, "POLICY_THREE");
 
         Vector<String> headerNames = new Vector<>(headersPresent.keySet());
 
@@ -171,7 +172,7 @@ public class MutableHttpTranslatorTest {
         MutableHttpTranslator translator = new MutableHttpTranslator();
 
         MutableRequest result  = translator.translateFrom(request);
-        assertThat(result.getPolicies(),hasItems("EXCLUDE_FASTFT_CONTENT","FASTFT_CONTENT_ONLY","INCLUDE_FASTFT_CONTENT"));
+        assertThat(result.getPolicies(),hasItems("POLICY_ONE","POLICY_TWO","POLICY_THREE"));
 
 
     }

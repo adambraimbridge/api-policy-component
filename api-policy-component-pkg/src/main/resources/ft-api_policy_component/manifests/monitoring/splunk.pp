@@ -5,7 +5,7 @@ class api_policy_component::monitoring::splunk {
   splunk_client::saved_search {"Content_Platform_Policy_Component_Errors":
     username                => 'dashcontent',
     password                => 'd1shc0nt3nt',
-    search_string           => "source=/var/log/apps/policy-component-dw-app.log level=ERROR",
+    search_string           => "source=/var/log/apps/api-policy-component-dw-app.log level=ERROR",
     alert_condition         => 'search count > 0',
     cron_schedule           => '*/10 * * * *',
     search_range_start_time => "-15m",

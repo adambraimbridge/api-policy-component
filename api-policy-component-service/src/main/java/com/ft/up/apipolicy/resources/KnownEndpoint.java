@@ -12,8 +12,8 @@ public class KnownEndpoint implements Comparable<KnownEndpoint> {
     private final Pattern uriPattern;
 
     public KnownEndpoint(String uriRegex, HttpPipeline httpPipeline) {
-		Preconditions.checkNotNull(uriRegex, "uriRegex must not me null");
-		Preconditions.checkNotNull(httpPipeline, "httpPipeline must not me null");
+		Preconditions.checkNotNull(uriRegex, "uriRegex must not be null");
+		Preconditions.checkNotNull(httpPipeline, "httpPipeline must not be null");
 
 		this.uriRegex = uriRegex;
 		this.httpPipeline = httpPipeline;

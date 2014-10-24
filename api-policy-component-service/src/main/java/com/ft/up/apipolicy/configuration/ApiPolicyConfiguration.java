@@ -8,15 +8,7 @@ import io.dropwizard.Configuration;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-public class ApplicationConfiguration extends Configuration {
-
-    @NotNull
-    @JsonProperty
-    private long slowRequestTimeout;
-
-    @NotNull
-    @JsonProperty
-    private String slowRequestPattern;
+public class ApiPolicyConfiguration extends Configuration {
 
     @NotNull
     @JsonProperty @Valid
@@ -25,14 +17,6 @@ public class ApplicationConfiguration extends Configuration {
     @NotNull
     @JsonProperty("pipeline") @Valid
     private PipelineConfiguration pipelineConfiguration;
-
-    public long getSlowRequestTimeout() {
-        return slowRequestTimeout;
-    }
-
-    public String getSlowRequestPattern() {
-        return slowRequestPattern;
-    }
 
     public EndpointConfiguration getVarnish() {
         return varnish;
