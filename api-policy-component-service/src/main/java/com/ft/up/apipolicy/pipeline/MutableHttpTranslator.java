@@ -27,7 +27,7 @@ public class MutableHttpTranslator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MutableHttpTranslator.class);
 
-    // TODO - why are we removing these from the request and the response?
+    // So we don't blindly pass on headers that should be set by THIS application on the request/response
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList(
             "Host",
             "Connection",
