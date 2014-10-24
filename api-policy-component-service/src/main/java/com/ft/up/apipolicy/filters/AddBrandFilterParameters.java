@@ -25,38 +25,14 @@ public class AddBrandFilterParameters implements ApiFilter {
 
     @Override
     public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
-        
-        // TODO - revisit this logic. We shouldn't have this complexity here and are free to change Apigee to set appropriate headers
-        // There are 3 conditions:
-        // 1. EXCLUDE_FAST_FT
-        // 2. FAST_FT_ONLY
-        // 3. ALL (no manipulation needed)
-
-        /*
-        <Step>
-        <FaultRules/>
-        <Condition>verifyapikey.ValidateAPIKey.app.FASTFT_CONTENT_ONLY=true</Condition>
-        <Name>AddParamForBrandFastFT</Name>
-        </Step>
-        */
 
         if(request.policyIs("FASTFT_CONTENT_ONLY")) {
             request.getQueryParameters().add("forBrand","http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54");
         }
 
-        /*
-        <Step>
-        <FaultRules/>
-        <Condition>(verifyapikey.ValidateAPIKey.apiproduct.EXCLUDE_FASTFT_CONTENT=true) AND (verifyapikey.ValidateAPIKey.app.FASTFT_CONTENT_ONLY!=true)
-        AND (verifyapikey.ValidateAPIKey.app.INCLUDE_FASTFT_CONTENT!=true)</Condition>
-        <Name>AddParamNotForBrandFastFT</Name>
-        </Step>
-        */
-
-        if(request.policyIs("EXCLUDE_FASTFT_CONTENT") && !request.policyIs("INCLUDE_FASTFT_CONTENT") && !request.policyIs("FASTFT_CONTENT_ONLY")) {
+        if(request.policyIs("EXCLUDE_FASTFT_CONTENT")) {
             request.getQueryParameters().add("notForBrand","http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54");
         }
-
 
         MutableResponse response = chain.callNextFilter(request);
 
