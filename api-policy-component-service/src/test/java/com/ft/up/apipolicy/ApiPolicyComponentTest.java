@@ -54,6 +54,8 @@ public class ApiPolicyComponentTest {
     public static final String ALL_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15";
     public static final String FILTERED_FASTFT_ONLY_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&forBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
     public static final String FILTERED_NO_FASTFT_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&notForBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
+    public static final String FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&forBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54" +
+    		"&notForBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentTest.class);
@@ -96,6 +98,12 @@ public class ApiPolicyComponentTest {
     private static final String NOT_FASTFT_NOTIFICATIONS_JSON =
             "{" +
                     "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15&notForBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54\" " +
+                    "}";
+    
+    private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON =
+            "{" +
+                    "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15&forBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54" +
+                        "&notForBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54\" " +
                     "}";
 
     private Client client;
@@ -162,7 +170,7 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
 
-        stubForNotificationsWithOnlyFastFT();
+        stubForNotificationsWithoutExcludeAndIncludeFastFT();
 
         /*
 
@@ -209,7 +217,7 @@ public class ApiPolicyComponentTest {
         }
 
         // after all that, we're only really interested in whether the app called the varnish layer with the same parameters.
-        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_ONLY_NOTIFICATION_FEED)));
+        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED)));
 
     }
     
@@ -270,9 +278,8 @@ public class ApiPolicyComponentTest {
 
     }
 
-    //TODO - is this the behaviour we actually want? Suspect if we have both, we ought to error
     @Test
-    public void givenListedPoliciesFASTFT_CONTENT_ONLYCommaEXCLUDE_FASTFT_CONTENTShouldrequestFastFtOnly() throws IOException {
+    public void givenListedPoliciesFASTFT_CONTENT_ONLYCommaEXCLUDE_FASTFT_CONTENTShouldProcessBothAsNormal() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
 
@@ -283,7 +290,7 @@ public class ApiPolicyComponentTest {
                 .get(ClientResponse.class);
 
 
-        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_ONLY_NOTIFICATION_FEED)));
+        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED)));
 
     }
 
@@ -306,6 +313,11 @@ public class ApiPolicyComponentTest {
     private void stubForNotificationsWithoutFastFT() {
         stubFor(get(urlEqualTo(FILTERED_NO_FASTFT_NOTIFICATION_FEED))
                 .willReturn(aResponse().withBody(NOT_FASTFT_NOTIFICATIONS_JSON)));
+    }
+
+    private void stubForNotificationsWithoutExcludeAndIncludeFastFT() {
+        stubFor(get(urlEqualTo(FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED))
+                .willReturn(aResponse().withBody(FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON)));
     }
 
     @Test
