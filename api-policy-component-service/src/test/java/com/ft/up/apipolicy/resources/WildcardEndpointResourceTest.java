@@ -1,20 +1,17 @@
 package com.ft.up.apipolicy.resources;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ft.up.apipolicy.JsonConverter;
-import com.ft.up.apipolicy.filters.WebUrlCalculator;
+import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.UriInfo;
 
 import java.io.IOException;
@@ -32,15 +29,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-@Ignore("Simon will fix it.")
 public class WildcardEndpointResourceTest {
 
 	private WildcardEndpointResource wildcardEndpointResource;
 	private HttpServletRequest request;
-	private HttpServletResponse response;
 	private UriInfo uriInfo;
 	private HttpPipeline contentPipeline;
 	private HttpPipeline notificationsPipeline;
+
+    private static final URI LOCALHOST = URI.create("http://localhost");
 
 	@Before
 	public void setup() throws IOException {
@@ -48,14 +45,21 @@ public class WildcardEndpointResourceTest {
 		MutableResponse mutableResponse = new MutableResponse(new MultivaluedMapImpl(), "response".getBytes());
 		when(requestForwarder.forwardRequest(any(MutableRequest.class))).thenReturn(mutableResponse);
 
-
-        JsonConverter converter = new JsonConverter(new ObjectMapper());
-
 		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
-		contentPipeline = spy(new HttpPipeline(requestForwarder, new WebUrlCalculator(Collections.<String, String>emptyMap(), converter)));
+
+        ApiFilter mockFilter = new ApiFilter() {
+            @Override
+            public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
+                return chain.callNextFilter(request);
+            }
+        };
+
+        contentPipeline = spy(new HttpPipeline(requestForwarder , mockFilter ));
 		knownEndpoints.add(new KnownEndpoint("^/content/.*", contentPipeline));
-		notificationsPipeline = spy(new HttpPipeline(requestForwarder));
+
+        notificationsPipeline = spy(new HttpPipeline(requestForwarder, mockFilter));
 		knownEndpoints.add(new KnownEndpoint("^/content/notifications.*", notificationsPipeline));
+
 		wildcardEndpointResource = new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints);
 
 		request = mock(HttpServletRequest.class);
@@ -67,25 +71,42 @@ public class WildcardEndpointResourceTest {
 
 	@Test
 	public void shouldUseNotificationsPipelineWhenNotificationsUrlPassed() throws URISyntaxException {
-		when(uriInfo.getAbsolutePath()).thenReturn(new URI("/content/notifications"));
+        mockEnvironmentForRequestTo("/content/notifications");
+
 		wildcardEndpointResource.service(request, uriInfo);
 		verify(contentPipeline, never()).forwardRequest(any(MutableRequest.class));
 		verify(notificationsPipeline, times(1)).forwardRequest(any(MutableRequest.class));
 	}
 
-	@Test
+    private StringBuffer absoluteUriFor(URI notificationsPath) {
+        return new StringBuffer(LOCALHOST.resolve(notificationsPath).toString());
+    }
+
+    @Test
 	public void shouldUseContentPipelineWhenContentUrlPassed() throws URISyntaxException {
-		when(uriInfo.getAbsolutePath()).thenReturn(new URI("/content/54307a12-37fa-11e3-8f44-002128161462"));
+        mockEnvironmentForRequestTo("/content/54307a12-37fa-11e3-8f44-002128161462");
+
 		wildcardEndpointResource.service(request, uriInfo);
-		verify(contentPipeline, times(1)).forwardRequest(any(MutableRequest.class));
+
+        verify(contentPipeline, times(1)).forwardRequest(any(MutableRequest.class));
 		verify(notificationsPipeline, never()).forwardRequest(any(MutableRequest.class));
 	}
 
-	@Test
+    private void mockEnvironmentForRequestTo(String path) throws URISyntaxException {
+        URI contentPath = new URI(path);
+        when(uriInfo.getAbsolutePath()).thenReturn(contentPath);
+        when(request.getRequestURL()).thenReturn(absoluteUriFor(contentPath));
+        when(uriInfo.getBaseUri()).thenReturn(LOCALHOST);
+        when(uriInfo.getPath()).thenReturn(path);
+    }
+
+    @Test
 	public void shouldNotUseAnyPipelineWhenUnknownUrlPassed() throws URISyntaxException {
-		when(uriInfo.getAbsolutePath()).thenReturn(new URI("/you_ready_folks?"));
+        mockEnvironmentForRequestTo("/you_ready_folks?");
+
 		wildcardEndpointResource.service(request, uriInfo);
-		verify(contentPipeline, never()).forwardRequest(any(MutableRequest.class));
+
+        verify(contentPipeline, never()).forwardRequest(any(MutableRequest.class));
 		verify(notificationsPipeline, never()).forwardRequest(any(MutableRequest.class));
 	}
 
