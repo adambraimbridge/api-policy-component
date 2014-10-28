@@ -1,0 +1,83 @@
+{
+   "$schema": "http://json-schema.org/draft-04/schema#",
+
+   "title": "API v2 notifications",
+   "description": "Change feed with FT content publishing events",
+   "type": "object",
+   "properties": {
+
+      "requestUrl": {
+         "title": "Request URL",
+         "description": "The url used to generate this API response",
+         "type": "string",
+         "minLength": 0,
+"additionalProperties": false
+      },
+
+      "notifications": {
+         "title": "Notifications",
+         "description": "Set of publishing events",
+         "type": "array",
+         "minItems": 0,
+         "uniqueItems": true,
+         "items": {
+            "title": "Publishing event",
+            "description": "Each object in the set describe a unique publishing event. When multiple publishing events have occurred for a single content item only the most recent is included.",
+            "type": "object",
+            "properties": {
+               "type": {
+                  "title": "Notification type",
+                  "description": "The type of notification.",
+                  "type": "string",
+                  "minLength": 0
+               },
+               "id": {
+                  "title": "Content Id",
+                  "description": "The id (URI) of the content that has been updated",
+                  "type": "string",
+                  "minLength": 0
+               },
+               "apiUrl": {
+                  "title": "API Content URL",
+                  "description": "The API url to request the content that has been updated",
+                  "type": "string",
+                  "minLength": 0
+               }
+            },
+            "required": ["type", "id", "apiUrl"],
+            "additionalProperties": true
+         }
+      },
+
+      "links": {
+         "title": "Links",
+         "description": "A set of links to related resources",
+         "type": "array",
+         "minItems": 1,
+         "uniqueItems": true,
+         "items": {
+            "title": "Related link",
+            "description": "",
+            "type": "object",
+            "properties": {
+               "href": {
+                  "title": "href",
+                  "description": "The target URI of the link",
+                  "type": "string",
+                  "minLength": 0
+               },
+               "rel": {
+                  "type": "string",
+                  "title": "rel",
+                  "description": "The relationship the target resource has with the notification feed. Currently 'next' is supported - a link to use for your next request, to ensure you see all notifications. There will only be 1 link of this type",
+                  "minLength": 0
+               }
+            },
+            "required": ["href", "rel"],
+            "additionalProperties": true
+         }
+      }
+   },
+   "required": ["requestUrl", "notifications", "links"],
+   "additionalProperties": true
+}

@@ -1,0 +1,88 @@
+{
+   "$schema": "http://json-schema.org/draft-04/schema#",
+
+   "title": "API v2 content",
+   "description": "FT content",
+   "type": "object",
+   "properties": {
+      "id": {
+         "title": "ID",
+         "description": "The unique identifier for this content",
+         "type": "string",
+         "minLength": 0
+      },
+      "type": {
+         "title": "type",
+         "description": "The type of this content",
+         "type": "string",
+         "minLength": 0
+      },
+      "bodyXML": {
+         "title": "XML body",
+         "description": "The body of this content in XML format",
+         "type": "string",
+         "minLength": 0
+      },
+      "title": {
+         "title": "Title",
+         "description": "The title of this content",
+         "type": "string",
+         "minLength": 0
+      },
+      "publishedDate": {
+         "title": "Publish Date",
+         "description": "The last date that this content was published",
+         "type": "string",
+         "minLength": 0
+      },
+      "contentOrigin": {
+         "title": "Content origin",
+         "type": "object",
+         "properties": {
+            "originatingSystem": {
+               "title": "Originating system",
+               "description": "The name of the system from which this content was generated from",
+               "type": "string",
+               "minLength": 0
+            },
+            "originatingIdentifier": {
+               "title": "Originating identifier",
+               "description": "The unique identifier used by the originating system for this content",
+               "type": "string",
+               "minLength": 0
+            }
+         },
+         "required": [
+            "originatingSystem",
+            "originatingIdentifier"
+         ],
+         "additionalProperties": true
+      },
+      "webUrl": {
+         "title": "Web URL",
+         "description": "The location of where this content can be found on the web",
+         "type": "string",
+         "minLength": 0
+      },
+      "requestUrl": {
+         "title": "Request URL",
+         "description": "The request made to generate this json response",
+         "type": "string",
+         "minLength": 0
+      },
+      "brands": {
+         "title": "Brands",
+         "description": "The brands associated with this content",
+         "type": "array",
+         "additionalProperties": true,
+         "items": [
+            {
+               "type": "string",
+               "minLength": 0
+            }
+         ]
+      }
+   },
+   "required": ["id"],
+   "additionalProperties": true
+}
