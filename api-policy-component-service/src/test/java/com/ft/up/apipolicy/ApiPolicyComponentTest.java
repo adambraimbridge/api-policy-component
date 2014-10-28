@@ -213,7 +213,7 @@ public class ApiPolicyComponentTest {
         } finally {
             IOUtils.closeQuietly(writer);
             IOUtils.closeQuietly(reader);
-            socket.close();
+            IOUtils.closeQuietly(socket);
         }
 
         // after all that, we're only really interested in whether the app called the varnish layer with the same parameters.
