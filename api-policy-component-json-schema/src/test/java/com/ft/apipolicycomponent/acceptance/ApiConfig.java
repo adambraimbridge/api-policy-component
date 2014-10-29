@@ -1,4 +1,4 @@
-package com.ft.acceptance;
+package com.ft.apipolicycomponent.acceptance;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;

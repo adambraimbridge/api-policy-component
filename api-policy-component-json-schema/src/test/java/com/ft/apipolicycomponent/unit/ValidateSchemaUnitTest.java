@@ -1,4 +1,4 @@
-package com.ft.unit;
+package com.ft.apipolicycomponent.unit;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
