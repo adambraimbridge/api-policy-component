@@ -1,7 +1,7 @@
 apiPolicyComponent:
   host: localhost
   port: 20080
-  adminPort: 20081
+  adminPort: 20082
 
 readApi:
   host: localhost
