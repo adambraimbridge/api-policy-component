@@ -4,8 +4,8 @@ varnish:
   path: content/
   jerseyClient:
       timeout: 2000ms
-  primaryNodes:  <%=scope.function_hiera('semanticReaderLocalNodes')%>
-  secondaryNodes: <%=scope.function_hiera('semanticReaderRemoteNodes','null')%>
+  primaryNodes:  <%=scope.function_hiera('semanticReaderVarnishPrimaryNodes')%>
+  secondaryNodes: <%=scope.function_hiera('semanticReaderVarnishSecondaryNodes','null')%>
 
 pipeline:
   webUrlTemplates:
