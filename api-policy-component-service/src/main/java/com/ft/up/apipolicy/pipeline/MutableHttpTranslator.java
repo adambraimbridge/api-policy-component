@@ -103,6 +103,7 @@ public class MutableHttpTranslator {
             }
             for(String value : mutableResponse.getHeaders().get(headerName)) {
                 responseBuilder.header(headerName, value);
+                LOGGER.debug("Passed Down: {}={}", headerName, value);
             }
         }
 
