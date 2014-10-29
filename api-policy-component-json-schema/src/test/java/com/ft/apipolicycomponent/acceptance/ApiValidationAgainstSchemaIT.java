@@ -83,7 +83,6 @@ public class ApiValidationAgainstSchemaIT {
     }
 
     private ClientResponse hitResource(String url){
-        System.out.println(url);
         ClientResponse clientResponse = null;
         try{
             WebResource webResource = client.resource(url);
