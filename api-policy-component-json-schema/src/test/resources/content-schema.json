@@ -41,7 +41,7 @@
          "properties": {
             "originatingSystem": {
                "title": "Originating system",
-               "description": "The name of the system from which this content was generated from",
+               "description": "The name of the system from which this content was generated",
                "type": "string",
                "minLength": 0
             },

@@ -1,0 +1,12 @@
+apiPolicyComponent:
+  host: ftapp06088-lvpr-uk-int
+  port: 8080
+  adminPort: 8081
+
+readApi:
+  host: semantic-reader-app-01-pr-uk-int.svc.ft.com
+  port: 8080
+  adminPort: 8081
+
+notificationPath: /content/notifications?since=
+contentPath: /content/

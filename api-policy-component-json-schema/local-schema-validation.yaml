@@ -1,0 +1,12 @@
+apiPolicyComponent:
+  host: localhost
+  port: 20080
+  adminPort: 20081
+
+readApi:
+  host: localhost
+  port: 9090
+  adminPort: 9091
+
+notificationPath: /content/notifications?since=
+contentPath: /content/

@@ -11,7 +11,7 @@
          "description": "The url used to generate this API response",
          "type": "string",
          "minLength": 0,
-"additionalProperties": false
+         "additionalProperties": false
       },
 
       "notifications": {
