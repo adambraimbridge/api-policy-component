@@ -27,9 +27,10 @@ import org.slf4j.LoggerFactory;
 public class ApiValidationAgainstSchemaIT {
 
     private static final String SINCE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    private static final String NOTIFICATION_URL = "http://%s:%s/content/notifications?since=%s";
+    private static final String CONTENT_URL = "http://%s:%s/content/%s";
+    private static final String HEALTHCHECK_URL = "http://%s:%s/healthcheck";
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiValidationAgainstSchemaIT.class);
-    private static final String HTTP = "http://";
-    private static final String KITCHEN_SINK_UUID = "54307a12-37fa-11e3-8f44-002128161462";
     private SchemaValidationTestConfiguration configuration;
     private Client client;
 
@@ -86,13 +87,7 @@ public class ApiValidationAgainstSchemaIT {
     }
 
     private String getHealthcheckUrl(String host, int port) {
-        StringBuilder sb = new StringBuilder("http://")
-                .append(host)
-                .append(":")
-                .append(port)
-                .append("/")
-                .append("healthcheck");
-        return sb.toString();
+        return String.format(HEALTHCHECK_URL, host, port);
     }
 
 
@@ -124,27 +119,19 @@ public class ApiValidationAgainstSchemaIT {
     }
 
     private String getContentResource(){
-        StringBuilder sb = new StringBuilder(HTTP)
-                .append(configuration.getApiPolicyComponentHost())
-                .append(":")
-                .append(configuration.getApiPolicyComponentPort())
-                .append(configuration.getContentPath())
-                .append(KITCHEN_SINK_UUID);
-
-        return sb.toString();
+        return String.format(CONTENT_URL,
+                configuration.getApiPolicyComponentHost(),
+                configuration.getApiPolicyComponentPort(),
+                configuration.getUuid());
     }
 
     private String getNotificationResource(){
         DateTime since = new DateTime();
         String sinceStr = since.minusHours(48).toString(SINCE_DATE_FORMAT);
-        StringBuilder sb = new StringBuilder(HTTP)
-                .append(configuration.getApiPolicyComponentHost())
-                .append(":")
-                .append(configuration.getApiPolicyComponentPort())
-                .append(configuration.getNotificationPath())
-                .append(sinceStr);
-
-        return sb.toString();
+        return String.format(NOTIFICATION_URL,
+                configuration.getApiPolicyComponentHost(),
+                configuration.getApiPolicyComponentPort(),
+                sinceStr);
     }
 
 

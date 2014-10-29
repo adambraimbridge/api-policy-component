@@ -9,19 +9,21 @@ public class SchemaValidationTestConfiguration {
     private final String contentPath;
     private final ApiConfig readApi;
     private final ApiConfig apiPolicyComponent;
+    private final String uuid;
 
 
 
     public SchemaValidationTestConfiguration(@JsonProperty("readApi") ApiConfig readApi,
                                              @JsonProperty("apiPolicyComponent") ApiConfig apiPolicyComponent,
                                              @JsonProperty("notificationPath") String  notificationPath,
-                                             @JsonProperty("contentPath") String contentPath
+                                             @JsonProperty("contentPath") String contentPath,
+                                             @JsonProperty("uuid") String uuid
                                              ) {
         this.readApi = readApi;
         this.apiPolicyComponent = apiPolicyComponent;
         this.notificationPath = notificationPath;
         this.contentPath = contentPath;
-
+        this.uuid = uuid;
 
     }
 
@@ -50,12 +52,7 @@ public class SchemaValidationTestConfiguration {
         return readApi.getAdminPort();
     }
 
-    public String getNotificationPath() {
-        return notificationPath;
+    public String getUuid() {
+        return uuid;
     }
-
-    public String getContentPath() {
-        return contentPath;
-    }
-
 }

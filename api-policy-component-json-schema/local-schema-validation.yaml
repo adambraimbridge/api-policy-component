@@ -8,5 +8,4 @@ readApi:
   port: 9090
   adminPort: 9091
 
-notificationPath: /content/notifications?since=
-contentPath: /content/
+uuid: 54307a12-37fa-11e3-8f44-002128161462

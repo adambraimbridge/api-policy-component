@@ -25,8 +25,6 @@ public class ValidateSchemaUnitTest {
         JsonNode contentNode = JsonLoader.fromResource("/content-schema.json");
         notificationSchema = factory.getJsonSchema(notificationNode);
         contentSchema = factory.getJsonSchema(contentNode);
-
-
     }
 
 
