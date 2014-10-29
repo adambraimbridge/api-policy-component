@@ -1,6 +1,7 @@
 package com.ft.up.apipolicy.resources;
 
 import com.ft.up.apipolicy.pipeline.ApiFilter;
+import com.ft.up.apipolicy.pipeline.DummyFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
@@ -47,12 +48,7 @@ public class WildcardEndpointResourceTest {
 
 		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 
-        ApiFilter mockFilter = new ApiFilter() {
-            @Override
-            public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
-                return chain.callNextFilter(request);
-            }
-        };
+        ApiFilter mockFilter = new DummyFilter();
 
         contentPipeline = spy(new HttpPipeline(requestForwarder , mockFilter ));
 		knownEndpoints.add(new KnownEndpoint("^/content/.*", contentPipeline));
