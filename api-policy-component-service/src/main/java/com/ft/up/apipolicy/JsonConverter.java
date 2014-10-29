@@ -16,6 +16,9 @@ import java.util.HashMap;
  */
 public class JsonConverter {
 
+    public static JsonConverter testConverter() {
+        return new JsonConverter(new ObjectMapper());
+    }
 
     public static final TypeReference<HashMap<String,Object>> JSON_MAP_TYPE = new TypeReference<HashMap<String, Object>>() {
     };

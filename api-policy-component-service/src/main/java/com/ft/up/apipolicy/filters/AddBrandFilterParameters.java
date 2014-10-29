@@ -36,6 +36,10 @@ public class AddBrandFilterParameters implements ApiFilter {
 
         MutableResponse response = chain.callNextFilter(request);
 
+        if(response.getStatus()!=200) {
+            return response;
+        }
+
         HashMap<String, Object> content = converter.readEntity(response);
 
         UriBuilder requestUriBuilder = UriBuilder.fromUri((String)content.get(REQUEST_URL_KEY));
