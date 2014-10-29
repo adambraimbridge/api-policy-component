@@ -16,6 +16,7 @@ import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.common.base.Preconditions;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import org.joda.time.DateTime;
@@ -82,8 +83,16 @@ public class ApiValidationAgainstSchemaIT {
     }
 
     private ClientResponse hitResource(String url){
-        WebResource webResource = client.resource(url);
-        return webResource.get(ClientResponse.class);
+        System.out.println(url);
+        ClientResponse clientResponse = null;
+        try{
+            WebResource webResource = client.resource(url);
+            clientResponse = webResource.get(ClientResponse.class);
+        }
+        catch (ClientHandlerException che){
+            assertThat("Connection to webresource " + url + " has failed", false);
+        }
+        return clientResponse;
     }
 
     private String getHealthcheckUrl(String host, int port) {
@@ -100,14 +109,11 @@ public class ApiValidationAgainstSchemaIT {
     @Test
     public void shouldValidateAgainstNotificationJson() throws IOException, ProcessingException {
         String resource = getNotificationResource();
-        System.out.print(resource);
         validateSchema(resource, notificationSchema);
     }
 
     private void validateSchema(String resource, JsonSchema schema) throws IOException, ProcessingException{
-
-        WebResource webResource = client.resource(resource);
-        ClientResponse response = webResource.get(ClientResponse.class);
+        ClientResponse response = hitResource(resource);
         if (response.getStatus() != 200) {
             throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
         }
