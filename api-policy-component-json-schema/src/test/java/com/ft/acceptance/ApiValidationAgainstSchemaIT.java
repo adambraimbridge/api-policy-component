@@ -24,10 +24,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ApiValidationAgainstSchemaTest {
+public class ApiValidationAgainstSchemaIT {
 
     private static final String SINCE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiValidationAgainstSchemaTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiValidationAgainstSchemaIT.class);
     private static final String HTTP = "http://";
     private static final String KITCHEN_SINK_UUID = "54307a12-37fa-11e3-8f44-002128161462";
     private SchemaValidationTestConfiguration configuration;
