@@ -32,10 +32,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+
 import static io.dropwizard.testing.junit.ConfigOverride.config;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
 
@@ -370,6 +378,33 @@ public class ApiPolicyComponentTest {
             assertThat(varyHeaderValue.size(), is(1));
             assertThat(varyHeaderValue, hasItems(HttpPipeline.POLICY_HEADER_NAME));
 
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldPassDownArbitraryResponseHeadersUnlessBlackListed() {
+
+        URI uri = fromFacade(CONTENT_PATH_2).build();
+
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
+                aResponse()
+                    .withBody(CONTENT_JSON)
+                    .withStatus(200)
+                    .withHeader("X-Example","100")
+                    .withHeader("Accept-Encoding","test") // out of place for a response, but this is a test
+                ));
+
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+        try {
+            assumeThat(response.getStatus(), is(200));
+
+            assertThat(response.getHeaders().getFirst("X-Example"), is("100"));
+            assertThat(response.getHeaders().getFirst("Accept-Encoding"),nullValue());
         } finally {
             response.close();
         }

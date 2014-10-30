@@ -44,7 +44,7 @@ server:
 
 logging:
 
-  level: INFO
+  level: <%=scope.function_hiera('logLevel','INFO') %>
 
   loggers:
     io.dropwizard: DEBUG
