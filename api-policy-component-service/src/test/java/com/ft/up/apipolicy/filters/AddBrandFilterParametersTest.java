@@ -1,6 +1,7 @@
 package com.ft.up.apipolicy.filters;
 
 import com.ft.up.apipolicy.JsonConverter;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
@@ -11,9 +12,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +32,9 @@ public class AddBrandFilterParametersTest {
 
     public final static String ERROR_RESPONSE = "{ \"message\" : \"Error\" }";
 
+    public final static String MINIMAL_EXAMPLE_RESPONSE = "{ \"requestUrl\": \"http://example.org/content/100?forBrand=ONE&notForBrand=TWO\" }";
+
+
     @Mock
     private HttpPipelineChain mockChain;
 
@@ -35,16 +42,24 @@ public class AddBrandFilterParametersTest {
     private MutableRequest exampleRequest = new MutableRequest(Collections.singleton("TEST"));
 
     private MutableResponse exampleErrorResponse;
+    private MutableResponse minimalExampleResponse;
 
     @Before
     public void setUpExamples() {
-        exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(),ERROR_RESPONSE.getBytes());
+
+        MultivaluedMapImpl allHeaders = new MultivaluedMapImpl();
+        allHeaders.put(HttpPipeline.POLICY_HEADER_NAME, Arrays.asList("FASTFT_CONTENT_ONLY", "EXCLUDE_FASTFT_CONTENT"));
+
+        exampleErrorResponse = new MutableResponse(allHeaders,ERROR_RESPONSE.getBytes());
         exampleErrorResponse.setStatus(500);
+
+        minimalExampleResponse = new MutableResponse(allHeaders, MINIMAL_EXAMPLE_RESPONSE.getBytes());
+        minimalExampleResponse.setStatus(200);
+
     }
 
     @Test
     public void shouldNotProcessErrorResponse() {
-
 
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(exampleErrorResponse);
 
@@ -55,4 +70,19 @@ public class AddBrandFilterParametersTest {
         assertThat(response.getEntity(),is(ERROR_RESPONSE.getBytes()));
 
     }
+
+    @Test
+    public void shouldNotAddQueryParamsToResponse() {
+
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleResponse);
+
+        AddBrandFilterParameters filter  = new AddBrandFilterParameters(JsonConverter.testConverter());
+
+        MutableResponse response = filter.processRequest(exampleRequest,mockChain);
+
+        assertThat(response.getEntityAsString(),not(containsString("forBrand")));
+        assertThat(response.getEntityAsString(),not(containsString("notForBrand")));
+
+    }
+
 }

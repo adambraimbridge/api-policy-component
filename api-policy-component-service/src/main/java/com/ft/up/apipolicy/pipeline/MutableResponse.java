@@ -36,6 +36,10 @@ public class MutableResponse {
         return entity;
     }
 
+    public String getEntityAsString() {
+        return new String(entity);
+    }
+
     public MultivaluedMap<String,String> getHeaders() {
         return headers;
     }
