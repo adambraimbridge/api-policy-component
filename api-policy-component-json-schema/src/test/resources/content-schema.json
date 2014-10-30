@@ -2,6 +2,7 @@
    "$schema": "http://json-schema.org/draft-04/schema#",
 
    "title": "API v2 content",
+   "_comment": "schema version DRAFT",
    "description": "FT content",
    "type": "object",
    "properties": {

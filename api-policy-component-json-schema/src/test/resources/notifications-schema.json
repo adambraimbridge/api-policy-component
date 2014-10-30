@@ -2,6 +2,7 @@
    "$schema": "http://json-schema.org/draft-04/schema#",
 
    "title": "API v2 notifications",
+   "_comment": "schema version DRAFT",
    "description": "Change feed with FT content publishing events",
    "type": "object",
    "properties": {
