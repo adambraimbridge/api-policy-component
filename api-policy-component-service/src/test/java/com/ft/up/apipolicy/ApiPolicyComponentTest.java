@@ -39,6 +39,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 
 import static io.dropwizard.testing.junit.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.is;
@@ -141,9 +142,9 @@ public class ApiPolicyComponentTest {
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
-        verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
-
         try {
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), is(EXAMPLE_JSON));
 
@@ -153,14 +154,28 @@ public class ApiPolicyComponentTest {
     }
 
     @Test
+    public void shouldForwardUnknownHeaders() {
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri).header("Arbitrary", "Example").get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader("Arbitrary",equalTo("Example")));
+        } finally {
+            response.close();
+        }
+    }
+
+
+    @Test
     public void shouldGetTheContentWithExtraWebUrlField() throws IOException {
         URI uri  = fromFacade(CONTENT_PATH).build();
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
-        verify(getRequestedFor(urlMatching(CONTENT_PATH)));
-
         try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+
             assertThat(response.getStatus(), is(200));
             String bodyString = response.getEntity(String.class);
 
@@ -238,12 +253,15 @@ public class ApiPolicyComponentTest {
 
         ClientResponse response = client.resource(facadeUri)
                 .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(ALL_NOTIFICATION_FEED)));
 
-        verify(getRequestedFor(urlEqualTo(ALL_NOTIFICATION_FEED)));
+            String requestUrl = expectRequestUrl(response);
 
-        String requestUrl = expectRequestUrl(response);
-
-        assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
 
     }
 
@@ -257,13 +275,15 @@ public class ApiPolicyComponentTest {
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY")
                 .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_ONLY_NOTIFICATION_FEED)));
 
-        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_ONLY_NOTIFICATION_FEED)));
+            String requestUrl = expectRequestUrl(response);
 
-        String requestUrl = expectRequestUrl(response);
-
-        assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
-
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
     }
 
     @Test
@@ -276,13 +296,15 @@ public class ApiPolicyComponentTest {
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT")
                 .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(FILTERED_NO_FASTFT_NOTIFICATION_FEED)));
 
-        verify(getRequestedFor(urlEqualTo(FILTERED_NO_FASTFT_NOTIFICATION_FEED)));
+            String requestUrl = expectRequestUrl(response);
 
-        String requestUrl = expectRequestUrl(response);
-
-        assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
-
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
 
     }
 
@@ -295,7 +317,7 @@ public class ApiPolicyComponentTest {
 
         client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY, EXCLUDE_FASTFT_CONTENT")
-                .get(ClientResponse.class);
+                .get(ClientResponse.class).close();
 
 
         verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED)));
@@ -336,15 +358,14 @@ public class ApiPolicyComponentTest {
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
-        verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
-
         try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
             assumeThat(response.getStatus(), is(200));
             assertThat(response.getHeaders().get("Vary").size(), is(1));
 
             List<String> varyHeaderValue = atomise(response.getHeaders().get("Vary"));
             assertThat(varyHeaderValue, hasItems("Accept",HttpPipeline.POLICY_HEADER_NAME));
-
 
         } finally {
             response.close();
@@ -368,9 +389,9 @@ public class ApiPolicyComponentTest {
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
-        verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
-
         try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
             assumeThat(response.getStatus(), is(200));
 
             List<String> varyHeaderValue = response.getHeaders().get("Vary");
@@ -392,15 +413,15 @@ public class ApiPolicyComponentTest {
                 aResponse()
                     .withBody(CONTENT_JSON)
                     .withStatus(200)
-                    .withHeader("X-Example","100")
-                    .withHeader("Accept-Encoding","test") // out of place for a response, but this is a test
+                    .withHeader("X-Example", "100")
+                    .withHeader("Accept-Encoding", "test") // out of place for a response, but this is a test
                 ));
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
-        verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
-
         try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
             assumeThat(response.getStatus(), is(200));
 
             assertThat(response.getHeaders().getFirst("X-Example"), is("100"));
