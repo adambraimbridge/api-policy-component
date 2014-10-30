@@ -35,6 +35,7 @@ public class MutableHttpTranslator {
             "Accept-Encoding",
             "Content-Length",
             "Transfer-Encoding",
+            "Content-Encoding",
             "Date",
             HttpPipeline.POLICY_HEADER_NAME
     ));
