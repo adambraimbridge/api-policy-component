@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='utf-8'?>
+<view autoCancelInterval="90" decomposeIntentions="false"
+      isPersistable="true" isSticky="false" isVisible="true" objectMode="viewconf"
+      onunloadCancelJobs="true" refresh="300" template="dashboard.html">
+  <label>API Policy Component Monitor</label>
+  <module name="AccountBar" layoutPanel="appHeader" />
+  <module name="AppBar" layoutPanel="navigationHeader" />
+  <module name="Message" layoutPanel="messaging">
+    <param name="clearOnJobDispatch">False</param>
+    <param name="maxSize">0</param>
+    <param name="filter">*</param>
+  </module>
+  <module name="TitleBar" layoutPanel="viewHeader" />
+  <module name="TimeRangePicker" layoutPanel="panel_row1_col1">
+
+    <param name="default">Last 15 minutes</param>
+    <param name="searchWhenChanged">True</param>
+
+
+    <!-- App : Start -->
+    <module name="HiddenSearch" autoRun="True">
+      <param name="maxCount">1000000</param>
+      <param name="maxEvents">1000000</param>
+      <param name="search">source=/var/log/apps/api-policy-component-dw-access.log uri_path!="/healthcheck" uri_path!="/ping" uri_path!="/build-info"  | fields status host dw_resptime</param>
+      <module name="JobProgressIndicator" autoRun="True">
+        <module name="HiddenPostProcess" autoRun="True">
+          <param name="search">| timechart count by host</param>
+          <module name="HiddenChartFormatter" layoutPanel="panel_row2_col1_grp1"
+                  group="Facade Traffic counts by host">
+            <param name="chart">area</param>
+            <param name="charting.axisTitleY.visibility">collapsed</param>
+            <param name="legend.placement">right</param>
+            <param name="charting.axisTitleX.visibility">collapsed</param>
+            <module name="FlashChart">
+              <param name="width">100%</param>
+              <param name="height">200px</param>
+            </module>
+            <module name="ViewRedirectorLink">
+              <param name="viewTarget">flashtimeline</param>
+            </module>
+          </module>
+        </module>
+      </module>
+
+      <module name="JobProgressIndicator" autoRun="True">
+        <module name="HiddenPostProcess" autoRun="True">
+          <param name="search"> | eval resptime_secs=dw_resptime/1000 | timechart perc95(resptime_secs) by host</param>
+          <module name="HiddenChartFormatter" layoutPanel="panel_row2_col2_grp1"
+                  group="Facade Response times by host (95th percentile)">
+            <param name="legend.placement">right</param>
+            <param name="groupLabel">Facade Response times by host (95th percentile)</param>
+            <param name="chart">area</param>
+            <param name="charting.axisTitleX.visibility">collapsed</param>
+            <param name="charting.axisTitleY.visibility">collapsed</param>
+            <module name="FlashChart">
+              <param name="width">100%</param>
+              <param name="height">200px</param>
+            </module>
+            <module name="ViewRedirectorLink">
+              <param name="viewTarget">flashtimeline</param>
+            </module>
+          </module>
+        </module>
+      </module>
+
+
+      <module name="JobProgressIndicator" autoRun="True">
+        <module name="HiddenPostProcess" autoRun="True">
+          <param name="search"> | timechart count by status</param>
+          <module name="HiddenChartFormatter" layoutPanel="panel_row2_col3_grp1"
+                  group="Facade Response by Status Code">
+            <param name="legend.placement">right</param>
+            <param name="groupLabel">Facade Response by Status Code</param>
+            <param name="chart">area</param>
+            <param name="charting.axisTitleX.visibility">collapsed</param>
+            <param name="charting.axisTitleY.visibility">collapsed</param>
+            <module name="FlashChart">
+              <param name="width">100%</param>
+              <param name="height">200px</param>
+            </module>
+            <module name="ViewRedirectorLink">
+              <param name="viewTarget">flashtimeline</param>
+            </module>
+          </module>
+        </module>
+      </module>
+    </module>
+    <!-- Semantic Reader App : Start -->
+
+
+    <!-- Cache Monitoring : Start -->
+    <module name="HiddenSearch" autoRun="True">
+      <param name="maxCount">1000000</param>
+      <param name="maxEvents">1000000</param>
+      <param name="search">source="/var/log/varnish/semantic-reader-varnish.log" uri!="/healthcheck" uri!="/ping" uri!="/build-info" request_id!="SYNTHETIC-REQUEST-MONITOR" | fields host status resptime</param>
+
+      <!-- Cache Traffic By Host -->
+      <module name="JobProgressIndicator" autoRun="True">
+        <module name="HiddenPostProcess" autoRun="True">
+          <param name="search">| timechart count by host</param>
+          <module name="HiddenChartFormatter" layoutPanel="panel_row3_col1_grp1" group="Cache Traffic By Host">
+            <param name="chart">area</param>
+            <param name="charting.axisTitleY.visibility">collapsed</param>
+            <param name="legend.placement">right</param>
+            <param name="charting.axisTitleX.visibility">collapsed</param>
+            <module name="FlashChart">
+              <param name="width">100%</param>
+              <param name="height">200px</param>
+            </module>
+            <module name="ViewRedirectorLink">
+              <param name="viewTarget">flashtimeline</param>
+            </module>
+          </module>
+        </module>
+      </module>
+
+      <!-- Cache Response Times By Host -->
+      <module name="JobProgressIndicator" autoRun="True">
+        <module name="HiddenPostProcess" autoRun="True">
+          <param name="search">| timechart perc95(resptime) by host</param>
+          <module name="HiddenChartFormatter" layoutPanel="panel_row3_col2_grp1" group="Cache Response Times By Host">
+            <param name="chart">area</param>
+            <param name="charting.axisTitleY.visibility">collapsed</param>
+            <param name="legend.placement">right</param>
+            <param name="charting.axisTitleX.visibility">collapsed</param>
+            <module name="FlashChart">
+              <param name="width">100%</param>
+              <param name="height">200px</param>
+            </module>
+            <module name="ViewRedirectorLink">
+              <param name="viewTarget">flashtimeline</param>
+            </module>
+          </module>
+        </module>
+      </module>
+
+      <!-- Cache Responses By Status Code -->
+      <module name="JobProgressIndicator" autoRun="True">
+        <module name="HiddenPostProcess" autoRun="True">
+          <param name="search">| timechart count by status</param>
+          <module name="HiddenChartFormatter" layoutPanel="panel_row3_col3_grp1" group="Cache Responses By Status Code">
+            <param name="chart">area</param>
+            <param name="charting.axisTitleY.visibility">collapsed</param>
+            <param name="legend.placement">right</param>
+            <param name="charting.axisTitleX.visibility">collapsed</param>
+            <module name="FlashChart">
+              <param name="width">100%</param>
+              <param name="height">200px</param>
+            </module>
+            <module name="ViewRedirectorLink">
+              <param name="viewTarget">flashtimeline</param>
+            </module>
+          </module>
+        </module>
+      </module>
+
+    </module>
+    <!-- Cache Monitoring : End -->
+
+
+
+  </module>
+
+
+</view>
