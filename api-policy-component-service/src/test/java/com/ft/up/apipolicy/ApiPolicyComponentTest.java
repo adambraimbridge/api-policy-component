@@ -85,37 +85,17 @@ public class ApiPolicyComponentTest {
                 "}" +
             "}";
 
-    private static final String ALL_NOTIFICATIONS_JSON =
-            "{" +
-                "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15\" " +
+    private static final String NOTIFICATIONS_RESPONSE_TEMPLATE = "{" +
+            "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\" " +
             "}";
-
     
-    private static final String FASTFT_NOTIFICATIONS_JSON =
-            "{" +
-                "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15&forBrand=" + AddBrandFilterParameters.FASTFT_BRAND + "\"" +
-            "}";
-
-    private static final String NOT_FASTFT_NOTIFICATIONS_JSON =
-            "{" +
-                    "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15&notForBrand=" + AddBrandFilterParameters.FASTFT_BRAND + "\"" +
-                    "}";
-    
-    private static final String ALPHAVILLE_NOTIFICATIONS_JSON =
-            "{" +
-                "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15&forBrand=" + AddBrandFilterParameters.ALPHAVILLE_BRAND + "\"" +
-            "}";
-
-    private static final String NOT_ALPHAVILLE_NOTIFICATIONS_JSON =
-            "{" +
-                    "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15&notForBrand=" + AddBrandFilterParameters.ALPHAVILLE_BRAND + "\"" +
-                    "}";
-    
-    private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON =
-            "{" +
-                    "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15&forBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54" +
-                        "&notForBrand=http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54\" " +
-                    "}";
+    private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "");
+    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND);
+    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND);  
+    private static final String ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND_FILTER + AddBrandFilterParameters.ALPHAVILLE_BRAND);
+    private static final String NOT_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.ALPHAVILLE_BRAND);   
+    private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
+            FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND);
 
     private Client client;
     private ObjectMapper objectMapper;
