@@ -16,6 +16,8 @@ import java.util.HashMap;
  */
 public class AddBrandFilterParameters implements ApiFilter {
 
+    public static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
+    public static final String ALPHAVILLE_BRAND = "http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a6";
     public static final String REQUEST_URL_KEY = "requestUrl";
     private JsonConverter converter;
 
@@ -27,11 +29,19 @@ public class AddBrandFilterParameters implements ApiFilter {
     public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
 
         if(request.policyIs("FASTFT_CONTENT_ONLY")) {
-            request.getQueryParameters().add("forBrand","http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54");
+            request.getQueryParameters().add("forBrand",FASTFT_BRAND);
         }
 
         if(request.policyIs("EXCLUDE_FASTFT_CONTENT")) {
-            request.getQueryParameters().add("notForBrand","http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54");
+            request.getQueryParameters().add("notForBrand",FASTFT_BRAND);
+        }
+        
+        if(request.policyIs("ALPHAVILLE_CONTENT_ONLY")) {
+            request.getQueryParameters().add("forBrand",ALPHAVILLE_BRAND);
+        }
+
+        if(request.policyIs("EXCLUDE_ALPHAVILLE_CONTENT")) {
+            request.getQueryParameters().add("notForBrand",ALPHAVILLE_BRAND);
         }
 
         MutableResponse response = chain.callNextFilter(request);
