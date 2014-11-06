@@ -16,11 +16,11 @@ server:
 
   applicationConnectors:
     - type: http
-      port: 20080
+      port: 20180
 
   adminConnectors:
       - type: http
-        port: 20082
+        port: 20182
 
   requestLog:
 
