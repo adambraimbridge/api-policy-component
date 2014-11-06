@@ -56,15 +56,7 @@ public class ApiPolicyComponentTest {
     public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15";
     public static final String FOR_BRAND_FILTER = "&forBrand=";
     public static final String NOT_FOR_BRAND_FILTER = "&notForBrand=";
-    
-    
-    public static final String ALL_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15";
-    public static final String FILTERED_FASTFT_ONLY_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&forBrand=" + AddBrandFilterParameters.FASTFT_BRAND;
-    public static final String FILTERED_NO_FASTFT_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&notForBrand=" + AddBrandFilterParameters.FASTFT_BRAND;
-    public static final String FILTERED_ALPHAVILLE_ONLY_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&forBrand=" + AddBrandFilterParameters.ALPHAVILLE_BRAND;
-    public static final String FILTERED_NO_ALPHAVILLE_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&notForBrand=" + AddBrandFilterParameters.ALPHAVILLE_BRAND;
-    public static final String FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED = "/content/notifications?since=2014-10-15&forBrand=" + AddBrandFilterParameters.FASTFT_BRAND +
-    		"&notForBrand=" + AddBrandFilterParameters.FASTFT_BRAND;
+
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentTest.class);
@@ -188,11 +180,11 @@ public class ApiPolicyComponentTest {
     public void shouldTreatMultiplePolicyHeadersTheSame() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
+        
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND
+                + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND;
 
-        stubForNotificationsWithoutExcludeAndIncludeFastFT();
-        stubForNotifications(BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND
-                + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND,
-                FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(url, FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
 
         /*
 
@@ -239,7 +231,7 @@ public class ApiPolicyComponentTest {
         }
 
         // after all that, we're only really interested in whether the app called the varnish layer with the same parameters.
-        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED)));
+        verify(getRequestedFor(urlEqualTo(url)));
 
     }
     
@@ -247,13 +239,15 @@ public class ApiPolicyComponentTest {
     public void givenNoFastFtRelatedPolicyShouldGetNotificationsWithNoBrandParameter() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
+        
+        String url = BASE_NOTIFICATION_PATH;
 
-        stubForNotifications(BASE_NOTIFICATION_PATH, ALL_NOTIFICATIONS_JSON);
+        stubForNotifications(url, ALL_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .get(ClientResponse.class);
 
-        verify(getRequestedFor(urlEqualTo(ALL_NOTIFICATION_FEED)));
+        verify(getRequestedFor(urlEqualTo(url)));
 
         String requestUrl = expectRequestUrl(response);
 
@@ -265,14 +259,16 @@ public class ApiPolicyComponentTest {
     public void givenPolicyFASTFT_CONTENT_ONLYShouldGetNotificationsWithForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
+        
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND;
 
-        stubForNotifications(BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND, FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY")
                 .get(ClientResponse.class);
 
-        verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND)));
+        verify(getRequestedFor(urlEqualTo(url)));
 
         String requestUrl = expectRequestUrl(response);
 
@@ -284,14 +280,16 @@ public class ApiPolicyComponentTest {
     public void givenPolicyEXCLUDE_FASTFT_CONTENTShouldGetNotificationsWithNotForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
+        
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND;
 
-        stubForNotifications(BASE_NOTIFICATION_PATH + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND, NOT_FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(url, NOT_FASTFT_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT")
                 .get(ClientResponse.class);
 
-        verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND)));
+        verify(getRequestedFor(urlEqualTo(url)));
 
         String requestUrl = expectRequestUrl(response);
 
@@ -303,14 +301,16 @@ public class ApiPolicyComponentTest {
     public void givenPolicyALPHAVILLE_CONTENT_ONLYShouldGetNotificationsWithForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
+        
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.ALPHAVILLE_BRAND;
 
-        stubForNotifications(BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.ALPHAVILLE_BRAND, ALPHAVILLE_NOTIFICATIONS_JSON);
+        stubForNotifications(url, ALPHAVILLE_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "ALPHAVILLE_CONTENT_ONLY")
                 .get(ClientResponse.class);
 
-        verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.ALPHAVILLE_BRAND)));
+        verify(getRequestedFor(urlEqualTo(url)));
 
         String requestUrl = expectRequestUrl(response);
 
@@ -322,14 +322,16 @@ public class ApiPolicyComponentTest {
     public void givenPolicyEXCLUDE_ALPHAVILLE_CONTENTShouldGetNotificationsWithNotForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
+        
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.ALPHAVILLE_BRAND;
 
-        stubForNotifications(BASE_NOTIFICATION_PATH + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.ALPHAVILLE_BRAND, NOT_ALPHAVILLE_NOTIFICATIONS_JSON);
+        stubForNotifications(url, NOT_ALPHAVILLE_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_ALPHAVILLE_CONTENT")
                 .get(ClientResponse.class);
 
-        verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.ALPHAVILLE_BRAND)));
+        verify(getRequestedFor(urlEqualTo(url)));
 
         String requestUrl = expectRequestUrl(response);
 
@@ -341,15 +343,18 @@ public class ApiPolicyComponentTest {
     public void givenListedPoliciesFASTFT_CONTENT_ONLYCommaEXCLUDE_FASTFT_CONTENTShouldProcessBothAsNormal() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
+        
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND
+                + NOT_FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND;
 
-        stubForNotifications(BASE_NOTIFICATION_PATH + FOR_BRAND_FILTER + AddBrandFilterParameters.FASTFT_BRAND, FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
 
         client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY, EXCLUDE_FASTFT_CONTENT")
                 .get(ClientResponse.class);
 
 
-        verify(getRequestedFor(urlEqualTo(FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED)));
+        verify(getRequestedFor(urlEqualTo(url)));
 
     }
 
@@ -385,11 +390,6 @@ public class ApiPolicyComponentTest {
     private void stubForNotifications(String url, String responseBody) {
         stubFor(get(urlEqualTo(url))
                 .willReturn(aResponse().withBody(responseBody)));
-    }
-
-    private void stubForNotificationsWithoutExcludeAndIncludeFastFT() {
-        stubFor(get(urlEqualTo(FILTERED_FASTFT_AND_NO_FASTFT_NOTIFICATION_FEED))
-                .willReturn(aResponse().withBody(FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON)));
     }
 
     private List<String> atomise(List<String> varyHeaderValues) {
