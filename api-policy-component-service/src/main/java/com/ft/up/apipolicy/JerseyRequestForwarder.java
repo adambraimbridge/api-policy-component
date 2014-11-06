@@ -8,7 +8,10 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 
@@ -19,6 +22,7 @@ import java.io.IOException;
  */
 public class JerseyRequestForwarder implements RequestForwarder {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JerseyRequestForwarder.class);
     private Client client;
     private EndpointConfiguration varnish;
 
@@ -37,12 +41,18 @@ public class JerseyRequestForwarder implements RequestForwarder {
         for(String parameterName : request.getQueryParameters().keySet()) {
             for(String value : request.getQueryParameters().get(parameterName)) {
                 builder.queryParam(parameterName, value);
+                LOGGER.debug("Sending Parameter: {}={}",parameterName,value);
             }
         }
 
-        WebResource resource = client.resource(builder.build());
-        for(String headerName : request.getHeaders().keySet()) {
-            resource.header(headerName,request.getHeaders().get(headerName));
+        WebResource.Builder resource = client.resource(builder.build()).getRequestBuilder();
+
+        MultivaluedMap<String,String> headers = request.getHeaders();
+        for(String headerName : headers.keySet()) {
+            for(String value : headers.get(headerName)) {
+                resource = resource.header(headerName,value);
+                LOGGER.debug("Sending Header: {}={}",headerName,value);
+            }
         }
 
         ClientResponse clientResponse = resource.method("GET", ClientResponse.class);
@@ -57,8 +67,6 @@ public class JerseyRequestForwarder implements RequestForwarder {
         } finally {
             clientResponse.close();
         }
-
-
 
         return result;
 

@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -34,6 +35,7 @@ public class MutableHttpTranslator {
             "Accept-Encoding",
             "Content-Length",
             "Transfer-Encoding",
+            "Content-Encoding",
             "Date",
             HttpPipeline.POLICY_HEADER_NAME
     ));
@@ -43,20 +45,38 @@ public class MutableHttpTranslator {
 
 
         MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+        Set<String> policies = Collections.emptySet();
 
         Enumeration<String> headerNames = realRequest.getHeaderNames();
         if(headerNames!=null) {
             while(headerNames.hasMoreElements()) {
                 String headerName = headerNames.nextElement();
 
-                if(HEADER_BLACKLIST.contains(headerName)) {
-                    continue;
-                }
-
                 Enumeration<String> values = realRequest.getHeaders(headerName);
-                while(values.hasMoreElements()) {
-                    String value = values.nextElement();
-                    headers.add(headerName, value);
+
+                if(HttpPipeline.POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
+                    if(values!=null) {
+                        policies  = new LinkedHashSet<>();
+                        while(values.hasMoreElements()) {
+                            String value = values.nextElement();
+                            LOGGER.debug("Processed Policies: {}", value);
+                            policies.addAll(Arrays.asList(value.split("[ ,]")));
+                        }
+
+                    }
+                } else if(HEADER_BLACKLIST.contains(headerName)) {
+                    if(LOGGER.isDebugEnabled()) {
+                        while(values.hasMoreElements()) {
+                            String value = values.nextElement();
+                            LOGGER.debug("Not Processed: {}={}", headerName, value);
+                        }
+                    }
+                } else {
+                    while(values.hasMoreElements()) {
+                        String value = values.nextElement();
+                        headers.add(headerName, value);
+                        LOGGER.debug("Passed Up: {}={}", headerName, value);
+                    }
                 }
             }
         } else {
@@ -74,17 +94,6 @@ public class MutableHttpTranslator {
 
         String absolutePath = URI.create(realRequest.getRequestURL().toString()).getPath();
 
-        Set<String> policies;
-        Enumeration<String> policyHeaders = realRequest.getHeaders(HttpPipeline.POLICY_HEADER_NAME);
-        if(policyHeaders!=null) {
-            policies  = new LinkedHashSet<>();
-            while(policyHeaders.hasMoreElements()) {
-                policies.addAll(Arrays.asList(policyHeaders.nextElement().split("[ ,]")));
-            }
-        } else {
-            policies = Collections.emptySet();
-        }
-
         MutableRequest request = new MutableRequest(policies);
         request.setAbsolutePath(absolutePath);
         request.setQueryParameters(queryParameters);
@@ -98,11 +107,20 @@ public class MutableHttpTranslator {
         Response.ResponseBuilder responseBuilder = Response.status(mutableResponse.getStatus());
 
         for(String headerName : mutableResponse.getHeaders().keySet()) {
+
+            List<String> values = mutableResponse.getHeaders().get(headerName);
+
             if(HEADER_BLACKLIST.contains(headerName)) {
-                continue;
-            }
-            for(String value : mutableResponse.getHeaders().get(headerName)) {
-                responseBuilder.header(headerName, value);
+                if(LOGGER.isDebugEnabled()) {
+                    for(String value : values) {
+                        LOGGER.debug("Not Processed: {}={}", headerName, value);
+                    }
+                }
+            } else {
+                for(String value : values) {
+                    responseBuilder.header(headerName, value);
+                    LOGGER.debug("Passed Down: {}={}", headerName, value);
+                }
             }
         }
 

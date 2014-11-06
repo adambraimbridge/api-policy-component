@@ -1,0 +1,65 @@
+package com.ft.up.apipolicy;
+
+import com.ft.up.apipolicy.pipeline.MutableResponse;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+
+import org.junit.Test;
+
+import java.util.HashMap;
+
+import static org.hamcrest.Matchers.lessThan;
+import static org.junit.Assert.assertThat;
+
+/**
+ * JsonConverterTest
+ *
+ * @author Simon.Gibbs
+ */
+public class JsonConverterTest {
+
+    public static final String FIELDS_JSON = "{\n" +
+            "\"id\":\"\",\n" +
+            "\"type\":\"\",\n" +
+            "\"bodyXML\": \"\",\n" +
+            "\"title\":\"\",\n" +
+            "\"publishedDate\":\"\",\n" +
+            "\"contentOrigin\":\"\",\n" +
+            "\"webUrl\":\"\",\n" +
+            "\"requestUrl\":\"\",\n" +
+            "\"brands\":\"\"\n" +
+            "}";
+
+    public static String[] FIELDS_ORDER = new String[] {"id",
+        "type",
+        "bodyXML",
+        "title",
+        "publishedDate",
+        "contentOrigin",
+        "webUrl",
+        "requestUrl",
+        "brands"
+    };
+
+    @Test
+    public void roundTripShouldPreserveFieldOrder() {
+        JsonConverter converter = JsonConverter.testConverter();
+
+        MutableResponse response = new MutableResponse(new MultivaluedMapImpl(),FIELDS_JSON.getBytes());
+
+        HashMap<String,Object> convertedJson = converter.readEntity(response);
+        convertedJson.put("title","test");
+
+        converter.replaceEntity(response,convertedJson);
+
+        for(int i=1;i<FIELDS_ORDER.length;i++) {
+            int firstIndex = response.getEntityAsString().indexOf(FIELDS_ORDER[i-1]);
+            int secondIndex = response.getEntityAsString().indexOf(FIELDS_ORDER[i]);
+
+            String message = "Expected " + FIELDS_ORDER[i-1] + " < " + FIELDS_ORDER[i];
+
+            assertThat(message,firstIndex, lessThan(secondIndex));
+        }
+
+    }
+
+}

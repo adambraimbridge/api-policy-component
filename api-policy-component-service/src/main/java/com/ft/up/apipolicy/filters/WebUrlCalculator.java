@@ -33,6 +33,10 @@ public class WebUrlCalculator implements ApiFilter {
 
         MutableResponse response = chain.callNextFilter(request);
 
+        if(response.getStatus()!=200) {
+            return response;
+        }
+
         HashMap<String, Object> content = jsonConverter.readEntity(response);
 
         Map<String,String> contentOrigin = expectOriginIn(content);

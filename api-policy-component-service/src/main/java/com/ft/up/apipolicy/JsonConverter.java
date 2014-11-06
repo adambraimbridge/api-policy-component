@@ -8,6 +8,7 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * JsonConverter
@@ -16,8 +17,11 @@ import java.util.HashMap;
  */
 public class JsonConverter {
 
+    public static JsonConverter testConverter() {
+        return new JsonConverter(new ObjectMapper());
+    }
 
-    public static final TypeReference<HashMap<String,Object>> JSON_MAP_TYPE = new TypeReference<HashMap<String, Object>>() {
+    public static final TypeReference<LinkedHashMap<String,Object>> JSON_MAP_TYPE = new TypeReference<LinkedHashMap<String, Object>>() {
     };
     private final ObjectMapper objectMapper;
 
