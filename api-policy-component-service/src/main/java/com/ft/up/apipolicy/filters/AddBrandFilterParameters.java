@@ -17,7 +17,7 @@ import java.util.HashMap;
 public class AddBrandFilterParameters implements ApiFilter {
 
     public static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
-    public static final String ALPHAVILLE_BRAND = "http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a6";
+    public static final String ALPHAVILLE_BRAND = "http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a66";
     public static final String REQUEST_URL_KEY = "requestUrl";
     private JsonConverter converter;
 
