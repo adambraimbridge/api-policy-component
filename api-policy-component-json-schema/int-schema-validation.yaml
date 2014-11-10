@@ -1,5 +1,5 @@
 apiPolicyComponent:
-  host: ftapp06088-lvpr-uk-int
+  host: api-policy-component-pr-uk-int.svc.ft.com
   port: 8080
   adminPort: 8081
 
