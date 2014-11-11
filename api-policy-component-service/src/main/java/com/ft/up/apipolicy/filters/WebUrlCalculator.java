@@ -33,7 +33,7 @@ public class WebUrlCalculator implements ApiFilter {
 
         MutableResponse response = chain.callNextFilter(request);
 
-        if(response.getStatus()!=200) {
+        if(response.getStatus()!=200){
             return response;
         }
 
@@ -42,6 +42,11 @@ public class WebUrlCalculator implements ApiFilter {
         Map<String,String> contentOrigin = expectOriginIn(content);
 
         String originSystem = contentOrigin.get("originatingSystem");
+
+        if(originSystem == null) {
+            return response;
+        }
+
         String originatingIdentifier = contentOrigin.get("originatingIdentifier");
 
         String template = urlTemplates.get(originSystem);
