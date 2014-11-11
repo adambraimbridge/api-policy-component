@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.up.apipolicy.filters.FilterException;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,6 +28,14 @@ public class JsonConverter {
 
     public JsonConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+    }
+
+    public boolean isJson(MutableResponse response) {
+        if(response.getContentType().startsWith(MediaType.APPLICATION_JSON)) {
+            return true;
+        }
+
+        return false;
     }
 
     public HashMap<String, Object> readEntity(MutableResponse response) {
