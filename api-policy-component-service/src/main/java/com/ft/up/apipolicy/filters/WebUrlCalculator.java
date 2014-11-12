@@ -43,6 +43,11 @@ public class WebUrlCalculator implements ApiFilter {
         Map<String,String> contentOrigin = expectOriginIn(content);
 
         String originSystem = contentOrigin.get("originatingSystem");
+
+        if(originSystem == null) {
+            return response;
+        }
+
         String originatingIdentifier = contentOrigin.get("originatingIdentifier");
 
         String template = urlTemplates.get(originSystem);

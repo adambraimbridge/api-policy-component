@@ -16,7 +16,11 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.contains;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -34,6 +38,8 @@ public class WebUrlCalculatorTest {
             "\"originatingIdentifier\": \"219512\"\n" +
             "} }";
 
+    public final static String ORIGINATINGSYSTEM_IS_NULL_RESPONSE = "{ \"contentOrigin\": {\n" +
+            "} }";
 
     public Map<String,String> FASTFT_TEMPLATE = Collections.singletonMap("http://www.ft.com/ontology/origin/FT-CLAMO","TEST{{originatingIdentifier}}");
 
@@ -45,6 +51,7 @@ public class WebUrlCalculatorTest {
 
     private MutableResponse exampleErrorResponse;
     private MutableResponse minimalExampleResponse;
+    private MutableResponse originatingSystemIsNullResponse;
 
     @Before
     public void setUpExamples() {
@@ -53,7 +60,13 @@ public class WebUrlCalculatorTest {
 
         minimalExampleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_EXAMPLE_RESPONSE.getBytes());
         minimalExampleResponse.setStatus(200);
+
+
+        originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), ORIGINATINGSYSTEM_IS_NULL_RESPONSE.getBytes());
+        originatingSystemIsNullResponse.setStatus(200);
+
         minimalExampleResponse.getHeaders().putSingle("Content-Type","application/json");
+        originatingSystemIsNullResponse.getHeaders().putSingle("Content-Type","application/json");
     }
 
     @Test
@@ -65,14 +78,14 @@ public class WebUrlCalculatorTest {
 
         MutableResponse response = calculator.processRequest(exampleRequest,mockChain);
 
-        assertThat(response.getEntity(),is(ERROR_RESPONSE.getBytes()));
+        assertThat(response.getEntity(), is(ERROR_RESPONSE.getBytes()));
 
     }
 
     @Test
     public void shouldNotProcessJSONLD() {
 
-        minimalExampleResponse.getHeaders().putSingle("Content-Type","application/ld-json");
+        minimalExampleResponse.getHeaders().putSingle("Content-Type", "application/ld-json");
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleResponse);
 
         WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
@@ -90,7 +103,18 @@ public class WebUrlCalculatorTest {
 
         MutableResponse response = calculator.processRequest(exampleRequest,mockChain);
 
-        assertThat(response.getEntityAsString(),containsString("\"TEST219512\""));
+        assertThat(response.getEntityAsString(),containsString("\"webUrl\":\"TEST219512\""));
     }
 
+    @Test
+    public void shouldReturnSuccessResponseWithoutWebUrlWhenOriginatingSystemIsNull() {
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(originatingSystemIsNullResponse);
+
+        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
+
+        MutableResponse response = calculator.processRequest(exampleRequest,mockChain);
+
+        assertThat(response.getEntityAsString(),not(containsString("\"webUrl\":\"TEST219512\"")));
+
+    }
 }
