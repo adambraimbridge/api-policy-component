@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 import java.io.BufferedReader;
 import java.io.File;
@@ -120,8 +121,8 @@ public class ApiPolicyComponentTest {
 
     @Before
     public void setup() {
-        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON).withStatus(200)));
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withStatus(200)));
+        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
         this.client = Client.create();
 
@@ -354,14 +355,14 @@ public class ApiPolicyComponentTest {
     public void givenVaryHeaderWithAcceptShouldAddXPolicy() {
         URI uri  = fromFacade(CONTENT_PATH_2).build();
 
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withStatus(200).withHeader("Vary","Accept")));
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withHeader("Vary","Accept")));
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
 
-            assumeThat(response.getStatus(), is(200));
+            assertThat(response.getStatus(), is(200));
             assertThat(response.getHeaders().get("Vary").size(), is(1));
 
             List<String> varyHeaderValue = atomise(response.getHeaders().get("Vary"));
@@ -385,14 +386,14 @@ public class ApiPolicyComponentTest {
     public void shouldAddVaryHeaderWithXPolicy() {
         URI uri  = fromFacade(CONTENT_PATH_2).build();
 
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withStatus(200)));
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
 
-            assumeThat(response.getStatus(), is(200));
+            assertThat(response.getStatus(), is(200));
 
             List<String> varyHeaderValue = response.getHeaders().get("Vary");
 
@@ -412,6 +413,7 @@ public class ApiPolicyComponentTest {
         stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
                 aResponse()
                     .withBody(CONTENT_JSON)
+                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                     .withStatus(200)
                     .withHeader("X-Example", "100")
                     .withHeader("Accept-Encoding", "test") // out of place for a response, but this is a test
@@ -422,7 +424,7 @@ public class ApiPolicyComponentTest {
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
 
-            assumeThat(response.getStatus(), is(200));
+            assertThat(response.getStatus(), is(200));
 
             assertThat(response.getHeaders().getFirst("X-Example"), is("100"));
             assertThat(response.getHeaders().getFirst("Accept-Encoding"),nullValue());

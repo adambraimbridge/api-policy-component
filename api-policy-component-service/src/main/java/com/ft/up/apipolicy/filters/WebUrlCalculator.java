@@ -16,9 +16,6 @@ import java.util.Map;
  */
 public class WebUrlCalculator implements ApiFilter {
 
-
-
-
     private final Map<String, String> urlTemplates;
     private JsonConverter jsonConverter;
 
@@ -34,6 +31,10 @@ public class WebUrlCalculator implements ApiFilter {
         MutableResponse response = chain.callNextFilter(request);
 
         if(response.getStatus()!=200) {
+            return response;
+        }
+
+        if(!jsonConverter.isJson(response)) {
             return response;
         }
 

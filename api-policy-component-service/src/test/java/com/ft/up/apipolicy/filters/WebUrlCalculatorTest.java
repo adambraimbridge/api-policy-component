@@ -60,13 +60,16 @@ public class WebUrlCalculatorTest {
         minimalExampleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_EXAMPLE_RESPONSE.getBytes());
         minimalExampleResponse.setStatus(200);
 
+
         originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), ORIGINATINGSYSTEM_IS_NULL_RESPONSE.getBytes());
         originatingSystemIsNullResponse.setStatus(200);
+
+        minimalExampleResponse.getHeaders().putSingle("Content-Type","application/json");
+        originatingSystemIsNullResponse.getHeaders().putSingle("Content-Type","application/json");
     }
 
     @Test
     public void shouldNotProcessErrorResponse() {
-
 
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(exampleErrorResponse);
 
@@ -76,6 +79,19 @@ public class WebUrlCalculatorTest {
 
         assertThat(response.getEntity(),is(ERROR_RESPONSE.getBytes()));
 
+    }
+
+    @Test
+    public void shouldNotProcessJSONLD() {
+
+        minimalExampleResponse.getHeaders().putSingle("Content-Type","application/ld-json");
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleResponse);
+
+        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
+
+        MutableResponse response = calculator.processRequest(exampleRequest,mockChain);
+
+        assertThat(response.getEntity(),is(MINIMAL_EXAMPLE_RESPONSE.getBytes()));
     }
 
     @Test

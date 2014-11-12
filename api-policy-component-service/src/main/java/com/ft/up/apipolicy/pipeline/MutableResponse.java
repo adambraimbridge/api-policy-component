@@ -60,6 +60,10 @@ public class MutableResponse {
         this.status = status;
     }
 
+    public String getContentType() {
+        return headers.getFirst("Content-Type");
+    }
+
     public Set<String> getHeadersInVaryList() {
         Set<String> varyByHeadersSet = new LinkedHashSet<>();
         if(headers.containsKey(VARY_HEADER)) {
@@ -71,4 +75,6 @@ public class MutableResponse {
         }
         return varyByHeadersSet;
     }
+
+    
 }
