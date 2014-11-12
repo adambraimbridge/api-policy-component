@@ -33,7 +33,7 @@ public class WebUrlCalculator implements ApiFilter {
 
         MutableResponse response = chain.callNextFilter(request);
 
-        if(response.getStatus()!=200){
+        if(response.getStatus()!=200) {
             return response;
         }
 
