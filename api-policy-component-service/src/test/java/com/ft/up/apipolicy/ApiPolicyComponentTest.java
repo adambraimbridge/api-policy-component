@@ -62,7 +62,9 @@ public class ApiPolicyComponentTest {
 
     public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
-    
+
+    public static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
+
     public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15";
     public static final String FOR_BRAND = "&forBrand=";
     public static final String NOT_FOR_BRAND = "&notForBrand=";
@@ -70,6 +72,28 @@ public class ApiPolicyComponentTest {
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentTest.class);
+
+    private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
+
+    private static final String CONTENT_JSON =
+            "{" +
+                "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+                "\"contentOrigin\": {\n" +
+                "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                "\"originatingIdentifier\": \"220322\"\n" +
+                "}" +
+            "}";
+
+    private static final String ENRICHED_CONTENT_JSON =
+            "{" +
+                "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+                "\"contentOrigin\": {\n" +
+                "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                "\"originatingIdentifier\": \"220322\"\n" +
+                "}," +
+                "\"brands\": [ ],\n" +
+                "\"annotations\": [ ]" +
+            "}";
 
     @Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
@@ -84,16 +108,7 @@ public class ApiPolicyComponentTest {
     );
 
 
-    private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
 
-    private static final String CONTENT_JSON =
-            "{" +
-                "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"contentOrigin\": {\n" +
-                    "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-                    "\"originatingIdentifier\": \"220322\"\n" +
-                "}" +
-            "}";
 
     private static final String NOTIFICATIONS_RESPONSE_TEMPLATE = "{" +
             "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\" " +
@@ -172,12 +187,30 @@ public class ApiPolicyComponentTest {
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH)));
 
-            assertThat(response.getStatus(), is(200));
-            String bodyString = response.getEntity(String.class);
+            HashMap<String, Object> result = expectOKResponseWithJSON(response);
 
-            HashMap<String,Object> result = objectMapper.readValue(bodyString, jsonMapType());
+            assertWebUrl(result, "http://www.ft.com/fastft/220322");
 
-            assertThat((String)result.get("webUrl"),is("http://www.ft.com/fastft/220322"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldGetEnrichedContentWithExtraWebUrlField() throws IOException {
+
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+
+        URI uri  = fromFacade(ENRICHED_CONTENT_PATH).build();
+
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+
+            HashMap<String, Object> result = expectOKResponseWithJSON(response);
+
+            assertWebUrl(result, "http://www.ft.com/fastft/220322");
 
         } finally {
             response.close();
@@ -536,10 +569,7 @@ public class ApiPolicyComponentTest {
     }
 
     private String expectRequestUrl(ClientResponse response) throws IOException {
-        assertThat(response.getStatus(), is(200));
-        String bodyString = response.getEntity(String.class);
-
-        HashMap<String,Object> result = objectMapper.readValue(bodyString, jsonMapType());
+        HashMap<String, Object> result = expectOKResponseWithJSON(response);
 
         return (String) result.get("requestUrl");
     }
@@ -571,5 +601,15 @@ public class ApiPolicyComponentTest {
         }
     }
 
+    private void assertWebUrl(HashMap<String, Object> result, String webUrl) {
+        assertThat((String)result.get("webUrl"),is(webUrl));
+    }
+
+    private HashMap<String, Object> expectOKResponseWithJSON(ClientResponse response) throws IOException {
+        assertThat(response.getStatus(), is(200));
+        String bodyString = response.getEntity(String.class);
+
+        return objectMapper.readValue(bodyString, jsonMapType());
+    }
 
 }
