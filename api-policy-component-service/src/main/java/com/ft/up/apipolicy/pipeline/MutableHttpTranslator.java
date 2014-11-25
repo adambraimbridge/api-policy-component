@@ -49,6 +49,7 @@ public class MutableHttpTranslator {
 
         Enumeration<String> headerNames = realRequest.getHeaderNames();
         if(headerNames!=null) {
+            boolean hasXPolicyHeaders = false;
             while(headerNames.hasMoreElements()) {
                 String headerName = headerNames.nextElement();
 
@@ -56,10 +57,11 @@ public class MutableHttpTranslator {
 
                 if(HttpPipeline.POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
                     if(values!=null) {
-                        policies  = new LinkedHashSet<>();
+                        hasXPolicyHeaders = true;
+                        policies = new LinkedHashSet<>();
                         while(values.hasMoreElements()) {
                             String value = values.nextElement();
-                            LOGGER.debug("Processed Policies: {}", value);
+                            LOGGER.info("Processed Policies: {}", value);
                             policies.addAll(Arrays.asList(value.split("[ ,]")));
                         }
 
@@ -78,6 +80,9 @@ public class MutableHttpTranslator {
                         LOGGER.debug("Passed Up: {}={}", headerName, value);
                     }
                 }
+            }
+            if (!hasXPolicyHeaders) {
+                LOGGER.info("No X-Policy Headers");
             }
         } else {
             LOGGER.debug("No headers");
