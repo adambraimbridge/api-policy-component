@@ -7,6 +7,7 @@ import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
+import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
@@ -15,13 +16,9 @@ import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
 
-import io.dropwizard.servlets.SlowRequestFilter;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import io.dropwizard.util.Duration;
 
-import javax.servlet.DispatcherType;
-import java.util.EnumSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -48,12 +45,18 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         JsonConverter tweaker = new JsonConverter(environment.getObjectMapper());
 
+
+        ApiFilter webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),tweaker);
+
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder, new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),tweaker))));
+				new HttpPipeline(requestForwarder,webUrlAdder)));
 
         knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
                 new HttpPipeline(requestForwarder, new AddBrandFilterParameters(tweaker))));
+
+        knownEndpoints.add(new KnownEndpoint("^/enrichedcontent/.*",
+                new HttpPipeline(requestForwarder,webUrlAdder)));
 
         // DEFAULT CASE: Just forward it
         knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));
