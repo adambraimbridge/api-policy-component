@@ -83,6 +83,7 @@ public class ApiValidationAgainstSchemaIT {
     }
 
     private ClientResponse hitResource(String url){
+        LOGGER.info("Hitting {}", url);
         ClientResponse clientResponse = null;
         try{
             WebResource webResource = client.resource(url);
