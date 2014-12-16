@@ -71,7 +71,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
 
         environment.servlets().addFilter("Transaction ID Filter",
-                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/content/*");
     }
 
 }
