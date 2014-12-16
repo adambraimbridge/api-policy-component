@@ -3,7 +3,7 @@ varnish:
   shortName: "semanticReaderVarnish"
   path: content/
   jerseyClient:
-      timeout: 2000ms
+      timeout: <%=scope.function_hiera('jerseyClientTimeout')%>
   primaryNodes:  <%=scope.function_hiera('semanticReaderVarnishPrimaryNodes')%>
   secondaryNodes: <%=scope.function_hiera('semanticReaderVarnishSecondaryNodes','null')%>
 
