@@ -1,6 +1,12 @@
 package com.ft.up.apipolicy;
 
+import java.util.EnumSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import javax.servlet.DispatcherType;
+
 import com.ft.api.util.buildinfo.BuildInfoResource;
+import com.ft.api.util.transactionid.TransactionIdFilter;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
@@ -15,12 +21,8 @@ import com.ft.up.apipolicy.resources.KnownEndpoint;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
-
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
@@ -68,7 +70,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 .register("Reader API Connectivity",
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
 
-
+        environment.servlets().addFilter("Transaction ID Filter",
+                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/content/*");
     }
 
 }

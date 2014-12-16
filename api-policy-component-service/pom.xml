@@ -38,6 +38,7 @@
         <ft-build-info-maven-plugin.version>1.0</ft-build-info-maven-plugin.version>
         <maven-jar-plugin.version>2.3.2</maven-jar-plugin.version>
         <target-jdk>1.7</target-jdk>
+        <jaxrs.transaction-id-handling.version>1.9</jaxrs.transaction-id-handling.version>
     </properties>
 
     <dependencies>
@@ -72,6 +73,21 @@
         <version>1.1.1</version>
         <scope>runtime</scope>
       </dependency>
+        <dependency>
+            <groupId>com.ft</groupId>
+            <artifactId>jaxrs-transaction-id-handling</artifactId>
+            <version>${jaxrs.transaction-id-handling.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jackson-core</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jackson-annotations</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
