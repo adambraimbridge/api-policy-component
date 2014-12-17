@@ -1,16 +1,10 @@
 package com.ft.up.apipolicy.resources;
 
 
-import com.ft.up.apipolicy.pipeline.HttpPipeline;
-import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
-import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
-import com.ft.up.apipolicy.pipeline.MutableRequest;
-import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,14 +14,17 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import com.ft.api.jaxrs.errors.ServerError;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
+import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
+import com.ft.up.apipolicy.pipeline.MutableRequest;
+import com.ft.up.apipolicy.pipeline.MutableResponse;
+import com.google.common.base.Joiner;
+import com.sun.jersey.api.client.ClientHandlerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @Path("/{path:.*}")
@@ -51,9 +48,18 @@ public class WildcardEndpointResource {
         MutableRequest mutableRequest = translator.translateFrom(request);
 
         String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath();
-
-        MutableResponse response = handleRequest(mutableRequest,pathPart);
-
+        MutableResponse response = null;
+        try {
+            response = handleRequest(mutableRequest, pathPart);
+        }
+        catch(Exception e){
+            if(e instanceof ClientHandlerException){
+                throw ServerError.status(503).error(e.getMessage()).exception(e);
+            }
+            else{
+                throw e;
+            }
+        }
         if(response==null) {
             return Response.serverError().build();
         }
