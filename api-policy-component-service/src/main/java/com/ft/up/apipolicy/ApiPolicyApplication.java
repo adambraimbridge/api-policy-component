@@ -1,10 +1,9 @@
 package com.ft.up.apipolicy;
 
-import java.util.EnumSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import javax.servlet.DispatcherType;
 
+import com.ft.api.jaxrs.errors.RuntimeExceptionMapper;
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
@@ -38,9 +37,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     @Override
     public void run(final ApiPolicyConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
-
+        environment.jersey().register(new RuntimeExceptionMapper());
         Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
-
 
 
 		RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());

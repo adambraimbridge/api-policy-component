@@ -39,7 +39,9 @@
         <maven-jar-plugin.version>2.3.2</maven-jar-plugin.version>
         <target-jdk>1.7</target-jdk>
         <jaxrs.transaction-id-handling.version>1.9</jaxrs.transaction-id-handling.version>
+        <jaxrs.errorhandling.version>1.1.0</jaxrs.errorhandling.version>
     </properties>
+
 
     <dependencies>
         <dependency>
@@ -73,6 +75,11 @@
         <version>1.1.1</version>
         <scope>runtime</scope>
       </dependency>
+        <dependency>
+            <groupId>com.ft.jaxrs-error-handling</groupId>
+            <artifactId>jaxrs-error-handling-builder</artifactId>
+            <version>${jaxrs.errorhandling.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.ft</groupId>
             <artifactId>jaxrs-transaction-id-handling</artifactId>
