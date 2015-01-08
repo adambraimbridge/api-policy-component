@@ -12,6 +12,7 @@ import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
+import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
@@ -54,8 +55,10 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
 				new HttpPipeline(requestForwarder,webUrlAdder)));
 
+        PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
+
         knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
-                new HttpPipeline(requestForwarder, new AddBrandFilterParameters(tweaker))));
+                new HttpPipeline(requestForwarder, new AddBrandFilterParameters(tweaker, resolver))));
 
         knownEndpoints.add(new KnownEndpoint("^/enrichedcontent/.*",
                 new HttpPipeline(requestForwarder,webUrlAdder)));
