@@ -45,7 +45,7 @@ public class PolicyBrandsResolver {
             if(policyFilterParameter.getNotForBrand() != null){
                 List<String> notForBrands = policyFilterParameter.getNotForBrand();
                 for(String brand : notForBrands){
-                    request.getQueryParameters().add("notForBrands", brand);
+                    request.getQueryParameters().add("notForBrand", brand);
                 }
             }
 

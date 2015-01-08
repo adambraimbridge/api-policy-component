@@ -1,9 +1,35 @@
 package com.ft.up.apipolicy;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -21,41 +47,17 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-
-import static io.dropwizard.testing.junit.ConfigOverride.config;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeThat;
-
 /**
  * ApiPolicyComponentTest
  *
  * @author Simon.Gibbs
  */
 public class ApiPolicyComponentTest {
+
+    public static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
+    public static final String ALPHAVILLE_BRAND = "http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a66";
+    public static final String BEYONDBRICS_BRAND = "http://api.ft.com/things/3a37a89e-14ce-4ac8-af12-961a9630dce3";
+
 
     public static final String EXAMPLE_PATH = "/example";
     private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
@@ -115,16 +117,16 @@ public class ApiPolicyComponentTest {
             "}";
     
     private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "");
-    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND);
-    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND);  
-    private static final String ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + AddBrandFilterParameters.ALPHAVILLE_BRAND);
-    private static final String NOT_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + AddBrandFilterParameters.ALPHAVILLE_BRAND);   
+    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND);
+    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND);
+    private static final String ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + ALPHAVILLE_BRAND);
+    private static final String NOT_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + ALPHAVILLE_BRAND);
     private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
-            FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND + NOT_FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND);
+            FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND);
     private static final String FASTFT_AND_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
-            FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND + FOR_BRAND + AddBrandFilterParameters.ALPHAVILLE_BRAND);
+            FOR_BRAND + FASTFT_BRAND + FOR_BRAND + ALPHAVILLE_BRAND);
     private static final String NOT_FASTFT_AND_NOT_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
-            NOT_FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND + NOT_FOR_BRAND + AddBrandFilterParameters.ALPHAVILLE_BRAND);
+            NOT_FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND);
 
     private Client client;
     private ObjectMapper objectMapper;
@@ -222,8 +224,8 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
         
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND
-                + NOT_FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND;
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND
+                + NOT_FOR_BRAND + FASTFT_BRAND;
 
         stubForNotifications(url, FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
 
@@ -304,7 +306,7 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
         
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND;
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND;
 
         stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
 
@@ -327,7 +329,7 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
         
-        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND;
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + FASTFT_BRAND;
 
         stubForNotifications(url, NOT_FASTFT_NOTIFICATIONS_JSON);
 
@@ -351,7 +353,7 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
         
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + AddBrandFilterParameters.ALPHAVILLE_BRAND;
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + ALPHAVILLE_BRAND;
 
         stubForNotifications(url, ALPHAVILLE_NOTIFICATIONS_JSON);
 
@@ -376,7 +378,7 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
         
-        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + AddBrandFilterParameters.ALPHAVILLE_BRAND;
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + ALPHAVILLE_BRAND;
 
         stubForNotifications(url, NOT_ALPHAVILLE_NOTIFICATIONS_JSON);
 
@@ -401,7 +403,7 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
         
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND + FOR_BRAND + AddBrandFilterParameters.ALPHAVILLE_BRAND;
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND + FOR_BRAND + ALPHAVILLE_BRAND;
 
         stubForNotifications(url, FASTFT_AND_ALPHAVILLE_NOTIFICATIONS_JSON);
 
@@ -427,7 +429,7 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
         
-        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND + NOT_FOR_BRAND + AddBrandFilterParameters.ALPHAVILLE_BRAND;
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND;
 
         stubForNotifications(url, NOT_FASTFT_AND_NOT_ALPHAVILLE_NOTIFICATIONS_JSON);
 
@@ -453,8 +455,8 @@ public class ApiPolicyComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
         
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND
-                + NOT_FOR_BRAND + AddBrandFilterParameters.FASTFT_BRAND;
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND
+                + NOT_FOR_BRAND + FASTFT_BRAND;
 
         stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
 
