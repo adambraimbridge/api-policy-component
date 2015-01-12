@@ -96,6 +96,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.ft.bodyprocessing</groupId>
+            <artifactId>body-processing</artifactId>
+            <version>0.0.9</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
@@ -138,6 +143,18 @@
           <artifactId>dropwizard-testing</artifactId>
           <version>${dw.version}</version>
           <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>1.1.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>1.1.5</version>
+            <scope>test</scope>
         </dependency>
       <dependency>
         <groupId>commons-io</groupId>
