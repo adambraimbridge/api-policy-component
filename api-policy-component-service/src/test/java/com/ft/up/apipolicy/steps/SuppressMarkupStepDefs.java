@@ -5,6 +5,8 @@ import com.ft.up.apipolicy.filters.SuppressMarkupFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -49,14 +51,14 @@ public class SuppressMarkupStepDefs {
     public void it_is_transformed() throws Throwable {
 
         HashMap<String,Object> jsonEntity = new HashMap<>(1);
-        jsonEntity.put("bodyXML",(Object) unprocessedMarkup);
+        jsonEntity.put("bodyXML",(Object) wrap(unprocessedMarkup));
 
         MutableResponse expectedResponse = new MutableResponse();
         jsonConverter.replaceEntity(expectedResponse,jsonEntity);
 
         when(mockChain.callNextFilter(any(MutableRequest.class))).thenReturn(expectedResponse);
 
-        SuppressMarkupFilter filter = new SuppressMarkupFilter(jsonConverter);
+        SuppressMarkupFilter filter = new SuppressMarkupFilter(jsonConverter, getBodyProcessingFieldTransformer());
 
         MutableResponse rawResponse = filter.processRequest(mockRequest, mockChain);
 
@@ -66,5 +68,13 @@ public class SuppressMarkupStepDefs {
     @Then("^the mark up becomes (.*)$")
     public void the_mark_up_becomes(String expectedMarkup) throws Throwable {
         assertEquals(expectedMarkup, processedMarkup);
+    }
+
+    private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
+        return (BodyProcessingFieldTransformer) (new BodyProcessingFieldTransformerFactory()).newInstance();
+    }
+
+    private String wrap(String html) {
+        return "<body>" + html + "</body>";
     }
 }

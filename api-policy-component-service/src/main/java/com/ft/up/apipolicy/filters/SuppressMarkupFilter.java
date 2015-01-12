@@ -5,6 +5,7 @@ import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 
 import java.util.HashMap;
 
@@ -12,9 +13,11 @@ public class SuppressMarkupFilter implements ApiFilter{
 
     public static final String BODY_XML_KEY = "bodyXML";
     private final JsonConverter jsonConverter;
+    private BodyProcessingFieldTransformer transformer;
 
-    public SuppressMarkupFilter(JsonConverter jsonConverter) {
+    public SuppressMarkupFilter(JsonConverter jsonConverter, BodyProcessingFieldTransformer transformer) {
         this.jsonConverter = jsonConverter;
+        this.transformer = transformer;
     }
 
     @Override
@@ -26,7 +29,10 @@ public class SuppressMarkupFilter implements ApiFilter{
 
         String body = ((String)content.get(BODY_XML_KEY));
 
-        content.put(BODY_XML_KEY, body + "wibble");
+        body = transformer.transform(body, "TODO");
+        //TODO add transactionID
+
+        content.put(BODY_XML_KEY, body);
 
         jsonConverter.replaceEntity(response, content);
 

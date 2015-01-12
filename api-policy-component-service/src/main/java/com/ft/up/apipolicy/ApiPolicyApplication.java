@@ -12,6 +12,7 @@ import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
+import com.ft.up.apipolicy.filters.SuppressMarkupFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
@@ -20,6 +21,8 @@ import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.KnownEndpoint;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
@@ -50,15 +53,17 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         ApiFilter webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),tweaker);
 
+        ApiFilter suppressMarkup = new SuppressMarkupFilter(tweaker, getBodyProcessingFieldTransformer());
+
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder,webUrlAdder)));
+				new HttpPipeline(requestForwarder,webUrlAdder, suppressMarkup)));
 
         knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
                 new HttpPipeline(requestForwarder, new AddBrandFilterParameters(tweaker))));
 
         knownEndpoints.add(new KnownEndpoint("^/enrichedcontent/.*",
-                new HttpPipeline(requestForwarder,webUrlAdder)));
+                new HttpPipeline(requestForwarder,webUrlAdder, suppressMarkup)));
 
         // DEFAULT CASE: Just forward it
         knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));
@@ -72,6 +77,9 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/content/*");
+    }
+    private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
+        return (BodyProcessingFieldTransformer) (new BodyProcessingFieldTransformerFactory()).newInstance();
     }
 
 }
