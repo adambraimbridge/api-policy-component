@@ -25,7 +25,7 @@ public class SuppressRichContentMarkupFilter implements ApiFilter {
 
         MutableResponse response = chain.callNextFilter(request);
 
-		if(request.policyIs("RICH_CONTENT")) {
+		if(request.policyIs("INCLUDE_RICH_CONTENT")) {
 			return response;
 		}
 

@@ -59,7 +59,7 @@ import static org.junit.Assert.assertThat;
 public class ApiPolicyComponentTest {
 
     public static final String EXAMPLE_PATH = "/example";
-    private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
+	private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
 
     public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
@@ -104,6 +104,8 @@ public class ApiPolicyComponentTest {
 				"\"originatingIdentifier\": \"220322\"\n" +
 				"}" +
 			"}";
+
+	public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
 
 	@Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
@@ -586,7 +588,7 @@ public class ApiPolicyComponentTest {
 		stubForRichContentWithYouTubeVideo();
 
 		ClientResponse response = client.resource(uri)
-			.header(HttpPipeline.POLICY_HEADER_NAME, "RICH_CONTENT")
+			.header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
 			.get(ClientResponse.class);
 
 		try {
