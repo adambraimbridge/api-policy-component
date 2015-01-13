@@ -11,10 +11,13 @@ import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import org.hamcrest.CoreMatchers;
 
 import java.util.HashMap;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,10 +65,10 @@ public class SuppressMarkupStepDefs {
         processedMarkup = (String) jsonConverter.readEntity(rawResponse).get("bodyXML");
     }
 
-    @Then("^the mark up becomes (.*)$")
-    public void the_mark_up_becomes(String expectedMarkup) throws Throwable {
-        assertEquals(expectedMarkup, processedMarkup);
-    }
+    @Then("^the mark up is removed$")
+    public void the_mark_up_is_removed() throws Throwable {
+        assertThat(processedMarkup, is(""));
+	}
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
         return (BodyProcessingFieldTransformer) (new BodyProcessingFieldTransformerFactory()).newInstance();
