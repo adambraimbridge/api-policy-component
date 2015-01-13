@@ -12,7 +12,7 @@ import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
-import com.ft.up.apipolicy.filters.SuppressMarkupFilter;
+import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
@@ -53,7 +53,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         ApiFilter webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),tweaker);
 
-        ApiFilter suppressMarkup = new SuppressMarkupFilter(tweaker, getBodyProcessingFieldTransformer());
+        ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(tweaker, getBodyProcessingFieldTransformer());
 
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",

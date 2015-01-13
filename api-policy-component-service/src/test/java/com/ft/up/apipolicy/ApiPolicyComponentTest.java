@@ -44,11 +44,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 
 import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeThat;
 
 /**
  * ApiPolicyComponentTest
@@ -95,7 +96,16 @@ public class ApiPolicyComponentTest {
                 "\"annotations\": [ ]" +
             "}";
 
-    @Rule
+	private static final String RICH_CONTENT_JSON = "{" +
+				"\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+				"\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
+				"\"contentOrigin\": {\n" +
+				"\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+				"\"originatingIdentifier\": \"220322\"\n" +
+				"}" +
+			"}";
+
+	@Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
 
     @Rule
@@ -567,6 +577,65 @@ public class ApiPolicyComponentTest {
             response.close();
         }
     }
+
+
+	@Test
+	public void givenRICH_CONTENTIsOnIShouldReceiveRichContent() {
+		URI uri = fromFacade(CONTENT_PATH_2).build();
+
+		stubForRichContentWithYouTubeVideo();
+
+		ClientResponse response = client.resource(uri)
+			.header(HttpPipeline.POLICY_HEADER_NAME, "RICH_CONTENT")
+			.get(ClientResponse.class);
+
+		try {
+			verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+			assertThat(response.getStatus(), is(200));
+
+			String json = response.getEntity(String.class);
+
+			assertThat(json,containsString("youtube.com"));
+
+
+		} finally {
+			response.close();
+		}
+	}
+
+
+	@Test
+	public void givenRICH_CONTENTIsOffIShouldNotReceiveRichContent() {
+		URI uri = fromFacade(CONTENT_PATH_2).build();
+
+		stubForRichContentWithYouTubeVideo();
+
+		ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+		try {
+			verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+			assertThat(response.getStatus(), is(200));
+
+			String json = response.getEntity(String.class);
+
+			assertThat(json,not(containsString("youtube.com")));
+
+
+		} finally {
+			response.close();
+		}
+	}
+
+	private void stubForRichContentWithYouTubeVideo() {
+		stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
+				aResponse()
+						.withBody(RICH_CONTENT_JSON)
+						.withHeader("Content-Type", MediaType.APPLICATION_JSON)
+						.withStatus(200)
+		));
+	}
 
     private String expectRequestUrl(ClientResponse response) throws IOException {
         HashMap<String, Object> result = expectOKResponseWithJSON(response);

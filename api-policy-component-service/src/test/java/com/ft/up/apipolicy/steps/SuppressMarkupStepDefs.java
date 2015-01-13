@@ -1,7 +1,7 @@
 package com.ft.up.apipolicy.steps;
 
 import com.ft.up.apipolicy.JsonConverter;
-import com.ft.up.apipolicy.filters.SuppressMarkupFilter;
+import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
@@ -11,11 +11,8 @@ import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import org.mockito.Mock;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -58,7 +55,7 @@ public class SuppressMarkupStepDefs {
 
         when(mockChain.callNextFilter(any(MutableRequest.class))).thenReturn(expectedResponse);
 
-        SuppressMarkupFilter filter = new SuppressMarkupFilter(jsonConverter, getBodyProcessingFieldTransformer());
+        SuppressRichContentMarkupFilter filter = new SuppressRichContentMarkupFilter(jsonConverter, getBodyProcessingFieldTransformer());
 
         MutableResponse rawResponse = filter.processRequest(mockRequest, mockChain);
 

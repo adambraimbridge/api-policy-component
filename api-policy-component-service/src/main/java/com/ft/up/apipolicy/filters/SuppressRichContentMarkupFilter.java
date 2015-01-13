@@ -9,13 +9,13 @@ import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 
 import java.util.HashMap;
 
-public class SuppressMarkupFilter implements ApiFilter{
+public class SuppressRichContentMarkupFilter implements ApiFilter {
 
     public static final String BODY_XML_KEY = "bodyXML";
     private final JsonConverter jsonConverter;
     private BodyProcessingFieldTransformer transformer;
 
-    public SuppressMarkupFilter(JsonConverter jsonConverter, BodyProcessingFieldTransformer transformer) {
+    public SuppressRichContentMarkupFilter(JsonConverter jsonConverter, BodyProcessingFieldTransformer transformer) {
         this.jsonConverter = jsonConverter;
         this.transformer = transformer;
     }
@@ -24,6 +24,10 @@ public class SuppressMarkupFilter implements ApiFilter{
     public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
 
         MutableResponse response = chain.callNextFilter(request);
+
+		if(request.policyIs("RICH_CONTENT")) {
+			return response;
+		}
 
         HashMap<String, Object> content = jsonConverter.readEntity(response);
 
