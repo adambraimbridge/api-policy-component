@@ -29,6 +29,10 @@ public class SuppressMarkupFilter implements ApiFilter{
 
         String body = ((String)content.get(BODY_XML_KEY));
 
+        if(body == null) {
+            return response;
+        }
+
         body = transformer.transform(body, "TODO");
         //TODO add transactionID
 
