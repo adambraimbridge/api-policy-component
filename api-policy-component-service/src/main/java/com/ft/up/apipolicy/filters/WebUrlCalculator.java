@@ -1,13 +1,14 @@
 package com.ft.up.apipolicy.filters;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * WebUrlCalculator
@@ -36,35 +37,30 @@ public class WebUrlCalculator implements ApiFilter {
 
         if(!jsonConverter.isJson(response)) {
             return response;
-        }
+		}
 
-        HashMap<String, Object> content = jsonConverter.readEntity(response);
+		HashMap<String, Object> content = jsonConverter.readEntity(response);
 
-        Map<String,String> contentOrigin = expectOriginIn(content);
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> identifiers = (List<Map<String, Object>>) content
+				.get("identifiers");
 
-        String originSystem = contentOrigin.get("originatingSystem");
+		for (Map<String, Object> map : identifiers) {
+			String authority = (String) map.get("authority");
+			String value = (String) map.get("identifierValue");
 
-        if(originSystem == null) {
-            return response;
-        }
-
-        String originatingIdentifier = contentOrigin.get("originatingIdentifier");
-
-        String template = urlTemplates.get(originSystem);
-
-        String webUrl = template.replace("{{originatingIdentifier}}", originatingIdentifier);
-
-        content.put("webUrl",webUrl);
-
-        jsonConverter.replaceEntity(response, content);
+			String template = urlTemplates.get(authority);
+			if (template != null) {
+				String webUrl = template.replace("{{originatingIdentifier}}",
+						value);
+				content.put("webUrl", webUrl);
+				jsonConverter.replaceEntity(response, content);
+				return response;
+			}
+		}
 
         return response;
 
     }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, String> expectOriginIn(HashMap<String, Object> content) {
-        return (Map<String, String>) content.get("contentOrigin");
-    }
-
+    
 }

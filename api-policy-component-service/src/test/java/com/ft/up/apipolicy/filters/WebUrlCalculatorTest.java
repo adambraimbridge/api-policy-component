@@ -33,13 +33,12 @@ public class WebUrlCalculatorTest {
 
     public final static String ERROR_RESPONSE = "{ \"message\" : \"Error\" }";
 
-    public final static String MINIMAL_EXAMPLE_RESPONSE = "{ \"contentOrigin\": {\n" +
-            "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-            "\"originatingIdentifier\": \"219512\"\n" +
-            "} }";
+    public final static String MINIMAL_EXAMPLE_RESPONSE = "{ \"identifiers\": [{\n" +
+            "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+            "\"identifierValue\": \"219512\"\n" +
+            "}] }";
 
-    public final static String ORIGINATINGSYSTEM_IS_NULL_RESPONSE = "{ \"contentOrigin\": {\n" +
-            "} }";
+    public final static String NO_IDENTIFIERS_RESPONSE =  "{ \"identifiers\": [] }";
 
     public Map<String,String> FASTFT_TEMPLATE = Collections.singletonMap("http://www.ft.com/ontology/origin/FT-CLAMO","TEST{{originatingIdentifier}}");
 
@@ -62,7 +61,7 @@ public class WebUrlCalculatorTest {
         minimalExampleResponse.setStatus(200);
 
 
-        originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), ORIGINATINGSYSTEM_IS_NULL_RESPONSE.getBytes());
+        originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), NO_IDENTIFIERS_RESPONSE.getBytes());
         originatingSystemIsNullResponse.setStatus(200);
 
         minimalExampleResponse.getHeaders().putSingle("Content-Type","application/json");
