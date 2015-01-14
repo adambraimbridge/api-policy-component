@@ -17,6 +17,7 @@ public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry 
         // want to be sure to keep the wrapping node
         registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "pull-quote");
 		registerStartAndEndElementEventHandler(new StripElementByClassEventHandler("twitter-tweet", new RetainXMLEventHandler()), "blockquote");
+		registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "timeline");
 
     }
 }
