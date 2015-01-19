@@ -41,26 +41,49 @@ public class WebUrlCalculator implements ApiFilter {
 
 		HashMap<String, Object> content = jsonConverter.readEntity(response);
 
-		@SuppressWarnings("unchecked")
-		List<Map<String, Object>> identifiers = (List<Map<String, Object>>) content
-				.get("identifiers");
-
-		for (Map<String, Object> map : identifiers) {
-			String authority = (String) map.get("authority");
-			String value = (String) map.get("identifierValue");
-
-			String template = urlTemplates.get(authority);
-			if (template != null) {
-				String webUrl = template.replace("{{originatingIdentifier}}",
-						value);
-				content.put("webUrl", webUrl);
-				jsonConverter.replaceEntity(response, content);
-				return response;
-			}
+		String webUrl = generateWebUrlFromIdentifiers(content);
+		if(webUrl != null ){
+			content.put("webUrl", webUrl);
+			jsonConverter.replaceEntity(response, content);
+			return response;
 		}
 
         return response;
-
     }
+
+	private String generateWebUrlFromContentOrigin(Map<String, Object> content){
+		@SuppressWarnings("unchecked")
+		Map<String, String> contentOrigin = (Map<String, String>) content.get("contentOrigin");
+		if(contentOrigin != null) {
+
+			String authority = contentOrigin.get("originatingSystem");
+			String value = contentOrigin.get("originatingIdentifier");
+			String template = urlTemplates.get(authority);
+			if (template != null) {
+				return template.replace("{{originatingIdentifier}}", value);
+			}
+		}
+
+		return null;
+	}
+
+	private String generateWebUrlFromIdentifiers(Map<String, Object> content){
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> identifiers = (List<Map<String, Object>>) content.get("identifiers");
+		if(identifiers != null) {
+
+			for (Map<String, Object> map : identifiers) {
+				String authority = (String) map.get("authority");
+				String value = (String) map.get("identifierValue");
+
+				String template = urlTemplates.get(authority);
+				if (template != null) {
+					return template.replace("{{originatingIdentifier}}", value);
+				}
+			}
+		}
+
+		return generateWebUrlFromContentOrigin(content);
+	}
     
 }
