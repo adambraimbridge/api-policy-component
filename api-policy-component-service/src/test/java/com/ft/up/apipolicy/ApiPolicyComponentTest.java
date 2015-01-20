@@ -78,19 +78,19 @@ public class ApiPolicyComponentTest {
     private static final String CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"contentOrigin\": {\n" +
-                "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-                "\"originatingIdentifier\": \"220322\"\n" +
-                "}" +
+                "\"identifiers\": [{\n" +
+                "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                "\"identifierValue\": \"220322\"\n" +
+                "}]" +
             "}";
 
     private static final String ENRICHED_CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"contentOrigin\": {\n" +
-                "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-                "\"originatingIdentifier\": \"220322\"\n" +
-                "}," +
+                "\"identifiers\": [{\n" +
+                "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                "\"identifierValue\": \"220322\"\n" +
+                "}]," +
                 "\"brands\": [ ],\n" +
                 "\"annotations\": [ ]" +
             "}";
