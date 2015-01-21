@@ -12,4 +12,4 @@ This is an overview of how the various configuration rules work.
    | before                                                                  |
    | <pull-quote><text>Some Text</text><source>source1</source></pull-quote> |
    | <a href="http://www.somelink.com"></a>                                  |
- #  | <blockquote class="twitter-tweet" lang="en"><p>Brilliant as always RT <a href="https://twitter.com/DeborahJaneOrr">@DeborahJaneOrr</a>: Will Cornick's 20-year sentence for the killing of Ann Maguire defies logic <a href="http://t.co/93DaG1pAaN">http://t.co/93DaG1pAaN</a></p>&mdash; Graham Linehan (@Glinner) <a href="https://twitter.com/Glinner/status/529965370577526784">November 5, 2014</a></blockquote> |
+   | <blockquote class="twitter-tweet" lang="en"><p>Brilliant as always RT <a href="https://twitter.com/DeborahJaneOrr">@DeborahJaneOrr</a>: Will Cornick's 20-year sentence for the killing of Ann Maguire defies logic <a href="http://t.co/93DaG1pAaN">http://t.co/93DaG1pAaN</a></p>&mdash; Graham Linehan (@Glinner) <a href="https://twitter.com/Glinner/status/529965370577526784">November 5, 2014</a></blockquote> |
