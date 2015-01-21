@@ -10,14 +10,15 @@ public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry 
 
     public BodyTransformationXMLEventRegistry() {
 
-        //default is to skip events but leave content - anything not configured below will be handled via this
+        /* default is to keep events but leave content, including "body" tags - anything not configured below will be handled via this */
         registerDefaultEventHandler(new RetainXMLEventHandler());
+
         registerCharactersEventHandler(new RetainXMLEventHandler());
         registerEntityReferenceEventHandler(new PlainTextHtmlEntityReferenceEventHandler());
-        // want to be sure to keep the wrapping node
+
         registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "pull-quote");
 		registerStartAndEndElementEventHandler(new StripElementByClassEventHandler("twitter-tweet", new RetainXMLEventHandler()), "blockquote");
-		registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "timeline");
+		registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "timeline", "table", "big-number");
 
     }
 }

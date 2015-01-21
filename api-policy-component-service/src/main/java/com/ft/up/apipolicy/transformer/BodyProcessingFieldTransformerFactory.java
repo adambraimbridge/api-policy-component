@@ -26,6 +26,7 @@ public class BodyProcessingFieldTransformerFactory implements FieldTransformerFa
     private List<BodyProcessor> bodyProcessors() {
         return asList(
                 stAXTransformingBodyProcessor(),
+                // video and slideshow rich content is returned as empty <a> tags and so gets removed
                 new RemoveEmptyElementsBodyProcessor(asList("a"), asList("img"))
         );
     }
