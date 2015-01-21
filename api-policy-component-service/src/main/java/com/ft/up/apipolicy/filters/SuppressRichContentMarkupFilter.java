@@ -42,8 +42,7 @@ public class SuppressRichContentMarkupFilter implements ApiFilter {
             return response;
         }
 
-        body = transformer.transform(body, "TODO");
-        //TODO add transactionID
+        body = transformer.transform(body, request.getTransactionId());
 
         content.put(BODY_XML_KEY, body);
 

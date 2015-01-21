@@ -2,6 +2,7 @@ package com.ft.up.apipolicy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -34,15 +35,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -59,7 +52,7 @@ import static org.junit.Assert.assertThat;
 public class ApiPolicyComponentTest {
 
     public static final String EXAMPLE_PATH = "/example";
-	private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
+    private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
 
     public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
@@ -106,8 +99,9 @@ public class ApiPolicyComponentTest {
 			"}";
 
 	public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
+    public static final String EXAMPLE_TRANSACTION_ID = "010101";
 
-	@Rule
+    @Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
 
     @Rule
@@ -184,6 +178,32 @@ public class ApiPolicyComponentTest {
 
         try {
             verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader("Arbitrary",equalTo("Example")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldForwardTransactionId() {
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri).header(TransactionIdUtils.TRANSACTION_ID_HEADER, EXAMPLE_TRANSACTION_ID).get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER,equalTo("010101")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldGenerateAndForwardTransactionIdIfMissing() {
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER,containing("tid_")));
         } finally {
             response.close();
         }

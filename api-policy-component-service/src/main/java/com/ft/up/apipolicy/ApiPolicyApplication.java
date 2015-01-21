@@ -43,8 +43,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     public void run(final ApiPolicyConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
         environment.jersey().register(new RuntimeExceptionMapper());
-        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
 
+        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
 
 		RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
 
@@ -76,7 +76,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
 
         environment.servlets().addFilter("Transaction ID Filter",
-                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/content/*");
+                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
     }
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
         return (BodyProcessingFieldTransformer) (new BodyProcessingFieldTransformerFactory()).newInstance();

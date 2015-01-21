@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy.pipeline;
 
+import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.LinkedMultivalueMap;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.slf4j.Logger;
@@ -47,6 +48,8 @@ public class MutableHttpTranslator {
         MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
         Set<String> policies = Collections.emptySet();
 
+        String transactionId = null;
+
         Enumeration<String> headerNames = realRequest.getHeaderNames();
         if(headerNames!=null) {
             boolean hasXPolicyHeaders = false;
@@ -73,7 +76,10 @@ public class MutableHttpTranslator {
                             LOGGER.debug("Not Processed: {}={}", headerName, value);
                         }
                     }
-                } else {
+                } else if(TransactionIdUtils.TRANSACTION_ID_HEADER.equals(headerName)) {
+                    transactionId = values.nextElement();
+                }
+                 else {
                     while(values.hasMoreElements()) {
                         String value = values.nextElement();
                         headers.add(headerName, value);
@@ -81,6 +87,10 @@ public class MutableHttpTranslator {
                     }
                 }
             }
+
+            // Always add the transaction ID including the default random one if it was missing
+            headers.add(TransactionIdUtils.TRANSACTION_ID_HEADER, transactionId);
+
             if (!hasXPolicyHeaders) {
                 LOGGER.info("No X-Policy Headers");
             }
@@ -99,7 +109,8 @@ public class MutableHttpTranslator {
 
         String absolutePath = URI.create(realRequest.getRequestURL().toString()).getPath();
 
-        MutableRequest request = new MutableRequest(policies);
+
+        MutableRequest request = new MutableRequest(policies, transactionId);
         request.setAbsolutePath(absolutePath);
         request.setQueryParameters(queryParameters);
         request.setHeaders(headers);
