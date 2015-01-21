@@ -27,34 +27,17 @@ public class AddBrandFilterParameters implements ApiFilter {
 
     @Override
     public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
-
-
-
         policyBrandsResolver.applyQueryParams(request);
-
         MutableResponse response = chain.callNextFilter(request);
-
         if(response.getStatus()!=200) {
             return response;
         }
-
         HashMap<String, Object> content = converter.readEntity(response);
-
         UriBuilder requestUriBuilder = UriBuilder.fromUri((String)content.get(REQUEST_URL_KEY));
         requestUriBuilder.replaceQueryParam("notForBrand", null);
         requestUriBuilder.replaceQueryParam("forBrand",null);
-
         content.put(REQUEST_URL_KEY, requestUriBuilder.build());
-
-
         converter.replaceEntity(response, content);
-
         return response;
-
     }
-
-
-
-
-
 }

@@ -110,6 +110,18 @@ public class ApiPolicyComponentTest {
 				"}" +
 			"}";
 
+    private static final String CONTENT_WITH_IMAGE_JSON =
+            "{" +
+                "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+                "\"identifiers\": [{\n" +
+                    "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                    "\"identifierValue\": \"220322\"\n" +
+                "}]," +
+                "\"mainImage\": {" +
+                    "\"id\": \"http://www.ft.com/content/273563f3-95a0-4f00-8966-6973c0111923\"" +
+                "}" +
+            "}";
+
 	public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
     public static final String EXAMPLE_TRANSACTION_ID = "010101";
 
@@ -774,6 +786,41 @@ public class ApiPolicyComponentTest {
 			response.close();
 		}
 	}
+
+    @Test
+    public void shouldRemoveMainImageFromJson() {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsString("mainImage")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveMainImageInJsonWhenPolicyIncludeRichContent() {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsString("mainImage"));
+        } finally {
+            response.close();
+        }
+    }
 
 	private void stubForRichContentWithYouTubeVideo() {
 		stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
