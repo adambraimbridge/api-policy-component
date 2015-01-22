@@ -12,6 +12,7 @@ import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
+import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
@@ -20,6 +21,8 @@ import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.KnownEndpoint;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
@@ -40,8 +43,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     public void run(final ApiPolicyConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
         environment.jersey().register(new RuntimeExceptionMapper());
-        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
 
+        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
 
 		RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
 
@@ -50,15 +53,17 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         ApiFilter webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),tweaker);
 
+        ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(tweaker, getBodyProcessingFieldTransformer());
+
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder,webUrlAdder)));
+				new HttpPipeline(requestForwarder,webUrlAdder, suppressMarkup)));
 
         knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
                 new HttpPipeline(requestForwarder, new AddBrandFilterParameters(tweaker))));
 
         knownEndpoints.add(new KnownEndpoint("^/enrichedcontent/.*",
-                new HttpPipeline(requestForwarder,webUrlAdder)));
+                new HttpPipeline(requestForwarder,webUrlAdder, suppressMarkup)));
 
         // DEFAULT CASE: Just forward it
         knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));
@@ -71,7 +76,10 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
 
         environment.servlets().addFilter("Transaction ID Filter",
-                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/content/*");
+                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+    }
+    private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
+        return (BodyProcessingFieldTransformer) (new BodyProcessingFieldTransformerFactory()).newInstance();
     }
 
 }

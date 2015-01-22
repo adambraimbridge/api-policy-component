@@ -2,6 +2,7 @@ package com.ft.up.apipolicy;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -34,21 +35,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assume.assumeThat;
 
 /**
  * ApiPolicyComponentTest
@@ -94,6 +88,18 @@ public class ApiPolicyComponentTest {
                 "\"brands\": [ ],\n" +
                 "\"annotations\": [ ]" +
             "}";
+
+	private static final String RICH_CONTENT_JSON = "{" +
+				"\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+				"\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
+				"\"contentOrigin\": {\n" +
+				"\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+				"\"originatingIdentifier\": \"220322\"\n" +
+				"}" +
+			"}";
+
+	public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
+    public static final String EXAMPLE_TRANSACTION_ID = "010101";
 
     @Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
@@ -172,6 +178,32 @@ public class ApiPolicyComponentTest {
 
         try {
             verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader("Arbitrary",equalTo("Example")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldForwardTransactionId() {
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri).header(TransactionIdUtils.TRANSACTION_ID_HEADER, EXAMPLE_TRANSACTION_ID).get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER,equalTo("010101")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldGenerateAndForwardTransactionIdIfMissing() {
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER,containing("tid_")));
         } finally {
             response.close();
         }
@@ -567,6 +599,65 @@ public class ApiPolicyComponentTest {
             response.close();
         }
     }
+
+
+	@Test
+	public void givenRICH_CONTENTIsOnIShouldReceiveRichContent() {
+		URI uri = fromFacade(CONTENT_PATH_2).build();
+
+		stubForRichContentWithYouTubeVideo();
+
+		ClientResponse response = client.resource(uri)
+			.header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
+			.get(ClientResponse.class);
+
+		try {
+			verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+			assertThat(response.getStatus(), is(200));
+
+			String json = response.getEntity(String.class);
+
+			assertThat(json,containsString("youtube.com"));
+
+
+		} finally {
+			response.close();
+		}
+	}
+
+
+	@Test
+	public void givenRICH_CONTENTIsOffIShouldNotReceiveRichContent() {
+		URI uri = fromFacade(CONTENT_PATH_2).build();
+
+		stubForRichContentWithYouTubeVideo();
+
+		ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+		try {
+			verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+			assertThat(response.getStatus(), is(200));
+
+			String json = response.getEntity(String.class);
+
+			assertThat(json,not(containsString("youtube.com")));
+
+
+		} finally {
+			response.close();
+		}
+	}
+
+	private void stubForRichContentWithYouTubeVideo() {
+		stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
+				aResponse()
+						.withBody(RICH_CONTENT_JSON)
+						.withHeader("Content-Type", MediaType.APPLICATION_JSON)
+						.withStatus(200)
+		));
+	}
 
     private String expectRequestUrl(ClientResponse response) throws IOException {
         HashMap<String, Object> result = expectOKResponseWithJSON(response);
