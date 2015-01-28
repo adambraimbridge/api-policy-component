@@ -32,6 +32,15 @@ public class BodyProcessingFieldTransformerFactoryTest {
         checkTransformation(original, expected);
     }
 
+
+    @Test
+    public void shouldNotCreateSelfClosingTags(){
+        String original = "<body><p>* Official government figures</p>\n<p>Idris ran into a house whose corrugated iron roof had caved in under an onslaught of bullets. He and a shellshocked woman called Hadiza sheltered there for three days while the marauding militants looted and burnt houses. At night the two curled up beside the bullet-pocked wall and fell into an exhausted sleep to the sound of celebratory gunshots. One morning Hadiza crept out to find water and never returned. By nightfall, Idris decided to run.</p>\n<p><a href=\"http://player.vimeo.com/video/69104660\"></a></p>\n<p>“When I reached the bush, I was relieved at first but then I saw bodies everywhere. I walked through five villages and each one I passed was empty except for dead bodies.”</p>\n\n\n\n</body>";
+        String expected = "<body><p>* Official government figures</p>\n<p>Idris ran into a house whose corrugated iron roof had caved in under an onslaught of bullets. He and a shellshocked woman called Hadiza sheltered there for three days while the marauding militants looted and burnt houses. At night the two curled up beside the bullet-pocked wall and fell into an exhausted sleep to the sound of celebratory gunshots. One morning Hadiza crept out to find water and never returned. By nightfall, Idris decided to run.</p>\n<p>“When I reached the bush, I was relieved at first but then I saw bodies everywhere. I walked through five villages and each one I passed was empty except for dead bodies.”</p>\n\n\n\n</body>" ;
+
+        checkTransformation(original, expected);
+    }
+
     private void checkTransformation(String originalBody, String expectedTransformedBody) {
         String actualTransformedBody = bodyTransformer.transform(originalBody, TRANSACTION_ID);
         assertThat(actualTransformedBody, is(equalTo(expectedTransformedBody)));

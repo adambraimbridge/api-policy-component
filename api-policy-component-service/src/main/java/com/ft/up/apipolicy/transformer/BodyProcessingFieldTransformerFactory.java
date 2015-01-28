@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.ft.bodyprocessing.BodyProcessor;
 import com.ft.bodyprocessing.BodyProcessorChain;
+import com.ft.bodyprocessing.html.Html5SelfClosingTagBodyProcessor;
 import com.ft.bodyprocessing.html.RemoveEmptyElementsBodyProcessor;
 import com.ft.bodyprocessing.regex.RegexRemoverBodyProcessor;
 import com.ft.bodyprocessing.regex.RegexReplacerBodyProcessor;
@@ -30,6 +31,7 @@ public class BodyProcessingFieldTransformerFactory implements FieldTransformerFa
                 stAXTransformingBodyProcessor(),
                 // video and slideshow rich content is returned as empty <a> tags and so gets removed
                 new RemoveEmptyElementsBodyProcessor(asList("a"), asList("img")),
+                new Html5SelfClosingTagBodyProcessor(),
                 new RegexRemoverBodyProcessor("(<p>)(\\s|(<br/>))*(</p>)"),
                 new RegexReplacerBodyProcessor("</p>(\\r?\\n)+<p>", "</p>" + System.lineSeparator() + "<p>"),
                 new RegexReplacerBodyProcessor("</p> +<p>", "</p><p>")
