@@ -137,12 +137,18 @@ public class ApiPolicyComponentTest {
     private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND);
     private static final String ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + ALPHAVILLE_BRAND);
     private static final String NOT_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + ALPHAVILLE_BRAND);
+    private static final String BLOG_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + BEYONDBRICS_BRAND);
+    private static final String NOT_BLOG_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + BEYONDBRICS_BRAND);
     private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
             FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND);
     private static final String FASTFT_AND_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
             FOR_BRAND + FASTFT_BRAND + FOR_BRAND + ALPHAVILLE_BRAND);
+    private static final String FASTFT_AND_BLOG_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
+            FOR_BRAND + FASTFT_BRAND + FOR_BRAND + ALPHAVILLE_BRAND + FOR_BRAND + BEYONDBRICS_BRAND);
     private static final String NOT_FASTFT_AND_NOT_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
             NOT_FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND);
+    private static final String NOT_FASTFT_AND_NOT_BLOG_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
+            NOT_FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND);
 
     private Client client;
     private ObjectMapper objectMapper;
@@ -391,6 +397,33 @@ public class ApiPolicyComponentTest {
     }
 
     @Test
+    public void givenPolicyBLOG_CONTENT_ONLYShouldGetNotificationsWithForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + ALPHAVILLE_BRAND + FOR_BRAND + BEYONDBRICS_BRAND;
+
+        stubForNotifications(url, BLOG_NOTIFICATIONS_JSON);
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "BLOG_CONTENT_ONLY")
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(url)));
+
+            String requestUrl = expectRequestUrl(response);
+
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
+
+    }
+
+
+    // TODO Will be redundant
+    @Test
     public void givenPolicyALPHAVILLE_CONTENT_ONLYShouldGetNotificationsWithForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
@@ -416,6 +449,32 @@ public class ApiPolicyComponentTest {
     }
 
     @Test
+    public void givenPolicyEXCLUDE_BLOG_CONTENTShouldGetNotificationsWithNotForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + BEYONDBRICS_BRAND;
+
+        stubForNotifications(url, NOT_BLOG_NOTIFICATIONS_JSON);
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_BLOG_CONTENT")
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(url)));
+
+            String requestUrl = expectRequestUrl(response);
+
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
+
+    }
+
+    // TODO Will be redundant
+    @Test
     public void givenPolicyEXCLUDE_ALPHAVILLE_CONTENTShouldGetNotificationsWithNotForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
@@ -438,8 +497,35 @@ public class ApiPolicyComponentTest {
             response.close();
         }
 
-    }    
+    }
 
+    @Test
+    public void givenListedPoliciesFASTFT_CONTENT_ONLY_And_BLOG_CONTENT_ONLYShouldGetNotificationsWithForBrandParametersAndStripThemFromResponseRequestUrl() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND + FOR_BRAND + ALPHAVILLE_BRAND + FOR_BRAND + BEYONDBRICS_BRAND;
+
+        stubForNotifications(url, FASTFT_AND_BLOG_NOTIFICATIONS_JSON);
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY")
+                .header(HttpPipeline.POLICY_HEADER_NAME, "BLOG_CONTENT_ONLY")
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(url)));
+
+            String requestUrl = expectRequestUrl(response);
+
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
+
+    }
+
+    // TODO Will be redundant
     @Test
     public void givenListedPoliciesFASTFT_CONTENT_ONLY_And_ALPHAVILLE_CONTENT_ONLYShouldGetNotificationsWithForBrandParametersAndStripThemFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
@@ -464,8 +550,35 @@ public class ApiPolicyComponentTest {
             response.close();
         }
 
-    }   
+    }
 
+    @Test
+    public void givenListedPoliciesEXCLUDE_FASTFT_CONTENT_And_EXCLUDE_BLOG_CONTENTShouldGetNotificationsWithForBrandParametersAndStripThemFromResponseRequestUrl() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + BEYONDBRICS_BRAND;
+
+        stubForNotifications(url, NOT_FASTFT_AND_NOT_BLOG_NOTIFICATIONS_JSON);
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT")
+                .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_BLOG_CONTENT")
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(url)));
+
+            String requestUrl = expectRequestUrl(response);
+
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
+
+    }
+
+    // TODO Will be redundant
     @Test
     public void givenListedPoliciesEXCLUDE_FASTFT_CONTENT_And_EXCLUDE_ALPHAVILLE_CONTENTShouldGetNotificationsWithForBrandParametersAndStripThemFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
