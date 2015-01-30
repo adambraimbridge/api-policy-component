@@ -29,7 +29,7 @@
         <checkstyle.version>2.10</checkstyle.version>
         <surefire.reportplugin.version>2.12.4</surefire.reportplugin.version>
         <maven-pmd-plugin.version>3.0.1</maven-pmd-plugin.version>
-        <jacoco-maven-plugin.version>0.6.3.201306030806</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.7.2.201409121644</jacoco-maven-plugin.version>
         <maven-jxr-plugin.version>2.3</maven-jxr-plugin.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
@@ -38,7 +38,7 @@
         <ft-build-info-maven-plugin.version>1.0</ft-build-info-maven-plugin.version>
         <maven-jar-plugin.version>2.3.2</maven-jar-plugin.version>
         <target-jdk>1.7</target-jdk>
-        <jaxrs.transaction-id-handling.version>1.9</jaxrs.transaction-id-handling.version>
+        <jaxrs.transaction-id-handling.version>2.4</jaxrs.transaction-id-handling.version>
         <jaxrs.errorhandling.version>1.1.0</jaxrs.errorhandling.version>
     </properties>
 
@@ -96,6 +96,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.ft.bodyprocessing</groupId>
+            <artifactId>body-processing</artifactId>
+            <version>0.0.16</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
@@ -138,6 +143,18 @@
           <artifactId>dropwizard-testing</artifactId>
           <version>${dw.version}</version>
           <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>1.1.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>1.1.5</version>
+            <scope>test</scope>
         </dependency>
       <dependency>
         <groupId>commons-io</groupId>

@@ -42,7 +42,7 @@ public class AddBrandFilterParametersTest {
     private PolicyBrandsResolver policyBrandsResolver;
 
 
-    private MutableRequest exampleRequest = new MutableRequest(Collections.singleton("TEST"));
+    private MutableRequest exampleRequest = new MutableRequest(Collections.singleton("TEST"),getClass().getSimpleName());
 
     private MutableResponse exampleErrorResponse;
     private MutableResponse minimalExampleResponse;

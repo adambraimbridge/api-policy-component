@@ -4,6 +4,8 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +41,10 @@ public class MutableResponse {
     public String getEntityAsString() {
         return new String(entity);
     }
+
+	public InputStream getEntityAsStream() {
+		return new ByteArrayInputStream(entity);
+	}
 
     public MultivaluedMap<String,String> getHeaders() {
         return headers;
@@ -76,5 +82,5 @@ public class MutableResponse {
         return varyByHeadersSet;
     }
 
-    
+
 }
