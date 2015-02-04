@@ -17,11 +17,34 @@ pipeline:
     "http://api.ft.com/system/FT-LABS-WP-1-24" : "{{originatingIdentifier}}"
 
 
+policyBrandsMapper:
+  policyFilterParameterList:
+       - policy: FASTFT_CONTENT_ONLY
+         forBrand:
+                  - http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54
+       - policy: EXCLUDE_FASTFT_CONTENT
+         notForBrand:
+                  - http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54
+       - policy: ALPHAVILLE_CONTENT_ONLY
+         forBrand:
+                  - http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a66
+       - policy: EXCLUDE_ALPHAVILLE_CONTENT
+         notForBrand:
+                  - http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a66
+       - policy: BLOG_CONTENT_ONLY
+         forBrand:
+                  - http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a66
+                  - http://api.ft.com/things/3a37a89e-14ce-4ac8-af12-961a9630dce3
+       - policy: EXCLUDE_BLOG_CONTENT
+         notForBrand:
+                  - http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a66
+                  - http://api.ft.com/things/3a37a89e-14ce-4ac8-af12-961a9630dce3
+
 server:
 
   applicationConnectors:
-    - type: http
-      port: 20080
+      - type: http
+        port: 20080
 
   adminConnectors:
       - type: http
