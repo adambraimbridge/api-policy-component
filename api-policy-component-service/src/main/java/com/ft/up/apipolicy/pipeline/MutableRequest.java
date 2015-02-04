@@ -16,9 +16,11 @@ public class MutableRequest {
     private String absolutePath;
 
     private final Set<String> policies;
+    private String transactionId;
 
-    public MutableRequest(final Set<String> policies) {
+    public MutableRequest(final Set<String> policies, final String transactionId) {
         this.policies = Collections.unmodifiableSet(policies);
+        this.transactionId = transactionId;
     }
 
     public Set<String> getPolicies() {
@@ -32,7 +34,6 @@ public class MutableRequest {
     public MultivaluedMap<String,String> getHeaders() {
         return headers;
     }
-
 
     public MultivaluedMap<String, String> getQueryParameters() {
         return queryParameters;
@@ -52,5 +53,9 @@ public class MutableRequest {
 
     public void setHeaders(MultivaluedMap<String, String> headers) {
         this.headers = headers;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
     }
 }

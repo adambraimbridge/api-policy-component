@@ -1,6 +1,7 @@
 package com.ft.up.apipolicy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -9,9 +10,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 import java.io.BufferedReader;
@@ -29,6 +32,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -80,22 +84,34 @@ public class ApiPolicyComponentTest {
     private static final String CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"contentOrigin\": {\n" +
-                "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-                "\"originatingIdentifier\": \"220322\"\n" +
-                "}" +
+                "\"identifiers\": [{\n" +
+                "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                "\"identifierValue\": \"220322\"\n" +
+                "}]" +
             "}";
 
     private static final String ENRICHED_CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"contentOrigin\": {\n" +
-                "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-                "\"originatingIdentifier\": \"220322\"\n" +
-                "}," +
+                "\"identifiers\": [{\n" +
+                "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                "\"identifierValue\": \"220322\"\n" +
+                "}]," +
                 "\"brands\": [ ],\n" +
                 "\"annotations\": [ ]" +
             "}";
+
+	private static final String RICH_CONTENT_JSON = "{" +
+				"\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+				"\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
+				"\"contentOrigin\": {\n" +
+				"\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+				"\"originatingIdentifier\": \"220322\"\n" +
+				"}" +
+			"}";
+
+	public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
+    public static final String EXAMPLE_TRANSACTION_ID = "010101";
 
     @Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
@@ -121,12 +137,18 @@ public class ApiPolicyComponentTest {
     private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND);
     private static final String ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + ALPHAVILLE_BRAND);
     private static final String NOT_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + ALPHAVILLE_BRAND);
+    private static final String BLOG_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + BEYONDBRICS_BRAND);
+    private static final String NOT_BLOG_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + BEYONDBRICS_BRAND);
     private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
             FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND);
     private static final String FASTFT_AND_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
             FOR_BRAND + FASTFT_BRAND + FOR_BRAND + ALPHAVILLE_BRAND);
+    private static final String FASTFT_AND_BLOG_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
+            FOR_BRAND + FASTFT_BRAND + FOR_BRAND + ALPHAVILLE_BRAND + FOR_BRAND + BEYONDBRICS_BRAND);
     private static final String NOT_FASTFT_AND_NOT_ALPHAVILLE_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, 
             NOT_FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND);
+    private static final String NOT_FASTFT_AND_NOT_BLOG_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
+            NOT_FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND);
 
     private Client client;
     private ObjectMapper objectMapper;
@@ -174,6 +196,32 @@ public class ApiPolicyComponentTest {
 
         try {
             verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader("Arbitrary",equalTo("Example")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldForwardTransactionId() {
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri).header(TransactionIdUtils.TRANSACTION_ID_HEADER, EXAMPLE_TRANSACTION_ID).get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER,equalTo("010101")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldGenerateAndForwardTransactionIdIfMissing() {
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER,containing("tid_")));
         } finally {
             response.close();
         }
@@ -349,6 +397,33 @@ public class ApiPolicyComponentTest {
     }
 
     @Test
+    public void givenPolicyBLOG_CONTENT_ONLYShouldGetNotificationsWithForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + ALPHAVILLE_BRAND + FOR_BRAND + BEYONDBRICS_BRAND;
+
+        stubForNotifications(url, BLOG_NOTIFICATIONS_JSON);
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "BLOG_CONTENT_ONLY")
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(url)));
+
+            String requestUrl = expectRequestUrl(response);
+
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
+
+    }
+
+
+    // TODO Will be redundant
+    @Test
     public void givenPolicyALPHAVILLE_CONTENT_ONLYShouldGetNotificationsWithForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
@@ -374,6 +449,32 @@ public class ApiPolicyComponentTest {
     }
 
     @Test
+    public void givenPolicyEXCLUDE_BLOG_CONTENTShouldGetNotificationsWithNotForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + BEYONDBRICS_BRAND;
+
+        stubForNotifications(url, NOT_BLOG_NOTIFICATIONS_JSON);
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_BLOG_CONTENT")
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(url)));
+
+            String requestUrl = expectRequestUrl(response);
+
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
+
+    }
+
+    // TODO Will be redundant
+    @Test
     public void givenPolicyEXCLUDE_ALPHAVILLE_CONTENTShouldGetNotificationsWithNotForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
@@ -396,8 +497,35 @@ public class ApiPolicyComponentTest {
             response.close();
         }
 
-    }    
+    }
 
+    @Test
+    public void givenListedPoliciesFASTFT_CONTENT_ONLY_And_BLOG_CONTENT_ONLYShouldGetNotificationsWithForBrandParametersAndStripThemFromResponseRequestUrl() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND + FOR_BRAND + ALPHAVILLE_BRAND + FOR_BRAND + BEYONDBRICS_BRAND;
+
+        stubForNotifications(url, FASTFT_AND_BLOG_NOTIFICATIONS_JSON);
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY")
+                .header(HttpPipeline.POLICY_HEADER_NAME, "BLOG_CONTENT_ONLY")
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(url)));
+
+            String requestUrl = expectRequestUrl(response);
+
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
+
+    }
+
+    // TODO Will be redundant
     @Test
     public void givenListedPoliciesFASTFT_CONTENT_ONLY_And_ALPHAVILLE_CONTENT_ONLYShouldGetNotificationsWithForBrandParametersAndStripThemFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
@@ -422,8 +550,35 @@ public class ApiPolicyComponentTest {
             response.close();
         }
 
-    }   
+    }
 
+    @Test
+    public void givenListedPoliciesEXCLUDE_FASTFT_CONTENT_And_EXCLUDE_BLOG_CONTENTShouldGetNotificationsWithForBrandParametersAndStripThemFromResponseRequestUrl() throws IOException {
+        // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
+        URI facadeUri  = sinceSomeDateFromFacade();
+
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + ALPHAVILLE_BRAND + NOT_FOR_BRAND + BEYONDBRICS_BRAND;
+
+        stubForNotifications(url, NOT_FASTFT_AND_NOT_BLOG_NOTIFICATIONS_JSON);
+
+        ClientResponse response = client.resource(facadeUri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT")
+                .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_BLOG_CONTENT")
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlEqualTo(url)));
+
+            String requestUrl = expectRequestUrl(response);
+
+            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+        } finally {
+            response.close();
+        }
+
+    }
+
+    // TODO Will be redundant
     @Test
     public void givenListedPoliciesEXCLUDE_FASTFT_CONTENT_And_EXCLUDE_ALPHAVILLE_CONTENTShouldGetNotificationsWithForBrandParametersAndStripThemFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
@@ -569,6 +724,65 @@ public class ApiPolicyComponentTest {
             response.close();
         }
     }
+
+
+	@Test
+	public void givenRICH_CONTENTIsOnIShouldReceiveRichContent() {
+		URI uri = fromFacade(CONTENT_PATH_2).build();
+
+		stubForRichContentWithYouTubeVideo();
+
+		ClientResponse response = client.resource(uri)
+			.header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
+			.get(ClientResponse.class);
+
+		try {
+			verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+			assertThat(response.getStatus(), is(200));
+
+			String json = response.getEntity(String.class);
+
+			assertThat(json,containsString("youtube.com"));
+
+
+		} finally {
+			response.close();
+		}
+	}
+
+
+	@Test
+	public void givenRICH_CONTENTIsOffIShouldNotReceiveRichContent() {
+		URI uri = fromFacade(CONTENT_PATH_2).build();
+
+		stubForRichContentWithYouTubeVideo();
+
+		ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+		try {
+			verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+
+			assertThat(response.getStatus(), is(200));
+
+			String json = response.getEntity(String.class);
+
+			assertThat(json,not(containsString("youtube.com")));
+
+
+		} finally {
+			response.close();
+		}
+	}
+
+	private void stubForRichContentWithYouTubeVideo() {
+		stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
+				aResponse()
+						.withBody(RICH_CONTENT_JSON)
+						.withHeader("Content-Type", MediaType.APPLICATION_JSON)
+						.withStatus(200)
+		));
+	}
 
     private String expectRequestUrl(ClientResponse response) throws IOException {
         HashMap<String, Object> result = expectOKResponseWithJSON(response);

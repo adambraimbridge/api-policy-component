@@ -4,10 +4,12 @@
    "bodyXML": "<body><p>Asian equities are mostly trading higher, after a major test of the health of European banks went some way towards calming fears over the <a href=\"http://www.ft.com/intl/global-economy/eu\">fragility</a> of the region's economy. </p>\n\n<p>Hong Kong equities have failed to join the relief rally however, with this market weighed down after a highly anticipated scheme for Hong Kong and Shanghai investors to trade stocks on each others markets <a href=\"http://www.ft.com/intl/cms/s/0/8dba471c-5d16-11e4-873e-00144feabdc0.html#axzz3HIMMNvvo\">was delayed</a>. </p>\n\n<p>The European Central Bank tested major lenders for how they would fare in the case of a major economic or financial system shock. A total of 25 banks had a capital shortfall, the ECB said in <a href=\"http://www.ecb.europa.eu/pub/pdf/other/aggregatereportonthecomprehensiveassessment201410.en.pdf\">its report</a>, but this did not include any of Europe's biggest lenders. </p>\n\n<p>Here is how markets have opened: </p>\n\n<ul>\n<li>Japan's Nikkei 225 has risen 0.4 per cent to 15,353 points. </li>\n<li>Australia's S&amp;P/ASX 200 is up 0.7 per cent to 5,449. </li>\n<li>Hong Kong's Hang Seng has declined 0.1 per cent to 23,275. </li>\n<li>South Korea's Kospi has risen 0.6 per cent to 1,937. </li>\n</ul>\n\n<p>The euro has ticked up 0.2 per cent against the dollar to purchase $1.269. </p>\n\n<p>The eurozone's recovery since the financial crisis in 2008 has been bumpy, partly due to <a href=\"http://www.ft.com/intl/cms/s/0/ee3d694e-591e-11e4-9546-00144feab7de.html#axzz3HIMMNvvo\">banks' reluctance</a> to lend money to consumers and businesses. So some analysts are now predicting that the results of the stress tests will boost confidence and get credit flowing properly again. </p>\n\n<p>Analysts at Barclays wrote that the ECB's assessment: </p>\n\n\n  <p>Should contribute to an easing of lending conditions and credit constraints in the euro area, especially in the periphery. However, the situation of the euro area remains fluid and downside risks to the macroeconomic scenario persist. </p>\n</body>",
    "title": "Asian markets, euro rise after ECB bank tests",
    "publishedDate": "2014-10-27T01:34:07.000Z",
-   "contentOrigin": {
-      "originatingSystem": "http://www.ft.com/ontology/origin/FT-CLAMO",
-      "originatingIdentifier": "226322"
-   },
+   "identifiers" : [
+      {
+         "authority" : "http://www.ft.com/ontology/origin/FT-CLAMO",
+         "identifierValue" : "226322"
+      }
+   ],
    "webUrl": "http://www.ft.com/fastft?post=226322",
    "requestUrl": "http://api.ft.com/content/9efae9bb-d785-342b-a84b-990de44f8fbb",
    "brands": [
