@@ -34,7 +34,7 @@ public class PolicyBrandsResolverTest {
     public static final String BLOG_CONTENT_ONLY = "BLOG_CONTENT_ONLY";
     public static final String EXCLUDE_BLOG_CONTENT = "EXCLUDE_BLOG_CONTENT";
 
-    public static final String SCOTTS_POLICY = "SCOTTS_POLICY";
+    public static final String FAKE_POLICY = "FAKE_POLICY";
 
     private List<PolicyFilterParameter> policyFilterParameterList;
     private PolicyBrandsResolver policyBrandsResolver;
@@ -70,15 +70,18 @@ public class PolicyBrandsResolverTest {
         policyFilterParameterList.add(3, excludeBlogs);
 
         policyBrandsResolver = new PolicyBrandsResolver(policyFilterParameterList);
+
+        when(mutableRequest.getQueryParameters()).thenReturn(queryParameters);
     }
 
     @Test
     public void noParametersShouldBeAddedWhenNull(){
         policySet = new HashSet<>();
-        policySet.add(SCOTTS_POLICY);
+        policySet.add(FAKE_POLICY);
         when(mutableRequest.getPolicies()).thenReturn(policySet);
         policyBrandsResolver.applyQueryParams(mutableRequest);
         verify(mutableRequest, never()).getQueryParameters();
+        verify(queryParameters, never()).add("","");
     }
 
     @Test
@@ -87,7 +90,9 @@ public class PolicyBrandsResolverTest {
         policySet.add(FASTFT_CONTENT_ONLY);
         ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> valueArgument = ArgumentCaptor.forClass(String.class);
-        commonExpectationsAndVerifications(keyArgument, valueArgument);
+        when(mutableRequest.getPolicies()).thenReturn(policySet);
+        policyBrandsResolver.applyQueryParams(mutableRequest);
+        verify(queryParameters).add(keyArgument.capture(), valueArgument.capture());
         verify(mutableRequest, times(1)).getQueryParameters();
         assertEquals("forBrand was not passed in to add method", "forBrand", keyArgument.getValue());
         assertEquals("FASTFT brand was not passed in to add method", FASTFT_BRAND, valueArgument.getValue());
@@ -99,7 +104,9 @@ public class PolicyBrandsResolverTest {
         policySet.add(EXCLUDE_FASTFT_CONTENT);
         ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> valueArgument = ArgumentCaptor.forClass(String.class);
-        commonExpectationsAndVerifications(keyArgument, valueArgument);
+        when(mutableRequest.getPolicies()).thenReturn(policySet);
+        policyBrandsResolver.applyQueryParams(mutableRequest);
+        verify(queryParameters).add(keyArgument.capture(), valueArgument.capture());
         verify(mutableRequest, times(1)).getQueryParameters();
         assertEquals("notForBrand was not passed in to add method", "notForBrand", keyArgument.getValue());
         assertEquals("FASTFT brand was not passed in to add method", FASTFT_BRAND, valueArgument.getValue());
@@ -113,7 +120,6 @@ public class PolicyBrandsResolverTest {
         ArgumentCaptor<String> valueArgument = ArgumentCaptor.forClass(String.class);
 
         when(mutableRequest.getPolicies()).thenReturn(policySet);
-        when(mutableRequest.getQueryParameters()).thenReturn(queryParameters);
         policyBrandsResolver.applyQueryParams(mutableRequest);
         verify(mutableRequest, times(2)).getQueryParameters();
 
@@ -133,9 +139,7 @@ public class PolicyBrandsResolverTest {
         ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> valueArgument = ArgumentCaptor.forClass(String.class);
 
-
         when(mutableRequest.getPolicies()).thenReturn(policySet);
-        when(mutableRequest.getQueryParameters()).thenReturn(queryParameters);
         policyBrandsResolver.applyQueryParams(mutableRequest);
         verify(mutableRequest, times(2)).getQueryParameters();
 
@@ -148,10 +152,4 @@ public class PolicyBrandsResolverTest {
         assertEquals("BEYONDBRICS_BRAND brand was not passed in to add method", BEYONDBRICS_BRAND, valueArguments.get(1));
     }
 
-    public void commonExpectationsAndVerifications(ArgumentCaptor<String> keyArgument, ArgumentCaptor<String> valueArgument) {
-        when(mutableRequest.getPolicies()).thenReturn(policySet);
-        when(mutableRequest.getQueryParameters()).thenReturn(queryParameters);
-        policyBrandsResolver.applyQueryParams(mutableRequest);
-        verify(queryParameters).add(keyArgument.capture(), valueArgument.capture());
-    }
 }
