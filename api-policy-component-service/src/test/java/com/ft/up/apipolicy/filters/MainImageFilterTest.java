@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy.filters;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
@@ -29,7 +30,9 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class MainImageFilterTest extends TestCase {
 
-    private MainImageFilter mainImageFilter = new MainImageFilter(new JsonConverter(new ObjectMapper()));
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonConverter jsonConverter = new JsonConverter(objectMapper);
+    private final MainImageFilter mainImageFilter = new MainImageFilter(jsonConverter);
 
     @Test
     public void testFiltersMainImage() throws Exception {
@@ -43,7 +46,11 @@ public class MainImageFilterTest extends TestCase {
 
         final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
 
-        assertThat(processedResponse.getEntityAsString(), not(containsString("mainImage")));
+        final JsonNode expectedTree = objectMapper.readTree(new String(readFileBytes("sample-article-no-image.json"),
+                Charset.forName("UTF-8")));
+        final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
+        assertFalse(actualTree.has("mainImage"));
+        assertThat(actualTree, equalTo(expectedTree));
     }
 
     @Test
@@ -60,9 +67,10 @@ public class MainImageFilterTest extends TestCase {
 
         final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
 
-        assertThat(processedResponse.getEntityAsString(), containsString("mainImage"));
-        final String bodyString = new String(body, Charset.forName("UTF-8"));
-        assertThat(processedResponse.getEntityAsString(), equalToIgnoringWhiteSpace(bodyString));
+        final JsonNode expectedTree = objectMapper.readTree(new String(body, Charset.forName("UTF-8")));
+        final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
+        assertTrue(actualTree.has("mainImage"));
+        assertThat(actualTree, equalTo(expectedTree));
     }
 
     @Test
@@ -78,8 +86,9 @@ public class MainImageFilterTest extends TestCase {
 
         final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
 
-        final String bodyString = new String(body, Charset.forName("UTF-8"));
-        assertThat(processedResponse.getEntityAsString(), equalToIgnoringWhiteSpace(bodyString));
+        final JsonNode expectedTree = objectMapper.readTree(new String(body, Charset.forName("UTF-8")));
+        final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
+        assertThat(actualTree, equalTo(expectedTree));
     }
 
     @Test
@@ -95,7 +104,9 @@ public class MainImageFilterTest extends TestCase {
 
         final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
 
-        assertThat(processedResponse.getEntityAsString(), equalTo(body));
+        final JsonNode expectedTree = objectMapper.readTree(body);
+        final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
+        assertThat(actualTree, equalTo(expectedTree));
     }
 
     private static byte[] readFileBytes(final String path) {
