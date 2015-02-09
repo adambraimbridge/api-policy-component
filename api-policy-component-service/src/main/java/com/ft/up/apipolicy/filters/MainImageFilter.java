@@ -27,7 +27,7 @@ public class MainImageFilter implements ApiFilter {
             return response;
         }
         final HashMap<String, Object> content = jsonConverter.readEntity(response);
-        if (!request.policyIs(INCLUDE_RICH_CONTENT)) {
+        if (!request.policyIs(INCLUDE_RICH_CONTENT) && content.containsKey(MAIN_IMAGE_KEY)) {
             content.remove(MAIN_IMAGE_KEY);
             jsonConverter.replaceEntity(response, content);
         }

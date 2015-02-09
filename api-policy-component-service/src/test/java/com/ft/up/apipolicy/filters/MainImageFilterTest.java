@@ -18,14 +18,11 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MainImageFilterTest extends TestCase {
@@ -36,8 +33,8 @@ public class MainImageFilterTest extends TestCase {
 
     @Test
     public void testFiltersMainImage() throws Exception {
-        final MutableRequest mockedRequest = Mockito.mock(MutableRequest.class);
-        final HttpPipelineChain mockedChain = Mockito.mock(HttpPipelineChain.class);
+        final MutableRequest mockedRequest = mock(MutableRequest.class);
+        final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
         final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
         final MutableResponse initialResponse = new MutableResponse(headers, readFileBytes("sample-article-with-image.json"));
@@ -46,67 +43,62 @@ public class MainImageFilterTest extends TestCase {
 
         final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
 
-        final JsonNode expectedTree = objectMapper.readTree(new String(readFileBytes("sample-article-no-image.json"),
-                Charset.forName("UTF-8")));
         final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
         assertFalse(actualTree.has("mainImage"));
-        assertThat(actualTree, equalTo(expectedTree));
     }
 
     @Test
     public void testLeavesMainImageWhenPolicyHeaderSet() throws Exception {
-        final MutableRequest mockedRequest = Mockito.mock(MutableRequest.class);
+        final MutableRequest mockedRequest = mock(MutableRequest.class);
         when(mockedRequest.policyIs(INCLUDE_RICH_CONTENT)).thenReturn(true);
-        final HttpPipelineChain mockedChain = Mockito.mock(HttpPipelineChain.class);
+        final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
         final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
         byte[] body = readFileBytes("sample-article-with-image.json");
         final MutableResponse initialResponse = new MutableResponse(headers, body);
         initialResponse.setStatus(200);
-        when(mockedChain.callNextFilter(mockedRequest)).thenReturn(initialResponse);
+        final MutableResponse spiedResponse = spy(initialResponse);
+        when(mockedChain.callNextFilter(mockedRequest)).thenReturn(spiedResponse);
 
-        final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
+        mainImageFilter.processRequest(mockedRequest, mockedChain);
 
-        final JsonNode expectedTree = objectMapper.readTree(new String(body, Charset.forName("UTF-8")));
-        final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
-        assertTrue(actualTree.has("mainImage"));
-        assertThat(actualTree, equalTo(expectedTree));
+        verifyResponseNotMutated(spiedResponse);
     }
 
     @Test
     public void testDoesntTouchWhenNoMainImageIsPresent() throws Exception {
-        final MutableRequest mockedRequest = Mockito.mock(MutableRequest.class);
-        final HttpPipelineChain mockedChain = Mockito.mock(HttpPipelineChain.class);
+        final MutableRequest mockedRequest = mock(MutableRequest.class);
+        final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
         final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
         byte[] body = readFileBytes("sample-article-no-image.json");
         final MutableResponse initialResponse = new MutableResponse(headers, body);
         initialResponse.setStatus(200);
-        when(mockedChain.callNextFilter(mockedRequest)).thenReturn(initialResponse);
+        final MutableResponse spiedResponse = spy(initialResponse);
+        when(mockedChain.callNextFilter(mockedRequest)).thenReturn(spiedResponse);
 
-        final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
+        mainImageFilter.processRequest(mockedRequest, mockedChain);
 
-        final JsonNode expectedTree = objectMapper.readTree(new String(body, Charset.forName("UTF-8")));
-        final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
-        assertThat(actualTree, equalTo(expectedTree));
+        verifyResponseNotMutated(spiedResponse);
     }
 
     @Test
     public void testLeavesEverythingWhenNot200() throws Exception {
-        final MutableRequest mockedRequest = Mockito.mock(MutableRequest.class);
-        final HttpPipelineChain mockedChain = Mockito.mock(HttpPipelineChain.class);
-        final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
-        headers.add("Content-Type", MediaType.APPLICATION_JSON);
-        final String body = "{\"message\": \"Bad request\"}";
-        final MutableResponse initialResponse = new MutableResponse(headers, body.getBytes("UTF-8"));
-        initialResponse.setStatus(400);
-        when(mockedChain.callNextFilter(mockedRequest)).thenReturn(initialResponse);
+        final MutableRequest mockedRequest = mock(MutableRequest.class);
+        final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
+        final MutableResponse mockedResponse = mock(MutableResponse.class);
+        when(mockedResponse.getStatus()).thenReturn(400);
+        when(mockedChain.callNextFilter(mockedRequest)).thenReturn(mockedResponse);
 
-        final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
+        mainImageFilter.processRequest(mockedRequest, mockedChain);
 
-        final JsonNode expectedTree = objectMapper.readTree(body);
-        final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
-        assertThat(actualTree, equalTo(expectedTree));
+        verifyResponseNotMutated(mockedResponse);
+    }
+
+    public void verifyResponseNotMutated(final MutableResponse mockedResponse) {
+        verify(mockedResponse, never()).setEntity(Mockito.any(byte[].class));
+        verify(mockedResponse, never()).setHeaders(Mockito.any(MultivaluedMap.class));
+        verify(mockedResponse, never()).setStatus(anyInt());
     }
 
     private static byte[] readFileBytes(final String path) {
