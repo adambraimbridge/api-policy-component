@@ -13,6 +13,7 @@ import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
+import com.ft.up.apipolicy.filters.MainImageFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
@@ -49,24 +50,25 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
 		RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
 
-        JsonConverter tweaker = new JsonConverter(environment.getObjectMapper());
+        JsonConverter jsonTweaker = new JsonConverter(environment.getObjectMapper());
 
 
-        ApiFilter webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),tweaker);
+        final ApiFilter webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),jsonTweaker);
+        final ApiFilter mainImageFilter = new MainImageFilter(jsonTweaker);
 
-        ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(tweaker, getBodyProcessingFieldTransformer());
+        ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
 
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder,webUrlAdder, suppressMarkup)));
+				new HttpPipeline(requestForwarder,webUrlAdder, suppressMarkup, mainImageFilter)));
 
         PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
 
         knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
-                new HttpPipeline(requestForwarder, new AddBrandFilterParameters(tweaker, resolver))));
+                new HttpPipeline(requestForwarder, new AddBrandFilterParameters(jsonTweaker, resolver))));
 
         knownEndpoints.add(new KnownEndpoint("^/enrichedcontent/.*",
-                new HttpPipeline(requestForwarder,webUrlAdder, suppressMarkup)));
+                new HttpPipeline(requestForwarder,webUrlAdder, suppressMarkup, mainImageFilter)));
 
         // DEFAULT CASE: Just forward it
         knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));

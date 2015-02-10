@@ -10,6 +10,8 @@ import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 
 import java.util.HashMap;
 
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+
 public class SuppressRichContentMarkupFilter implements ApiFilter {
 
     public static final String BODY_XML_KEY = "bodyXML";
@@ -26,7 +28,7 @@ public class SuppressRichContentMarkupFilter implements ApiFilter {
 
         MutableResponse response = chain.callNextFilter(request);
 
-        if(request.policyIs("INCLUDE_RICH_CONTENT")) {
+        if(request.policyIs(INCLUDE_RICH_CONTENT)) {
             return response;
         }
 
