@@ -1,10 +1,13 @@
 package com.ft.up.apipolicy.transformer;
 
+import static com.ft.up.apipolicy.EquivalentIgnoringWindowsLineEndings.equivalentToUnixString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import com.ft.bodyprocessing.transformer.FieldTransformer;
+import com.ft.up.apipolicy.EquivalentIgnoringWindowsLineEndings;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,9 +44,34 @@ public class BodyProcessingFieldTransformerFactoryTest {
         checkTransformation(original, expected);
     }
 
+
+    @Test
+    public void shouldRemoveFastFTVideoAttachment(){
+        String original = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p><a href=\"https://www.youtube.com/watch?v=nkEa0zTdJ-8\" data-asset-type=\"video\" data-embedded=\"true\" title=\"Causes of the Industrial Revolution\">Causes of the Industrial Revolution</a></body>";
+        String expected = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p></body>" ;
+
+        checkTransformation(original, expected);
+    }
+
+    @Test
+    public void shouldRemoveOldStyleFastFTVideoAttachment(){
+        String original = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p><a href=\"https://www.youtube.com/watch?v=nkEa0zTdJ-8\"></a></body>";
+        String expected = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p></body>" ;
+
+        checkTransformation(original, expected);
+    }
+
+    @Test
+    public void shouldNotRemoveAStandardLinkEvenToYouTube(){
+        String original = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p><a href=\"https://www.youtube.com/watch?v=nkEa0zTdJ-8\">Informative Video</a></body>";
+
+        checkTransformation(original, original);
+    }
+
+
     private void checkTransformation(String originalBody, String expectedTransformedBody) {
         String actualTransformedBody = bodyTransformer.transform(originalBody, TRANSACTION_ID);
-        assertThat(actualTransformedBody, is(equalTo(expectedTransformedBody)));
+        assertThat(actualTransformedBody, is(equivalentToUnixString(expectedTransformedBody)));
     }
 
 }
