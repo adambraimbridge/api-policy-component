@@ -18,7 +18,7 @@ public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry 
 
         registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "pull-quote");
 		registerStartAndEndElementEventHandler(new StripElementByClassEventHandler("twitter-tweet", new RetainXMLEventHandler()), "blockquote");
-		registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "timeline", "table", "big-number");
+		registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "ft-timeline", "table", "big-number");
 
     }
 }
