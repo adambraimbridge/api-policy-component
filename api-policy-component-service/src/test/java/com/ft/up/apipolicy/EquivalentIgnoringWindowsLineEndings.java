@@ -21,10 +21,6 @@ public class EquivalentIgnoringWindowsLineEndings extends TypeSafeDiagnosingMatc
     }
 
     public static Matcher<String> equivalentToUnixString(String expectedValue) {
-        if("\n".equals(System.lineSeparator())) {
-            return CoreMatchers.equalTo(expectedValue);
-        }
-
         return new EquivalentIgnoringWindowsLineEndings(expectedValue);
     }
 
