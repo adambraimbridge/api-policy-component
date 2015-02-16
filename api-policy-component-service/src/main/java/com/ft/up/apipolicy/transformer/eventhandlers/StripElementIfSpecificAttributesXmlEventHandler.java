@@ -15,16 +15,16 @@ import javax.xml.stream.events.StartElement;
 import java.util.Map;
 
 /**
- * StripElementUnlessSpecificAttributesXmlEventHandler
+ * StripElementIfSpecificAttributesXmlEventHandler
  *
  * @author Simon.Gibbs
  */
-public class StripElementUnlessSpecificAttributesXmlEventHandler extends BaseXMLEventHandler {
+public class StripElementIfSpecificAttributesXmlEventHandler extends BaseXMLEventHandler {
 
     private Map<String,String> targetedAttributes;
     private XMLEventHandler fallbackHandler;
 
-    public StripElementUnlessSpecificAttributesXmlEventHandler(Map<String,String> targetedAttrs, XMLEventHandler fallbackHandler) {
+    public StripElementIfSpecificAttributesXmlEventHandler(Map<String, String> targetedAttrs, XMLEventHandler fallbackHandler) {
 
         Preconditions.checkArgument(targetedAttrs!=null, "targeted attributes not specified");
         Preconditions.checkArgument(!targetedAttrs.isEmpty(), "targeted attributes not populated");
@@ -36,12 +36,12 @@ public class StripElementUnlessSpecificAttributesXmlEventHandler extends BaseXML
     @Override
     public void handleStartElementEvent(StartElement event, XMLEventReader xmlEventReader, BodyWriter eventWriter, BodyProcessingContext bodyProcessingContext) throws XMLStreamException {
 
-        if(!isTargetedElement(event)) {
-            fallbackHandler.handleStartElementEvent(event,xmlEventReader,eventWriter,bodyProcessingContext);
+        if(isTargetedElement(event)) {
+            skipUntilMatchingEndTag(event.getName().getLocalPart(),xmlEventReader);
             return;
         }
 
-        skipUntilMatchingEndTag(event.getName().getLocalPart(),xmlEventReader);
+        fallbackHandler.handleStartElementEvent(event,xmlEventReader,eventWriter,bodyProcessingContext);
 
     }
 
