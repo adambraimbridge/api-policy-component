@@ -11,6 +11,9 @@ import java.util.Collections;
 
 public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry {
 
+    private static final String IMAGE_SET_CLASS_URI = "http://www.ft.com/ontology/content/ImageSet";
+    private static final String FT_CONTENT = "ft-content";
+
     public BodyTransformationXMLEventRegistry() {
 
         /* default is to keep events but leave content, including "body" tags - anything not configured below will be handled via this */
@@ -28,6 +31,9 @@ public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry 
                 new RetainXMLEventHandler()),
             "a"
         );
-
+        registerStartAndEndElementEventHandler(new StripElementIfSpecificAttributesXmlEventHandler(
+                        Collections.singletonMap("type", IMAGE_SET_CLASS_URI),
+                        new RetainXMLEventHandler()), FT_CONTENT
+        );
     }
 }
