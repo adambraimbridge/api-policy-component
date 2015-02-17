@@ -11,7 +11,7 @@ import java.util.Collections;
 
 public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry {
 
-    private static final String IMAGE_SET_ONTOLOGY = "http://www.ft.com/ontology/content/ImageSet";
+    private static final String IMAGE_SET_CLASS_URI = "http://www.ft.com/ontology/content/ImageSet";
     private static final String FT_CONTENT = "ft-content";
 
     public BodyTransformationXMLEventRegistry() {
@@ -32,7 +32,7 @@ public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry 
             "a"
         );
         registerStartAndEndElementEventHandler(new StripElementIfSpecificAttributesXmlEventHandler(
-                        Collections.singletonMap("type", IMAGE_SET_ONTOLOGY),
+                        Collections.singletonMap("type", IMAGE_SET_CLASS_URI),
                         new RetainXMLEventHandler()), FT_CONTENT
         );
     }
