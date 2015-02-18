@@ -1,11 +1,7 @@
 package com.ft.up.apipolicy.transformer;
 
-import com.ft.bodyprocessing.xml.eventhandlers.PlainTextHtmlEntityReferenceEventHandler;
-import com.ft.bodyprocessing.xml.eventhandlers.RetainXMLEventHandler;
-import com.ft.bodyprocessing.xml.eventhandlers.StripElementAndContentsXMLEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.*;
 import com.ft.bodyprocessing.xml.eventhandlers.StripElementByClassEventHandler;
-import com.ft.bodyprocessing.xml.eventhandlers.XMLEventHandlerRegistry;
-import com.ft.up.apipolicy.transformer.eventhandlers.StripElementIfSpecificAttributesXmlEventHandler;
 
 import java.util.Collections;
 
