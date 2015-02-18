@@ -1,13 +1,10 @@
 package com.ft.up.apipolicy.transformer;
 
 import static com.ft.up.apipolicy.EquivalentIgnoringWindowsLineEndings.equivalentToUnixString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import com.ft.bodyprocessing.transformer.FieldTransformer;
-import com.ft.up.apipolicy.EquivalentIgnoringWindowsLineEndings;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
