@@ -5,7 +5,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import org.junit.Test;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
@@ -46,7 +46,7 @@ public class JsonConverterTest {
 
         MutableResponse response = new MutableResponse(new MultivaluedMapImpl(),FIELDS_JSON.getBytes());
 
-        HashMap<String,Object> convertedJson = converter.readEntity(response);
+        Map<String,Object> convertedJson = converter.readEntity(response);
         convertedJson.put("title","test");
 
         converter.replaceEntity(response,convertedJson);
