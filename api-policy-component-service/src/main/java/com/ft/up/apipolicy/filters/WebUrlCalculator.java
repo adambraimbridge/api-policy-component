@@ -17,6 +17,9 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
  */
 public class WebUrlCalculator implements ApiFilter {
 
+    private static final String TYPE_KEY = "type";
+    private static final String TYPE_VALUE_ARTICLE = "http://www.ft.com/ontology/content/Article";
+
     private final Map<String, String> urlTemplates;
     private JsonConverter jsonConverter;
 
@@ -40,6 +43,9 @@ public class WebUrlCalculator implements ApiFilter {
 		}
 
 		HashMap<String, Object> content = jsonConverter.readEntity(response);
+        if (isNotArticleType(content)) {
+            return response;
+        }
 
 		String webUrl = generateWebUrlFromIdentifiers(content);
 		if(webUrl != null ){
@@ -51,21 +57,9 @@ public class WebUrlCalculator implements ApiFilter {
         return response;
     }
 
-	private String generateWebUrlFromContentOrigin(Map<String, Object> content){
-		@SuppressWarnings("unchecked")
-		Map<String, String> contentOrigin = (Map<String, String>) content.get("contentOrigin");
-		if(contentOrigin != null) {
-
-			String authority = contentOrigin.get("originatingSystem");
-			String value = contentOrigin.get("originatingIdentifier");
-			String template = urlTemplates.get(authority);
-			if (template != null) {
-				return template.replace("{{originatingIdentifier}}", value);
-			}
-		}
-
-		return null;
-	}
+    private boolean isNotArticleType(final Map<String, Object> content) {
+        return !content.containsKey(TYPE_KEY) || TYPE_VALUE_ARTICLE != content.get(TYPE_KEY);
+    }
 
 	private String generateWebUrlFromIdentifiers(Map<String, Object> content){
 		@SuppressWarnings("unchecked")
@@ -82,8 +76,7 @@ public class WebUrlCalculator implements ApiFilter {
 				}
 			}
 		}
-
-		return generateWebUrlFromContentOrigin(content);
+        return null;
 	}
-    
+
 }
