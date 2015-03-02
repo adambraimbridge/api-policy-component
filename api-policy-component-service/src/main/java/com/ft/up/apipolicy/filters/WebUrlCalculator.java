@@ -2,14 +2,14 @@ package com.ft.up.apipolicy.filters;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import javax.ws.rs.core.Response.Status;
 
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-
-import javax.ws.rs.core.Response.Status;
 
 public class WebUrlCalculator implements ApiFilter {
 
@@ -77,9 +77,15 @@ public class WebUrlCalculator implements ApiFilter {
             for (Map<String, Object> map : identifiers) {
                 String authority = (String) map.get("authority");
                 String value = (String) map.get("identifierValue");
-                String template = urlTemplates.get(authority);
-                if (template != null) {
-                    return template.replace("{{originatingIdentifier}}", value);
+                for(String key : urlTemplates.keySet()){
+                    if (Pattern.matches(key, authority)){
+
+                        String template = urlTemplates.get(key);
+                        if (template != null) {
+                            return template.replace("{{originatingIdentifier}}", value);
+                        }
+                        break;
+                    }
                 }
             }
         }
