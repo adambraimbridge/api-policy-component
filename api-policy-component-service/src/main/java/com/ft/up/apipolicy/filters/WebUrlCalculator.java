@@ -14,15 +14,17 @@ import javax.ws.rs.core.Response.Status;
 public class WebUrlCalculator implements ApiFilter {
 
     private static final String TYPE_KEY = "type";
-    private static final String TYPE_VALUE_ARTICLE = "http://www.ft.com/ontology/content/Article";
     private static final String WEB_URL_KEY = "webUrl";
 
     private final Map<String, String> urlTemplates;
     private JsonConverter jsonConverter;
+    private final List<String> webUrlEligibleUrls;
 
-    public WebUrlCalculator(final Map<String, String> urlTemplates, JsonConverter converter) {
+    public WebUrlCalculator(final Map<String, String> urlTemplates, final JsonConverter converter,
+            final List<String> webUrlEligibleUrls) {
         this.urlTemplates = urlTemplates;
         this.jsonConverter = converter;
+        this.webUrlEligibleUrls = webUrlEligibleUrls;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class WebUrlCalculator implements ApiFilter {
             return false;
         }
         final Map<String, Object> content = jsonConverter.readEntity(response);
-        return isArticleType(content);
+        return content.containsKey(TYPE_KEY) && webUrlEligibleUrls.contains(content.get(TYPE_KEY));
     }
 
     private boolean isNotOKResponse(final MutableResponse response) {
@@ -49,10 +51,6 @@ public class WebUrlCalculator implements ApiFilter {
 
     private boolean isNotJson(final MutableResponse response) {
         return !jsonConverter.isJson(response);
-    }
-
-    private boolean isArticleType(final Map<String, Object> content) {
-        return content.containsKey(TYPE_KEY) && TYPE_VALUE_ARTICLE.equals(content.get(TYPE_KEY));
     }
 
     private Map<String, Object> extractContent(final MutableResponse response) {
@@ -86,11 +84,11 @@ public class WebUrlCalculator implements ApiFilter {
 
     private String generateWebUrlFromIdentifiers(Map<String, Object> content) {
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> identifiers = (List<Map<String, Object>>) content.get("identifiers");
+        List<Map<String, String>> identifiers = (List<Map<String, String>>) content.get("identifiers");
         if (identifiers != null) {
-            for (Map<String, Object> map : identifiers) {
-                String authority = (String) map.get("authority");
-                String value = (String) map.get("identifierValue");
+            for (Map<String, String> map : identifiers) {
+                String authority = map.get("authority");
+                String value = map.get("identifierValue");
                 String template = urlTemplates.get(authority);
                 if (template != null) {
                     return template.replace("{{originatingIdentifier}}", value);

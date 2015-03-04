@@ -11,7 +11,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.nio.charset.*;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -26,20 +27,20 @@ public class WebUrlCalculatorTest {
 
     private final static Charset UTF8 = Charset.forName("UTF-8");
     private final static String ERROR_RESPONSE = "{ \"message\" : \"Error\" }";
-    private final static byte[] MINIMAL_EXAMPLE_NON_ARTICLE_IDENTIFIER_RESPONSE = ("{ \"identifiers\": [{\n" +
+    private final static byte[] WEB_URL_NON_ELIGIBLE_IDENTIFIER_RESPONSE = ("{ \"identifiers\": [{\n" +
             "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
             "\"identifierValue\": \"219512\"\n" +
             "}] }").getBytes(UTF8);
-    private final static byte[] MINIMAL_EXAMPLE_ARTICLE_IDENTIFIER_RESPONSE = ("{ \"identifiers\": [{\n" +
+    private final static byte[] WEB_URL_ELIGIBLE_IDENTIFIER_RESPONSE = ("{ \"identifiers\": [{\n" +
             "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
             "\"identifierValue\": \"219512\"\n" +
             "}],\n" +
             "\"type\": \"http://www.ft.com/ontology/content/Article\" }").getBytes(UTF8);
-    private final static byte[] MINIMAL_EXAMPLE_NON_ARTICLE_CONTENT_ORIGIN_RESPONSE = ("{ \"contentOrigin\": {\n" +
+    private final static byte[] WEB_URL_NON_ELIGIBLE_CONTENT_ORIGIN_RESPONSE = ("{ \"contentOrigin\": {\n" +
             "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
             "\"originatingIdentifier\": \"581814c4-748e-11e4-b30b-00144feabdc0\"\n" +
             "}}").getBytes(UTF8);
-    private final static byte[] MINIMAL_EXAMPLE_ARTICLE_CONTENT_ORIGIN_RESPONSE = ("{ \"contentOrigin\": {\n" +
+    private final static byte[] WEB_URL_ELIGIBLE_CONTENT_ORIGIN_RESPONSE = ("{ \"contentOrigin\": {\n" +
             "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
             "\"originatingIdentifier\": \"581814c4-748e-11e4-b30b-00144feabdc0\"\n" +
             "},\n" +
@@ -52,13 +53,15 @@ public class WebUrlCalculatorTest {
     @Mock
     private HttpPipelineChain mockChain;
 
+    private WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter(),
+            Arrays.asList("http://www.ft.com/ontology/content/Article"));
     private MutableRequest exampleRequest = new MutableRequest(Collections.singleton("TEST"), getClass().getSimpleName());
 
     private MutableResponse exampleErrorResponse;
-    private MutableResponse minimalExampleIdentifierNonArticleResponse;
-    private MutableResponse minimalExampleIdentifierArticleResponse;
-    private MutableResponse minimalExampleContentOriginNonArticleResponse;
-    private MutableResponse minimalExampleContentOriginArticleResponse;
+    private MutableResponse webUrlNonEligibleIdentifierResponse;
+    private MutableResponse webUrlEligibleIdentifierResponse;
+    private MutableResponse webUrlNonEligibleContentOriginResponse;
+    private MutableResponse webUrlEligibleContentOriginResponse;
     private MutableResponse originatingSystemIsNullResponse;
     private MutableResponse contentOriginIsNullResponse;
 
@@ -67,21 +70,21 @@ public class WebUrlCalculatorTest {
         exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(), ERROR_RESPONSE.getBytes());
         exampleErrorResponse.setStatus(500);
 
-        minimalExampleIdentifierNonArticleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_EXAMPLE_NON_ARTICLE_IDENTIFIER_RESPONSE);
-        minimalExampleIdentifierNonArticleResponse.setStatus(200);
-        minimalExampleIdentifierNonArticleResponse.getHeaders().putSingle("Content-Type", "application/json");
+        webUrlNonEligibleIdentifierResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_NON_ELIGIBLE_IDENTIFIER_RESPONSE);
+        webUrlNonEligibleIdentifierResponse.setStatus(200);
+        webUrlNonEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        minimalExampleContentOriginNonArticleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_EXAMPLE_NON_ARTICLE_CONTENT_ORIGIN_RESPONSE);
-        minimalExampleContentOriginNonArticleResponse.setStatus(200);
-        minimalExampleContentOriginNonArticleResponse.getHeaders().putSingle("Content-Type", "application/json");
+        webUrlNonEligibleContentOriginResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_NON_ELIGIBLE_CONTENT_ORIGIN_RESPONSE);
+        webUrlNonEligibleContentOriginResponse.setStatus(200);
+        webUrlNonEligibleContentOriginResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        minimalExampleIdentifierArticleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_EXAMPLE_ARTICLE_IDENTIFIER_RESPONSE);
-        minimalExampleIdentifierArticleResponse.setStatus(200);
-        minimalExampleIdentifierArticleResponse.getHeaders().putSingle("Content-Type", "application/json");
+        webUrlEligibleIdentifierResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_IDENTIFIER_RESPONSE);
+        webUrlEligibleIdentifierResponse.setStatus(200);
+        webUrlEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        minimalExampleContentOriginArticleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_EXAMPLE_ARTICLE_CONTENT_ORIGIN_RESPONSE);
-        minimalExampleContentOriginArticleResponse.setStatus(200);
-        minimalExampleContentOriginArticleResponse.getHeaders().putSingle("Content-Type", "application/json");
+        webUrlEligibleContentOriginResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_CONTENT_ORIGIN_RESPONSE);
+        webUrlEligibleContentOriginResponse.setStatus(200);
+        webUrlEligibleContentOriginResponse.getHeaders().putSingle("Content-Type", "application/json");
 
         originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), NO_IDENTIFIERS_RESPONSE.getBytes());
         originatingSystemIsNullResponse.setStatus(200);
@@ -95,7 +98,6 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldNotProcessErrorResponse() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(exampleErrorResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -104,29 +106,26 @@ public class WebUrlCalculatorTest {
 
     @Test
     public void shouldNotProcessJSONLD() {
-        minimalExampleIdentifierNonArticleResponse.getHeaders().putSingle("Content-Type", "application/ld-json");
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleIdentifierNonArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
+        webUrlNonEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/ld-json");
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlNonEligibleIdentifierResponse);
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
-        assertThat(response.getEntity(), is(MINIMAL_EXAMPLE_NON_ARTICLE_IDENTIFIER_RESPONSE));
+        assertThat(response.getEntity(), is(WEB_URL_NON_ELIGIBLE_IDENTIFIER_RESPONSE));
     }
 
     @Test
-    public void shouldNotAddWebUrlToSuccessResponseForNonArticlesWithIdentifiers() {
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleIdentifierNonArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
+    public void shouldNotAddWebUrlToSuccessResponseForNonEligibleWithIdentifiers() {
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlNonEligibleIdentifierResponse);
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
-        assertThat(response.getEntity(), is(MINIMAL_EXAMPLE_NON_ARTICLE_IDENTIFIER_RESPONSE));
+        assertThat(response.getEntity(), is(WEB_URL_NON_ELIGIBLE_IDENTIFIER_RESPONSE));
     }
 
     @Test
-    public void shouldAddWebUrlToSuccessResponseForArticlesWithIdentifiers() {
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleIdentifierArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
+    public void shouldAddWebUrlToSuccessResponseForEligibleWithIdentifiers() {
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlEligibleIdentifierResponse);
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -134,19 +133,17 @@ public class WebUrlCalculatorTest {
     }
 
     @Test
-    public void shouldNotAddWebUrlToSuccessResponseForNonArticlesWithContentOrigin() {
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleContentOriginNonArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
+    public void shouldNotAddWebUrlToSuccessResponseForNonEligibleWithContentOrigin() {
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlNonEligibleContentOriginResponse);
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
-        assertThat(response.getEntity(), is(MINIMAL_EXAMPLE_NON_ARTICLE_CONTENT_ORIGIN_RESPONSE));
+        assertThat(response.getEntity(), is(WEB_URL_NON_ELIGIBLE_CONTENT_ORIGIN_RESPONSE));
     }
 
     @Test
-    public void shouldAddWebUrlToSuccessResponseForArticlesWithContentOrigin() {
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleContentOriginArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
+    public void shouldAddWebUrlToSuccessResponseForEligibleWithContentOrigin() {
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlEligibleContentOriginResponse);
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -156,7 +153,6 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldReturnSuccessResponseWithoutWebUrlWhenOriginatingSystemIsNull() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(originatingSystemIsNullResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -167,7 +163,6 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldReturnSuccessResponseWithoutWebUrlWhenContentOriginIsNull() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(contentOriginIsNullResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
