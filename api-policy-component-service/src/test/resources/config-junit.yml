@@ -35,7 +35,7 @@ policyBrandsMapper:
                   - http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a66
                   - http://api.ft.com/things/3a37a89e-14ce-4ac8-af12-961a9630dce3
 
-webUrlEligibleUrls:
+webUrlEligibleContentTypes:
   - http://www.ft.com/ontology/content/Article
 
 server:

@@ -18,13 +18,13 @@ public class WebUrlCalculator implements ApiFilter {
 
     private final Map<String, String> urlTemplates;
     private JsonConverter jsonConverter;
-    private final List<String> webUrlEligibleUrls;
+    private final List<String> webUrlEligibleContentTypes;
 
     public WebUrlCalculator(final Map<String, String> urlTemplates, final JsonConverter converter,
-            final List<String> webUrlEligibleUrls) {
+            final List<String> webUrlEligibleContentTypes) {
         this.urlTemplates = urlTemplates;
         this.jsonConverter = converter;
-        this.webUrlEligibleUrls = webUrlEligibleUrls;
+        this.webUrlEligibleContentTypes = webUrlEligibleContentTypes;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class WebUrlCalculator implements ApiFilter {
             return false;
         }
         final Map<String, Object> content = jsonConverter.readEntity(response);
-        return content.containsKey(TYPE_KEY) && webUrlEligibleUrls.contains(content.get(TYPE_KEY));
+        return content.containsKey(TYPE_KEY) && webUrlEligibleContentTypes.contains(content.get(TYPE_KEY));
     }
 
     private boolean isNotOKResponse(final MutableResponse response) {

@@ -54,7 +54,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
 
         final ApiFilter webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),
-                jsonTweaker, configuration.getWebUrlEligibleUrls());
+                jsonTweaker, configuration.getWebUrlEligibleContentTypes());
         final ApiFilter mainImageFilter = new MainImageFilter(jsonTweaker);
 
         ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());

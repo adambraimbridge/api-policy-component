@@ -27,7 +27,7 @@ public class ApiPolicyConfiguration extends Configuration {
 
     @NotNull
     @JsonProperty @Valid
-    private List<String> webUrlEligibleUrls;
+    private List<String> webUrlEligibleContentTypes;
 
     public EndpointConfiguration getVarnish() {
         return varnish;
@@ -41,7 +41,7 @@ public class ApiPolicyConfiguration extends Configuration {
         return policyBrandsResolver;
     }
 
-    public List<String> getWebUrlEligibleUrls() {
-        return webUrlEligibleUrls;
+    public List<String> getWebUrlEligibleContentTypes() {
+        return webUrlEligibleContentTypes;
     }
 }
