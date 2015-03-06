@@ -80,6 +80,14 @@ public class BodyProcessingFieldTransformerFactoryTest {
         checkTransformation(original, original);
     }
 
+    @Test
+    public void testShouldRemoveInlineExternalImages() throws Exception {
+        String original = "<body><p>He sheltered there.<img alt=\"Saloua Raouda Choucair's ‘Composition'\" height=\"445\" src=\"http://im.ft-static.com/content/images/7784185e-a888-11e2-8e5d-00144feabdc0.img\" width=\"600\"/></p>\n\n\n\n</body>";
+        String expected = "<body><p>He sheltered there.</p>\n\n\n\n</body>" ;
+
+        checkTransformation(original, expected);
+    }
+
     private void checkTransformation(String originalBody, String expectedTransformedBody) {
         String actualTransformedBody = bodyTransformer.transform(originalBody, TRANSACTION_ID);
         assertThat(actualTransformedBody, is(equivalentToUnixString(expectedTransformedBody)));
