@@ -1,6 +1,6 @@
 package com.ft.up.apipolicy.filters;
 
-import java.util.HashMap;
+import java.util.Map;
 import javax.ws.rs.core.UriBuilder;
 
 import com.ft.up.apipolicy.JsonConverter;
@@ -38,7 +38,7 @@ public class AddBrandFilterParameters implements ApiFilter {
             return response;
         }
 
-        HashMap<String, Object> content = converter.readEntity(response);
+        Map<String, Object> content = converter.readEntity(response);
 
         UriBuilder requestUriBuilder = UriBuilder.fromUri((String)content.get(REQUEST_URL_KEY));
         requestUriBuilder.replaceQueryParam("notForBrand", null);
