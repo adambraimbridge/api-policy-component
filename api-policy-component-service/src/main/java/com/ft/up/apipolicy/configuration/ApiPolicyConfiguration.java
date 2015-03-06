@@ -9,8 +9,6 @@ import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.pipeline.PipelineConfiguration;
 import io.dropwizard.Configuration;
 
-import java.util.List;
-
 public class ApiPolicyConfiguration extends Configuration {
 
     @NotNull
@@ -25,10 +23,6 @@ public class ApiPolicyConfiguration extends Configuration {
     @JsonProperty("policyBrandsMapper") @Valid
     private PolicyBrandsResolver policyBrandsResolver;
 
-    @NotNull
-    @JsonProperty @Valid
-    private List<String> webUrlEligibleContentTypes;
-
     public EndpointConfiguration getVarnish() {
         return varnish;
     }
@@ -39,9 +33,5 @@ public class ApiPolicyConfiguration extends Configuration {
 
     public PolicyBrandsResolver getPolicyBrandsResolver() {
         return policyBrandsResolver;
-    }
-
-    public List<String> getWebUrlEligibleContentTypes() {
-        return webUrlEligibleContentTypes;
     }
 }

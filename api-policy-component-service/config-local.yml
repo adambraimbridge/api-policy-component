@@ -12,11 +12,9 @@ pipeline:
     "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/{{originatingIdentifier}}.html"
     "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft?post={{originatingIdentifier}}"
     "http://www.ft.com/ontology/origin/FT-LABS-WP-1-24" : "{{originatingIdentifier}}"
-    "http://www.ft.com/ontology/origin/FT-LABS-WP-1-91" : "{{originatingIdentifier}}"
     "http://api.ft.com/system/FTCOM-METHODE" : "http://www.ft.com/cms/s/{{originatingIdentifier}}.html"
     "http://api.ft.com/system/FT-CLAMO"  : "http://www.ft.com/fastft?post={{originatingIdentifier}}"
     "http://api.ft.com/system/FT-LABS-WP-1-24" : "{{originatingIdentifier}}"
-    "http://api.ft.com/system/FT-LABS-WP-1-91" : "{{originatingIdentifier}}"
 
 
 policyBrandsMapper:
@@ -41,9 +39,6 @@ policyBrandsMapper:
          notForBrand:
                   - http://api.ft.com/things/89d15f70-640d-11e4-9803-0800200c9a66
                   - http://api.ft.com/things/3a37a89e-14ce-4ac8-af12-961a9630dce3
-
-webUrlEligibleContentTypes:
-  - http://www.ft.com/ontology/content/Article
 
 server:
 
