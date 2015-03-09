@@ -31,5 +31,6 @@ public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry 
                         Collections.singletonMap("type", IMAGE_SET_CLASS_URI),
                         new RetainXMLEventHandler()), FT_CONTENT
         );
+        registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "img");
     }
 }
