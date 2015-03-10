@@ -4,15 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import javax.ws.rs.core.Response.Status;
 
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-
-import javax.ws.rs.core.Response.Status;
 
 public class WebUrlCalculator implements ApiFilter {
 
@@ -104,6 +101,6 @@ public class WebUrlCalculator implements ApiFilter {
                 }
             }
         }
-        return null;
+        return generateWebUrlFromContentOrigin(content);
     }
 }

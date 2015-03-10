@@ -1,9 +1,13 @@
 package com.ft.up.apipolicy.transformer;
 
-import com.ft.bodyprocessing.xml.eventhandlers.*;
-import com.ft.bodyprocessing.xml.eventhandlers.StripElementByClassEventHandler;
-
 import java.util.Collections;
+
+import com.ft.bodyprocessing.xml.eventhandlers.PlainTextHtmlEntityReferenceEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.RetainXMLEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.StripElementAndContentsXMLEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.StripElementByClassEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.StripElementIfSpecificAttributesXmlEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.XMLEventHandlerRegistry;
 
 public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry {
 
