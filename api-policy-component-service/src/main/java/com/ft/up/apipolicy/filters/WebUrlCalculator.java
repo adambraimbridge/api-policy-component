@@ -1,6 +1,5 @@
 package com.ft.up.apipolicy.filters;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +28,7 @@ public class WebUrlCalculator implements ApiFilter {
     public MutableResponse processRequest(final MutableRequest request, final HttpPipelineChain chain) {
         final MutableResponse originalResponse = chain.callNextFilter(request);
         if (isEligibleForWebUrl(originalResponse)) {
-            final HashMap<String, Object> content = extractContent(originalResponse);
+            final Map<String, Object> content = extractContent(originalResponse);
             return createResponseWithWebUrlCompleted(originalResponse, content);
         }
         return originalResponse;
@@ -51,12 +50,12 @@ public class WebUrlCalculator implements ApiFilter {
         return !jsonConverter.isJson(response);
     }
 
-    private HashMap<String, Object> extractContent(final MutableResponse response) {
+    private Map<String, Object> extractContent(final MutableResponse response) {
         return jsonConverter.readEntity(response);
     }
 
     private MutableResponse createResponseWithWebUrlCompleted(final MutableResponse response,
-            final HashMap<String, Object> content) {
+            final Map<String, Object> content) {
         final String webUrl = generateWebUrlFromIdentifiers(content);
         if (webUrl != null) {
             content.put(WEB_URL_KEY, webUrl);
