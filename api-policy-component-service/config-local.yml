@@ -4,7 +4,7 @@ varnish:
   path: content/
   jerseyClient:
       timeout: 4000ms
-  primaryNodes: ["ftweb02965-lvpr-uk-int:80:8081"]
+  primaryNodes: ["localhost:9090:9091"]
   secondaryNodes: null
 
 pipeline:

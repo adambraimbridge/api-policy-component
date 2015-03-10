@@ -41,7 +41,7 @@ public class WebUrlCalculatorTest {
             "\"type\": \"http://www.ft.com/ontology/content/Article\" }").getBytes();
     private final static String NO_IDENTIFIERS_RESPONSE = "{ \"identifiers\": [] }";
     private final static String NO_CONTENT_ORIGIN_RESPONSE = "{ \"contentOrigin\": {} }";
-    private final static Map<String, String> WEB_URL_TEMPLATE = new HashMap<String, String>();
+    private final static Map<String, String> WEB_URL_TEMPLATES = new HashMap<String, String>();
 
     @Mock
     private HttpPipelineChain mockChain;
@@ -57,8 +57,8 @@ public class WebUrlCalculatorTest {
 
     @Before
     public void setUpExamples() {
-        WEB_URL_TEMPLATE.put("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{originatingIdentifier}}");
-        WEB_URL_TEMPLATE.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{originatingIdentifier}}");
+        WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{originatingIdentifier}}");
+        WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{originatingIdentifier}}");
 
         exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(), ERROR_RESPONSE.getBytes());
         exampleErrorResponse.setStatus(500);
@@ -87,7 +87,7 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldNotProcessErrorResponse() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(exampleErrorResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATE, JsonConverter.testConverter());
+        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -98,7 +98,7 @@ public class WebUrlCalculatorTest {
     public void shouldNotProcessJSONLD() {
         minimalExampleNonArticleResponse.getHeaders().putSingle("Content-Type", "application/ld-json");
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleNonArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATE, JsonConverter.testConverter());
+        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -108,7 +108,7 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldAddWebUrlToSuccessResponseForNonArticles() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleNonArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATE, JsonConverter.testConverter());
+        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -118,7 +118,7 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldAddWebUrlToSuccessResponseForArticles() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATE, JsonConverter.testConverter());
+        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -128,7 +128,7 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldAddWebUrlToSuccessResponseForRegexMatches() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(partialExampleNonArticleResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATE, JsonConverter.testConverter());
+        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -140,7 +140,7 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldReturnSuccessResponseWithoutWebUrlWhenOriginatingSystemIsNull() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(originatingSystemIsNullResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATE, JsonConverter.testConverter());
+        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
@@ -151,7 +151,7 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldReturnSuccessResponseWithoutWebUrlWhenContentOriginIsNull() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(contentOriginIsNullResponse);
-        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATE, JsonConverter.testConverter());
+        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
