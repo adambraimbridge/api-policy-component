@@ -11,7 +11,8 @@ pipeline:
   webUrlTemplates:
     "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/{{originatingIdentifier}}.html"
     "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft?post={{originatingIdentifier}}"
-    "http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+" : "{{originatingIdentifier}}"
+    "http://www.ft.com/ontology/origin/FT-LABS-WP-1-24" : "{{originatingIdentifier}}"
+    "http://www.ft.com/ontology/origin/FT-LABS-WP-1-91" : "{{originatingIdentifier}}"
     "http://api.ft.com/system/FTCOM-METHODE" : "http://www.ft.com/cms/s/{{originatingIdentifier}}.html"
     "http://api.ft.com/system/FT-CLAMO"  : "http://www.ft.com/fastft?post={{originatingIdentifier}}"
     "http://api.ft.com/system/FT-LABS-WP-1-[0-9]+" : "{{originatingIdentifier}}"
