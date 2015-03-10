@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy.filters;
 
+
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
@@ -7,7 +8,7 @@ import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 
-import java.util.Map;
+import java.util.HashMap;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
 
@@ -35,7 +36,7 @@ public class SuppressRichContentMarkupFilter implements ApiFilter {
             return response;
         }
 
-        Map<String, Object> content = jsonConverter.readEntity(response);
+        HashMap<String, Object> content = jsonConverter.readEntity(response);
 
         String body = ((String)content.get(BODY_XML_KEY));
 

@@ -25,7 +25,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
@@ -84,7 +84,6 @@ public class ApiPolicyComponentTest {
     private static final String CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
                 "\"identifiers\": [{\n" +
                 "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
                 "\"identifierValue\": \"220322\"\n" +
@@ -97,8 +96,7 @@ public class ApiPolicyComponentTest {
                 "\"identifiers\": [{\n" +
                 "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
                 "\"identifierValue\": \"220322\"\n" +
-                "}],\n" +
-                "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
+                "}]," +
                 "\"brands\": [ ],\n" +
                 "\"annotations\": [ ]" +
             "}";
@@ -106,11 +104,10 @@ public class ApiPolicyComponentTest {
 	private static final String RICH_CONTENT_JSON = "{" +
 				"\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
 				"\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
-                "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
-                "\"identifiers\": [{\n" +
-                    "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-                    "\"identifierValue\": \"220322\"\n" +
-                "}]\n" +
+				"\"contentOrigin\": {\n" +
+				"\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+				"\"originatingIdentifier\": \"220322\"\n" +
+				"}" +
 			"}";
 
     private static final String CONTENT_WITH_IMAGE_JSON =
@@ -252,7 +249,7 @@ public class ApiPolicyComponentTest {
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH)));
 
-            Map<String, Object> result = expectOKResponseWithJSON(response);
+            HashMap<String, Object> result = expectOKResponseWithJSON(response);
 
             assertWebUrl(result, "http://www.ft.com/fastft/220322");
 
@@ -273,7 +270,7 @@ public class ApiPolicyComponentTest {
         try {
             verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
 
-            Map<String, Object> result = expectOKResponseWithJSON(response);
+            HashMap<String, Object> result = expectOKResponseWithJSON(response);
 
             assertWebUrl(result, "http://www.ft.com/fastft/220322");
 
@@ -835,14 +832,14 @@ public class ApiPolicyComponentTest {
 	}
 
     private String expectRequestUrl(ClientResponse response) throws IOException {
-        Map<String, Object> result = expectOKResponseWithJSON(response);
+        HashMap<String, Object> result = expectOKResponseWithJSON(response);
 
         return (String) result.get("requestUrl");
     }
 
 
-    private TypeReference<Map<String, Object>> jsonMapType() {
-        return new TypeReference<Map<String,Object>>() {};
+    private TypeReference<HashMap<String, Object>> jsonMapType() {
+        return new TypeReference<HashMap<String,Object>>() {};
     }
 
     private UriBuilder fromFacade(String path) {
@@ -867,11 +864,11 @@ public class ApiPolicyComponentTest {
         }
     }
 
-    private void assertWebUrl(Map<String, Object> result, String webUrl) {
+    private void assertWebUrl(HashMap<String, Object> result, String webUrl) {
         assertThat((String)result.get("webUrl"),is(webUrl));
     }
 
-    private Map<String, Object> expectOKResponseWithJSON(ClientResponse response) throws IOException {
+    private HashMap<String, Object> expectOKResponseWithJSON(ClientResponse response) throws IOException {
         assertThat(response.getStatus(), is(200));
         String bodyString = response.getEntity(String.class);
 
