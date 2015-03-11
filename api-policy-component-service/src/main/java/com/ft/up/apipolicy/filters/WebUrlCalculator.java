@@ -51,36 +51,24 @@ public class WebUrlCalculator implements ApiFilter {
 		@SuppressWarnings("unchecked")
 		Map<String, String> contentOrigin = (Map<String, String>) content.get("contentOrigin");
 		if(contentOrigin != null) {
-
-			String authority = contentOrigin.get("originatingSystem");
-			String value = contentOrigin.get("originatingIdentifier");
-			String template = urlTemplates.get(authority);
-			if (template != null) {
-				return template.replace("{{originatingIdentifier}}", value);
-			}
+            String authority = contentOrigin.get("originatingSystem");
+            String value = contentOrigin.get("originatingIdentifier");
+            for(String key : urlTemplates.keySet()){
+                if(key == null || authority == null){
+                    return null;
+                }
+                if (Pattern.matches(key, authority)){
+                    String template = urlTemplates.get(key);
+                    if (template != null) {
+                        return template.replace("{{originatingIdentifier}}", value);
+                    }
+                    break;
+                }
+            }
 		}
-
 		return null;
 	}
 
-	private String generateWebUrlFromIdentifiers2(Map<String, Object> content){
-		@SuppressWarnings("unchecked")
-		List<Map<String, Object>> identifiers = (List<Map<String, Object>>) content.get("identifiers");
-		if(identifiers != null) {
-
-			for (Map<String, Object> map : identifiers) {
-				String authority = (String) map.get("authority");
-				String value = (String) map.get("identifierValue");
-
-				String template = urlTemplates.get(authority);
-				if (template != null) {
-					return template.replace("{{originatingIdentifier}}", value);
-				}
-			}
-		}
-
-		return generateWebUrlFromContentOrigin(content);
-	}
     
     private String generateWebUrlFromIdentifiers(Map<String, Object> content) {
         @SuppressWarnings("unchecked")
