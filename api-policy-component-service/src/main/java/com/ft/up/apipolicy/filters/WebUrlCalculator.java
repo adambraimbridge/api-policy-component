@@ -90,9 +90,9 @@ public class WebUrlCalculator implements ApiFilter {
     
     private String generateWebUrlFromIdentifiers(Map<String, Object> content) {
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> identifiers = (List<Map<String, Object>>) content.get("identifiers");
+        List<Map<String, String>> identifiers = (List<Map<String, String>>) content.get("identifiers");
         if (identifiers != null) {
-            for (Map<String, Object> map : identifiers) {
+            for (Map<String, String> map : identifiers) {
                 String authority = (String) map.get("authority");
                 String value = (String) map.get("identifierValue");
                 for(String key : urlTemplates.keySet()){
