@@ -2,6 +2,7 @@ package com.ft.up.apipolicy.transformer;
 
 import com.ft.bodyprocessing.BodyProcessingContext;
 import com.ft.bodyprocessing.BodyProcessorChain;
+import com.ft.bodyprocessing.DefaultTransactionIdBodyProcessingContext;
 import com.ft.bodyprocessing.transformer.FieldTransformer;
 
 public class BodyProcessingFieldTransformer implements FieldTransformer {

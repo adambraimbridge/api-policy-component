@@ -2,14 +2,14 @@ package com.ft.up.apipolicy.filters;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import javax.ws.rs.core.Response.Status;
 
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-
-import javax.ws.rs.core.Response.Status;
 
 public class WebUrlCalculator implements ApiFilter {
 
@@ -65,30 +65,45 @@ public class WebUrlCalculator implements ApiFilter {
         return response;
     }
 
-    private String generateWebUrlFromContentOrigin(Map<String, Object> content) {
-        @SuppressWarnings("unchecked")
-        Map<String, String> contentOrigin = (Map<String, String>) content.get("contentOrigin");
-        if (contentOrigin != null) {
+	private String generateWebUrlFromContentOrigin(Map<String, Object> content){
+		@SuppressWarnings("unchecked")
+		Map<String, String> contentOrigin = (Map<String, String>) content.get("contentOrigin");
+		if(contentOrigin != null) {
             String authority = contentOrigin.get("originatingSystem");
             String value = contentOrigin.get("originatingIdentifier");
-            String template = urlTemplates.get(authority);
-            if (template != null) {
-                return template.replace("{{originatingIdentifier}}", value);
+            for(String key : urlTemplates.keySet()){
+                if(key == null || authority == null){
+                    return null;
+                }
+                if (Pattern.matches(key, authority)){
+                    String template = urlTemplates.get(key);
+                    if (template != null) {
+                        return template.replace("{{originatingIdentifier}}", value);
+                    }
+                    break;
+                }
             }
-        }
-        return null;
-    }
+		}
+		return null;
+	}
 
+    
     private String generateWebUrlFromIdentifiers(Map<String, Object> content) {
         @SuppressWarnings("unchecked")
-        List<Map<String, String>> identifiers = (List<Map<String, String>>) content.get("identifiers");
+        List<Map<String, Object>> identifiers = (List<Map<String, Object>>) content.get("identifiers");
         if (identifiers != null) {
-            for (Map<String, String> map : identifiers) {
-                String authority = map.get("authority");
-                String value = map.get("identifierValue");
-                String template = urlTemplates.get(authority);
-                if (template != null) {
-                    return template.replace("{{originatingIdentifier}}", value);
+            for (Map<String, Object> map : identifiers) {
+                String authority = (String) map.get("authority");
+                String value = (String) map.get("identifierValue");
+                for(String key : urlTemplates.keySet()){
+                    if (Pattern.matches(key, authority)){
+
+                        String template = urlTemplates.get(key);
+                        if (template != null) {
+                            return template.replace("{{originatingIdentifier}}", value);
+                        }
+                        break;
+                    }
                 }
             }
         }

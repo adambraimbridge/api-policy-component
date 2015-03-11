@@ -1,5 +1,16 @@
 package com.ft.up.apipolicy.filters;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
@@ -10,16 +21,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebUrlCalculatorTest {
@@ -44,15 +45,19 @@ public class WebUrlCalculatorTest {
             "\"originatingIdentifier\": \"581814c4-748e-11e4-b30b-00144feabdc0\"\n" +
             "},\n" +
             "\"bodyXML\": \"<body>something here</body>\"}").getBytes(UTF8);
+    private final static String MINIMAL_PARTIAL_EXAMPLE_IDENTIFIER_RESPONSE = "{ \"identifiers\": [{\n" +
+            "\"authority\": \"http://api.ft.com/system/FT-LABS-WP-1-91\",\n" +
+            "\"identifierValue\": \"219512\"\n" +
+            "}] }";
     private final static String NO_IDENTIFIERS_RESPONSE = "{ \"identifiers\": [] }";
     private final static String NO_CONTENT_ORIGIN_RESPONSE = "{ \"contentOrigin\": {} }";
-    private final static Map<String, String> FASTFT_TEMPLATE =
-            Collections.singletonMap("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{originatingIdentifier}}");
+    private final static Map<String, String> WEB_URL_TEMPLATES = new HashMap();
+
 
     @Mock
     private HttpPipelineChain mockChain;
 
-    private WebUrlCalculator calculator = new WebUrlCalculator(FASTFT_TEMPLATE, JsonConverter.testConverter());
+    private WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
     private MutableRequest exampleRequest = new MutableRequest(Collections.singleton("TEST"), getClass().getSimpleName());
 
     private MutableResponse exampleErrorResponse;
@@ -61,10 +66,14 @@ public class WebUrlCalculatorTest {
     private MutableResponse webUrlNonEligibleContentOriginResponse;
     private MutableResponse webUrlEligibleContentOriginResponse;
     private MutableResponse originatingSystemIsNullResponse;
+    private MutableResponse minimalPartialExampleResponse;
     private MutableResponse contentOriginIsNullResponse;
 
     @Before
     public void setUpExamples() {
+        WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{originatingIdentifier}}");
+        WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{originatingIdentifier}}");
+
         exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(), ERROR_RESPONSE.getBytes());
         exampleErrorResponse.setStatus(500);
 
@@ -75,6 +84,10 @@ public class WebUrlCalculatorTest {
         webUrlNonEligibleContentOriginResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_NON_ELIGIBLE_CONTENT_ORIGIN_RESPONSE);
         webUrlNonEligibleContentOriginResponse.setStatus(200);
         webUrlNonEligibleContentOriginResponse.getHeaders().putSingle("Content-Type", "application/json");
+
+        minimalPartialExampleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_PARTIAL_EXAMPLE_IDENTIFIER_RESPONSE.getBytes());
+        minimalPartialExampleResponse.setStatus(200);
+        minimalPartialExampleResponse.getHeaders().putSingle("Content-Type", "application/json");
 
         webUrlEligibleIdentifierResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_IDENTIFIER_RESPONSE);
         webUrlEligibleIdentifierResponse.setStatus(200);
@@ -90,9 +103,10 @@ public class WebUrlCalculatorTest {
 
         contentOriginIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), NO_CONTENT_ORIGIN_RESPONSE.getBytes());
         contentOriginIsNullResponse.setStatus(200);
+
+        minimalPartialExampleResponse.getHeaders().putSingle("Content-Type","application/json");
         contentOriginIsNullResponse.getHeaders().putSingle("Content-Type", "application/json");
     }
-
     @Test
     public void shouldNotProcessErrorResponse() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(exampleErrorResponse);
@@ -165,5 +179,16 @@ public class WebUrlCalculatorTest {
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
         assertThat(response.getEntityAsString(), not(containsString("\"webUrl\":")));
+    }
+
+    @Test
+    public void shouldAddWebUrlToSuccessResponseForRegexMatches(){
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalPartialExampleResponse);
+
+        WebUrlCalculator calculator = new WebUrlCalculator(WEB_URL_TEMPLATES, JsonConverter.testConverter());
+
+        MutableResponse response = calculator.processRequest(exampleRequest,mockChain);
+
+        assertThat(response.getEntityAsString(),not(containsString("\"webUrl\":\"WP219512\"")));
     }
 }
