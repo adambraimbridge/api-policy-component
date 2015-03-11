@@ -1,6 +1,5 @@
 package com.ft.up.apipolicy.filters;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -11,39 +10,59 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
+import javax.ws.rs.core.Response.Status;
+
 public class WebUrlCalculator implements ApiFilter {
+
+    private static final String BODY_KEY = "bodyXML";
+    private static final String WEB_URL_KEY = "webUrl";
 
     private final Map<String, String> urlTemplates;
     private JsonConverter jsonConverter;
 
-    public WebUrlCalculator(final Map<String, String> urlTemplates, JsonConverter converter) {
+    public WebUrlCalculator(final Map<String, String> urlTemplates, final JsonConverter converter) {
         this.urlTemplates = urlTemplates;
         this.jsonConverter = converter;
     }
 
     @Override
     public MutableResponse processRequest(final MutableRequest request, final HttpPipelineChain chain) {
+        final MutableResponse originalResponse = chain.callNextFilter(request);
+        if (isEligibleForWebUrl(originalResponse)) {
+            final Map<String, Object> content = extractContent(originalResponse);
+            return createResponseWithWebUrlCompleted(originalResponse, content);
+        }
+        return originalResponse;
+    }
 
+    private boolean isEligibleForWebUrl(final MutableResponse response) {
+        if (isNotOKResponse(response) || isNotJson(response)) {
+            return false;
+        }
+        final Map<String, Object> content = jsonConverter.readEntity(response);
+        return content.containsKey(BODY_KEY);
+    }
 
-        MutableResponse response = chain.callNextFilter(request);
+    private boolean isNotOKResponse(final MutableResponse response) {
+        return Status.OK.getStatusCode() != response.getStatus();
+    }
 
-        if(response.getStatus()!=200) {
+    private boolean isNotJson(final MutableResponse response) {
+        return !jsonConverter.isJson(response);
+    }
+
+    private Map<String, Object> extractContent(final MutableResponse response) {
+        return jsonConverter.readEntity(response);
+    }
+
+    private MutableResponse createResponseWithWebUrlCompleted(final MutableResponse response,
+            final Map<String, Object> content) {
+        final String webUrl = generateWebUrlFromIdentifiers(content);
+        if (webUrl != null) {
+            content.put(WEB_URL_KEY, webUrl);
+            jsonConverter.replaceEntity(response, content);
             return response;
         }
-
-        if(!jsonConverter.isJson(response)) {
-            return response;
-		}
-
-		HashMap<String, Object> content = jsonConverter.readEntity(response);
-
-		String webUrl = generateWebUrlFromIdentifiers(content);
-		if(webUrl != null ){
-			content.put("webUrl", webUrl);
-			jsonConverter.replaceEntity(response, content);
-			return response;
-		}
-
         return response;
     }
 
