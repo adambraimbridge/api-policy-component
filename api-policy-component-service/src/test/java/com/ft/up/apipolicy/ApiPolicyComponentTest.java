@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy;
 
+import static com.ft.up.apipolicy.JsonConverter.JSON_MAP_TYPE;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -30,7 +31,6 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
@@ -616,11 +616,6 @@ public class ApiPolicyComponentTest {
         return (String) result.get("requestUrl");
     }
 
-
-    private TypeReference<Map<String, Object>> jsonMapType() {
-        return new TypeReference<Map<String,Object>>() {};
-    }
-
     private UriBuilder fromFacade(String path) {
         return UriBuilder.fromPath(path).host("localhost").port(policyComponent.getLocalPort()).scheme("http");
     }
@@ -651,7 +646,6 @@ public class ApiPolicyComponentTest {
         assertThat(response.getStatus(), is(200));
         String bodyString = response.getEntity(String.class);
 
-        return objectMapper.readValue(bodyString, jsonMapType());
+        return objectMapper.readValue(bodyString, JSON_MAP_TYPE);
     }
-
 }
