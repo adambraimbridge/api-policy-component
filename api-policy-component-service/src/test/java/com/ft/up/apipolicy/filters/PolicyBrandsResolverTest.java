@@ -1,5 +1,18 @@
 package com.ft.up.apipolicy.filters;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -7,19 +20,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.ws.rs.core.MultivaluedMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -31,8 +31,6 @@ public class PolicyBrandsResolverTest {
 
     public static final String FASTFT_CONTENT_ONLY = "FASTFT_CONTENT_ONLY";
     public static final String EXCLUDE_FASTFT_CONTENT = "EXCLUDE_FASTFT_CONTENT";
-    public static final String BLOG_CONTENT_ONLY = "BLOG_CONTENT_ONLY";
-    public static final String EXCLUDE_BLOG_CONTENT = "EXCLUDE_BLOG_CONTENT";
 
     public static final String FAKE_POLICY = "FAKE_POLICY";
 
@@ -49,11 +47,8 @@ public class PolicyBrandsResolverTest {
 
     private PolicyFilterParameter onlyFastFT;
     private PolicyFilterParameter excludeFastFT;
-    private PolicyFilterParameter onlyBlogs;
-    private PolicyFilterParameter excludeBlogs;
 
     private List<String> fastFTBrandList = Arrays.asList(FASTFT_BRAND);
-    private List<String> blogBrandList = Arrays.asList(ALPHAVILLE_BRAND, BEYONDBRICS_BRAND);
 
     @Before
     public void setUp() {
@@ -61,13 +56,9 @@ public class PolicyBrandsResolverTest {
 
         onlyFastFT = new PolicyFilterParameter(FASTFT_CONTENT_ONLY, fastFTBrandList, null);
         excludeFastFT = new PolicyFilterParameter(EXCLUDE_FASTFT_CONTENT, null, fastFTBrandList);
-        onlyBlogs = new PolicyFilterParameter(BLOG_CONTENT_ONLY, blogBrandList, null);
-        excludeBlogs = new PolicyFilterParameter(EXCLUDE_BLOG_CONTENT, null, blogBrandList);
 
         policyFilterParameterList.add(0, onlyFastFT);
         policyFilterParameterList.add(1, excludeFastFT);
-        policyFilterParameterList.add(2, onlyBlogs);
-        policyFilterParameterList.add(3, excludeBlogs);
 
         policyBrandsResolver = new PolicyBrandsResolver(policyFilterParameterList);
 
@@ -112,44 +103,5 @@ public class PolicyBrandsResolverTest {
         assertEquals("FASTFT brand was not passed in to add method", FASTFT_BRAND, valueArgument.getValue());
     }
 
-    @Test
-    public void brandParametersShouldBeAddedWhenPolicyIsBlogsContentOnly(){
-        policySet = new HashSet<>();
-        policySet.add(BLOG_CONTENT_ONLY);
-        ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> valueArgument = ArgumentCaptor.forClass(String.class);
-
-        when(mutableRequest.getPolicies()).thenReturn(policySet);
-        policyBrandsResolver.applyQueryParams(mutableRequest);
-        verify(mutableRequest, times(2)).getQueryParameters();
-
-        List<String> keyArguments = keyArgument.getAllValues();
-        List<String> valueArguments = valueArgument.getAllValues();
-        verify(queryParameters,times(2)).add(keyArgument.capture(), valueArgument.capture());
-        assertEquals("forBrand was not passed in to add method", "forBrand", keyArguments.get(0));
-        assertEquals("forBrand was not passed in to add method", "forBrand", keyArguments.get(1));
-        assertEquals("ALPHAVILLE_BRAND brand was not passed in to add method", ALPHAVILLE_BRAND, valueArguments.get(0));
-        assertEquals("BEYONDBRICS_BRAND brand was not passed in to add method", BEYONDBRICS_BRAND, valueArguments.get(1));
-    }
-
-    @Test
-    public void brandParametersShouldBeAddedWhenPolicyIsExcludeBlogsContent(){
-        policySet = new HashSet<>();
-        policySet.add(EXCLUDE_BLOG_CONTENT);
-        ArgumentCaptor<String> keyArgument = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<String> valueArgument = ArgumentCaptor.forClass(String.class);
-
-        when(mutableRequest.getPolicies()).thenReturn(policySet);
-        policyBrandsResolver.applyQueryParams(mutableRequest);
-        verify(mutableRequest, times(2)).getQueryParameters();
-
-        List<String> keyArguments = keyArgument.getAllValues();
-        List<String> valueArguments = valueArgument.getAllValues();
-        verify(queryParameters,times(2)).add(keyArgument.capture(), valueArgument.capture());
-        assertEquals("notForBrand was not passed in to add method", "notForBrand", keyArguments.get(0));
-        assertEquals("notForBrand was not passed in to add method", "notForBrand", keyArguments.get(1));
-        assertEquals("ALPHAVILLE_BRAND brand was not passed in to add method", ALPHAVILLE_BRAND, valueArguments.get(0));
-        assertEquals("BEYONDBRICS_BRAND brand was not passed in to add method", BEYONDBRICS_BRAND, valueArguments.get(1));
-    }
 
 }
