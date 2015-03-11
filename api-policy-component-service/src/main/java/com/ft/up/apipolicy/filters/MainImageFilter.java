@@ -6,7 +6,7 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
 
@@ -26,7 +26,7 @@ public class MainImageFilter implements ApiFilter {
         if (response.getStatus() != 200 || !jsonConverter.isJson(response)) {
             return response;
         }
-        final HashMap<String, Object> content = jsonConverter.readEntity(response);
+        final Map<String, Object> content = jsonConverter.readEntity(response);
         if (!request.policyIs(INCLUDE_RICH_CONTENT) && content.containsKey(MAIN_IMAGE_KEY)) {
             content.remove(MAIN_IMAGE_KEY);
             jsonConverter.replaceEntity(response, content);
