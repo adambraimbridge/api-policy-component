@@ -23,7 +23,7 @@ public class JsonConverterTest {
             "\"bodyXML\": \"\",\n" +
             "\"title\":\"\",\n" +
             "\"publishedDate\":\"\",\n" +
-            "\"contentOrigin\":\"\",\n" +
+            "\"identifiers\":\"\",\n" +
             "\"webUrl\":\"\",\n" +
             "\"requestUrl\":\"\",\n" +
             "\"brands\":\"\"\n" +
@@ -34,7 +34,7 @@ public class JsonConverterTest {
         "bodyXML",
         "title",
         "publishedDate",
-        "contentOrigin",
+        "identifiers",
         "webUrl",
         "requestUrl",
         "brands"
