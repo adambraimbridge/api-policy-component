@@ -77,7 +77,7 @@ public class WebUrlCalculator implements ApiFilter {
 
                         String template = urlTemplates.get(key);
                         if (template != null) {
-                            return template.replace("{{originatingIdentifier}}", value);
+                            return template.replace("{{identifierValue}}", value);
                         }
                         break;
                     }
