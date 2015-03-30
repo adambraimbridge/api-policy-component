@@ -34,6 +34,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
+import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -44,6 +45,9 @@ import com.sun.jersey.api.client.ClientResponse;
 import io.dropwizard.testing.junit.DropwizardAppRule;
 import org.apache.commons.io.IOUtils;
 import org.fest.util.Strings;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -577,7 +581,7 @@ public class ApiPolicyComponentTest {
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsString("mainImage")));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("mainImage")));
         } finally {
             response.close();
         }
@@ -595,13 +599,121 @@ public class ApiPolicyComponentTest {
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsString("mainImage"));
+            assertThat(response.getEntity(String.class), containsJsonProperty("mainImage"));
         } finally {
             response.close();
         }
     }
 
-	private void stubForRichContentWithYouTubeVideo() {
+    @Test
+    public void shouldRemoveIdentifiersFromJsonForContent() {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("identifiers")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveIdentifiersInJsonWhenPolicyIncludeIdentifiersForContent() throws Exception {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_IDENTIFIERS.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("identifiers"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveIdentifiersFromJsonAndAddWebUrlForContent() {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            String jsonPayload = response.getEntity(String.class);
+            assertThat(jsonPayload, not(containsJsonProperty("identifiers")));
+            assertThat(jsonPayload, containsJsonProperty("webUrl"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveIdentifiersFromJsonForEnrichedContent() {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("identifiers")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveIdentifiersInJsonWhenPolicyIncludeIdentifiersForEnrichedContent() throws Exception {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_IDENTIFIERS.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("identifiers"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveIdentifiersFromJsonAndAddWebUrlForEnrichedContent() {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            String jsonPayload = response.getEntity(String.class);
+            assertThat(jsonPayload, not(containsJsonProperty("identifiers")));
+            assertThat(jsonPayload, containsJsonProperty("webUrl"));
+        } finally {
+            response.close();
+        }
+    }
+
+    private void stubForRichContentWithYouTubeVideo() {
 		stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
 				aResponse()
 						.withBody(RICH_CONTENT_JSON)
@@ -648,4 +760,25 @@ public class ApiPolicyComponentTest {
 
         return objectMapper.readValue(bodyString, JSON_MAP_TYPE);
     }
+
+    private Matcher<? super String> containsJsonProperty(final String jsonProperty) {
+        return new TypeSafeMatcher<String>() {
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("json property should be present: ").appendValue(jsonProperty);
+            }
+
+            @Override
+            protected boolean matchesSafely(String jsonPayload) {
+                Map<String, Object> jsonMap;
+                try {
+                    jsonMap = objectMapper.readValue(jsonPayload, JSON_MAP_TYPE);
+                } catch (IOException e) {
+                    return false;
+                }
+                return jsonMap.containsKey(jsonProperty);
+            }
+        };
+    }
+
 }
