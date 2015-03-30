@@ -7,7 +7,6 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -22,10 +21,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RemoveJsonPropertyUnlessPolicyPresentFilterTest extends TestCase {
+public class RemoveJsonPropertyUnlessPolicyPresentFilterTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonConverter jsonConverter = new JsonConverter(objectMapper);
