@@ -7,7 +7,6 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -22,17 +21,18 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MainImageFilterTest extends TestCase {
+public class RemoveJsonPropertyUnlessPolicyPresentFilterTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonConverter jsonConverter = new JsonConverter(objectMapper);
-    private final MainImageFilter mainImageFilter = new MainImageFilter(jsonConverter);
+    private final RemoveJsonPropertyUnlessPolicyPresentFilter removeJsonPropertyUnlessPolicyPresentFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonConverter, "mainImage", INCLUDE_RICH_CONTENT);
 
     @Test
-    public void testFiltersMainImage() throws Exception {
+    public void testFiltersJsonProperty() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
         final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
@@ -41,14 +41,14 @@ public class MainImageFilterTest extends TestCase {
         initialResponse.setStatus(200);
         when(mockedChain.callNextFilter(mockedRequest)).thenReturn(initialResponse);
 
-        final MutableResponse processedResponse = mainImageFilter.processRequest(mockedRequest, mockedChain);
+        final MutableResponse processedResponse = removeJsonPropertyUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
 
         final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
         assertFalse(actualTree.has("mainImage"));
     }
 
     @Test
-    public void testLeavesMainImageWhenPolicyHeaderSet() throws Exception {
+    public void testLeavesJsonPropertyWhenPolicyHeaderSet() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         when(mockedRequest.policyIs(INCLUDE_RICH_CONTENT)).thenReturn(true);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
@@ -60,13 +60,13 @@ public class MainImageFilterTest extends TestCase {
         final MutableResponse spiedResponse = spy(initialResponse);
         when(mockedChain.callNextFilter(mockedRequest)).thenReturn(spiedResponse);
 
-        mainImageFilter.processRequest(mockedRequest, mockedChain);
+        removeJsonPropertyUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
 
         verifyResponseNotMutated(spiedResponse);
     }
 
     @Test
-    public void testDoesntTouchWhenNoMainImageIsPresent() throws Exception {
+    public void testDoesntTouchWhenJsonPropertyIsAbsent() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
         final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
@@ -77,7 +77,7 @@ public class MainImageFilterTest extends TestCase {
         final MutableResponse spiedResponse = spy(initialResponse);
         when(mockedChain.callNextFilter(mockedRequest)).thenReturn(spiedResponse);
 
-        mainImageFilter.processRequest(mockedRequest, mockedChain);
+        removeJsonPropertyUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
 
         verifyResponseNotMutated(spiedResponse);
     }
@@ -90,7 +90,7 @@ public class MainImageFilterTest extends TestCase {
         when(mockedResponse.getStatus()).thenReturn(400);
         when(mockedChain.callNextFilter(mockedRequest)).thenReturn(mockedResponse);
 
-        mainImageFilter.processRequest(mockedRequest, mockedChain);
+        removeJsonPropertyUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
 
         verifyResponseNotMutated(mockedResponse);
     }
@@ -103,7 +103,7 @@ public class MainImageFilterTest extends TestCase {
 
     private static byte[] readFileBytes(final String path) {
         try {
-            return Files.readAllBytes(Paths.get(MainImageFilterTest.class.getClassLoader().getResource(path).toURI()));
+            return Files.readAllBytes(Paths.get(RemoveJsonPropertyUnlessPolicyPresentFilterTest.class.getClassLoader().getResource(path).toURI()));
         } catch (IOException | URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
