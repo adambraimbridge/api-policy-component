@@ -45,22 +45,35 @@ public class ValidateSchemaUnitTest {
 
 
     @Test
-    public void shouldValidateExtraFieldsInTopLevel() throws Exception{
+    public void shouldValidateExtraFieldsInTopLevelInContent() throws Exception{
         final JsonNode good = JsonLoader.fromResource("/content-additional-fields-on-top-level.json");
         ProcessingReport report = contentSchema.validate(good);
         assertThat("The validation against the schema has problems " + report.toString(), report.isSuccess(), equalTo(true));
     }
 
     @Test
-    public void shouldValidateExtraFieldsInSecondLevel() throws Exception{
+    public void shouldValidateExtraFieldsInSecondLevelInContent() throws Exception{
         final JsonNode good = JsonLoader.fromResource("/content-additional-fields-on-second-level.json");
         ProcessingReport report = contentSchema.validate(good);
         assertThat("The validation against the schema has problems " + report.toString(), report.isSuccess(), equalTo(true));
     }
 
+    @Test
+    public void shouldInvalidateMissingRequiredTopLevelFieldInContent() throws Exception{
+        final JsonNode good = JsonLoader.fromResource("/content-required-top-level-field-missing.json");
+        ProcessingReport report = contentSchema.validate(good);
+        assertThat("The validation has passed when it should have failed", report.isSuccess(), equalTo(false));
+    }
 
     @Test
-    public void shouldInvalidateRequiredFieldMissing() throws Exception{
+    public void shouldInvalidateMissingRequiredSecondLevelFieldInContent() throws Exception{
+        final JsonNode good = JsonLoader.fromResource("/content-required-second-level-field-missing.json");
+        ProcessingReport report = contentSchema.validate(good);
+        assertThat("The validation has passed when it should have failed", report.isSuccess(), equalTo(false));
+    }
+
+    @Test
+    public void shouldInvalidateRequiredFieldMissingInNotification() throws Exception{
         final JsonNode bad = JsonLoader.fromResource("/notifications-required-field-is-missing.json");
         ProcessingReport report = notificationSchema.validate(bad);
         assertThat("The validation has passed when it should have failed", report.isSuccess(), equalTo(false));

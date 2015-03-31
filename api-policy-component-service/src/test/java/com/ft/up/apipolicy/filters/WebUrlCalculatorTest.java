@@ -36,21 +36,11 @@ public class WebUrlCalculatorTest {
             "\"identifierValue\": \"219512\"\n" +
             "}],\n" +
             "\"bodyXML\": \"<body>something here</body>\" }").getBytes(UTF8);
-    private final static byte[] WEB_URL_NON_ELIGIBLE_CONTENT_ORIGIN_RESPONSE = ("{ \"contentOrigin\": {\n" +
-            "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-            "\"originatingIdentifier\": \"581814c4-748e-11e4-b30b-00144feabdc0\"\n" +
-            "}}").getBytes(UTF8);
-    private final static byte[] WEB_URL_ELIGIBLE_CONTENT_ORIGIN_RESPONSE = ("{ \"contentOrigin\": {\n" +
-            "\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-            "\"originatingIdentifier\": \"581814c4-748e-11e4-b30b-00144feabdc0\"\n" +
-            "},\n" +
-            "\"bodyXML\": \"<body>something here</body>\"}").getBytes(UTF8);
     private final static String MINIMAL_PARTIAL_EXAMPLE_IDENTIFIER_RESPONSE = "{ \"identifiers\": [{\n" +
             "\"authority\": \"http://api.ft.com/system/FT-LABS-WP-1-91\",\n" +
             "\"identifierValue\": \"219512\"\n" +
             "}] }";
     private final static String NO_IDENTIFIERS_RESPONSE = "{ \"identifiers\": [] }";
-    private final static String NO_CONTENT_ORIGIN_RESPONSE = "{ \"contentOrigin\": {} }";
     private final static Map<String, String> WEB_URL_TEMPLATES = new HashMap();
 
 
@@ -63,16 +53,13 @@ public class WebUrlCalculatorTest {
     private MutableResponse exampleErrorResponse;
     private MutableResponse webUrlNonEligibleIdentifierResponse;
     private MutableResponse webUrlEligibleIdentifierResponse;
-    private MutableResponse webUrlNonEligibleContentOriginResponse;
-    private MutableResponse webUrlEligibleContentOriginResponse;
     private MutableResponse originatingSystemIsNullResponse;
     private MutableResponse minimalPartialExampleResponse;
-    private MutableResponse contentOriginIsNullResponse;
 
     @Before
     public void setUpExamples() {
-        WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{originatingIdentifier}}");
-        WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{originatingIdentifier}}");
+        WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{identifierValue}}");
+        WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{identifierValue}}");
 
         exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(), ERROR_RESPONSE.getBytes());
         exampleErrorResponse.setStatus(500);
@@ -80,10 +67,6 @@ public class WebUrlCalculatorTest {
         webUrlNonEligibleIdentifierResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_NON_ELIGIBLE_IDENTIFIER_RESPONSE);
         webUrlNonEligibleIdentifierResponse.setStatus(200);
         webUrlNonEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/json");
-
-        webUrlNonEligibleContentOriginResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_NON_ELIGIBLE_CONTENT_ORIGIN_RESPONSE);
-        webUrlNonEligibleContentOriginResponse.setStatus(200);
-        webUrlNonEligibleContentOriginResponse.getHeaders().putSingle("Content-Type", "application/json");
 
         minimalPartialExampleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_PARTIAL_EXAMPLE_IDENTIFIER_RESPONSE.getBytes());
         minimalPartialExampleResponse.setStatus(200);
@@ -93,19 +76,11 @@ public class WebUrlCalculatorTest {
         webUrlEligibleIdentifierResponse.setStatus(200);
         webUrlEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        webUrlEligibleContentOriginResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_CONTENT_ORIGIN_RESPONSE);
-        webUrlEligibleContentOriginResponse.setStatus(200);
-        webUrlEligibleContentOriginResponse.getHeaders().putSingle("Content-Type", "application/json");
-
         originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), NO_IDENTIFIERS_RESPONSE.getBytes());
         originatingSystemIsNullResponse.setStatus(200);
         originatingSystemIsNullResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        contentOriginIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), NO_CONTENT_ORIGIN_RESPONSE.getBytes());
-        contentOriginIsNullResponse.setStatus(200);
-
         minimalPartialExampleResponse.getHeaders().putSingle("Content-Type","application/json");
-        contentOriginIsNullResponse.getHeaders().putSingle("Content-Type", "application/json");
     }
     @Test
     public void shouldNotProcessErrorResponse() {
@@ -145,24 +120,6 @@ public class WebUrlCalculatorTest {
     }
 
     @Test
-    public void shouldNotAddWebUrlToSuccessResponseForNonEligibleWithContentOrigin() {
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlNonEligibleContentOriginResponse);
-
-        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
-
-        assertThat(response.getEntity(), is(WEB_URL_NON_ELIGIBLE_CONTENT_ORIGIN_RESPONSE));
-    }
-
-    @Test
-    public void shouldAddWebUrlToSuccessResponseForEligibleWithContentOrigin() {
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlEligibleContentOriginResponse);
-
-        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
-
-        assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"TEST581814c4-748e-11e4-b30b-00144feabdc0\""));
-    }
-
-    @Test
     public void shouldReturnSuccessResponseWithoutWebUrlWhenOriginatingSystemIsNull() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(originatingSystemIsNullResponse);
 
@@ -170,15 +127,6 @@ public class WebUrlCalculatorTest {
 
         assertThat(response.getEntityAsString(), not(containsString("\"webUrl\":")));
 
-    }
-
-    @Test
-    public void shouldReturnSuccessResponseWithoutWebUrlWhenContentOriginIsNull() {
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(contentOriginIsNullResponse);
-
-        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
-
-        assertThat(response.getEntityAsString(), not(containsString("\"webUrl\":")));
     }
 
     @Test

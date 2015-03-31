@@ -103,10 +103,10 @@ public class ApiPolicyComponentTest {
 	private static final String RICH_CONTENT_JSON = "{" +
 				"\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
 				"\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
-				"\"contentOrigin\": {\n" +
-				"\"originatingSystem\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-				"\"originatingIdentifier\": \"220322\"\n" +
-				"}" +
+                "\"identifiers\": [{\n" +
+                "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                "\"identifierValue\": \"220322\"\n" +
+                "}]" +
 			"}";
 
     private static final String CONTENT_WITH_IMAGE_JSON =

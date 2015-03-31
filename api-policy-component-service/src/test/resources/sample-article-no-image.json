@@ -5,10 +5,6 @@
   "title": "Ring",
   "byline": "Test article",
   "publishedDate": "2015-02-03T12:58:00.000Z",
-  "contentOrigin": {
-    "originatingSystem": "http://www.ft.com/ontology/origin/FTComMethode",
-    "originatingIdentifier": "273563f3-95a0-4f00-8966-6973c0111923"
-  },
   "identifiers": [
     {
       "authority": "http://www.ft.com/ontology/origin/FTComMethode",

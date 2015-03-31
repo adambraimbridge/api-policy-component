@@ -36,29 +36,31 @@
          "type": "string",
          "minLength": 0
       },
-      "contentOrigin": {
-         "title": "Content origin",
-         "type": "object",
-         "properties": {
-            "originatingSystem": {
-               "title": "Originating system",
-               "description": "The name of the system from which this content was generated",
+     "identifiers": {
+       "title": "Identifiers",
+       "description": "The identifiers associated with this content",
+       "type": "array",
+       "items": [
+         {
+           "type": "object",
+           "additionalProperties": true,
+           "properties": {
+             "authority": {
+               "description": "External Authority for an Identifier",
                "type": "string",
                "minLength": 0
-            },
-            "originatingIdentifier": {
-               "title": "Originating identifier",
-               "description": "The unique identifier used by the originating system for this content",
+             },
+             "identifierValue": {
+               "description": "External Identifier value",
                "type": "string",
                "minLength": 0
-            }
-         },
-         "required": [
-            "originatingSystem",
-            "originatingIdentifier"
-         ],
-         "additionalProperties": true
-      },
+             }
+           },
+           "required": ["authority", "identifierValue"]
+         }
+       ],
+       "minItems": 0
+     },
       "webUrl": {
          "title": "Web URL",
          "description": "The location of where this content can be found on the web",
