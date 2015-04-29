@@ -15,23 +15,25 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ApiValidationAgainstSchemaIT {
+public class ApiValidationAgainstSchemaTest {
 
     private static final String SINCE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private static final String NOTIFICATION_URL = "http://%s:%s/content/notifications?since=%s";
     private static final String CONTENT_URL = "http://%s:%s/content/%s";
     private static final String HEALTHCHECK_URL = "http://%s:%s/healthcheck";
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiValidationAgainstSchemaIT.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiValidationAgainstSchemaTest.class);
     private SchemaValidationTestConfiguration configuration;
     private Client client;
 
@@ -40,9 +42,9 @@ public class ApiValidationAgainstSchemaIT {
 
     @Before
     public void setUp() throws Exception{
-        final String configFileName = System.getProperty("test.schemaValidation.configFile");
-
-        Preconditions.checkNotNull(configFileName, "System property test.schemaValidation.configFile is null");
+        final String configFileName = System.getProperty("test.schemaValidation.configFile", "int-schema-validation.yaml");
+        
+        Preconditions.checkNotNull(Strings.emptyToNull(configFileName), "System property test.schemaValidation.configFile is null");
 
         LOGGER.debug("test.schemaValidation.configFile = {}", configFileName);
         final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
