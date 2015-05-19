@@ -1,5 +1,18 @@
 package com.ft.up.apipolicy.pipeline;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+
 import com.google.common.base.Charsets;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.junit.Before;
@@ -9,22 +22,6 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
-import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * MutableHttpTranslatorTest
@@ -93,11 +90,11 @@ public class MutableHttpTranslatorTest {
         MutableRequest result = translator.translateFrom(request);
 
         assertThat(result.getHeaders().keySet(), hasItems("Foo","Bar"));
-        assertThat(result.getHeaders().keySet(), not(hasItems("Host")));
+        assertThat(result.getHeaders().keySet(), hasItems("Host"));
 
         assertThat(result.getHeaders().getFirst("Foo"),is("Value of Foo"));
         assertThat(result.getHeaders().getFirst("Bar"),is("Value of Bar"));
-        assertThat(result.getHeaders().getFirst("Host"), nullValue());
+        assertThat(result.getHeaders().getFirst("Host"),is("read-services"));
     }
 
 
@@ -138,7 +135,7 @@ public class MutableHttpTranslatorTest {
         assertThat((String)response.getMetadata().getFirst("Foo"),is("01"));
         assertThat((String) response.getMetadata().getFirst("Bar"), is("02"));
 
-        assertThat(response.getMetadata().containsKey("Host"),is(false));
+        assertThat(response.getMetadata().containsKey("Host"),is(true));
 
     }
 

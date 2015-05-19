@@ -75,7 +75,7 @@ public class MutableHttpTranslator {
                         }
                     }
                 } else if(("Host").equals(headerName)) { // for Containerisation
-                    headers.add(headerName, "route-by-path"); // this value should be configurable
+                    headers.add(headerName, "read-services");
                 } else if(TransactionIdUtils.TRANSACTION_ID_HEADER.equals(headerName)) {
                     transactionId = values.nextElement();
                 }
