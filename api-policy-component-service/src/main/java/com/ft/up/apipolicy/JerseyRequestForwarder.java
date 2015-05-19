@@ -49,11 +49,6 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
         MultivaluedMap<String,String> headers = request.getHeaders();
         for(String headerName : headers.keySet()) {
-            if(headerName.equals("Host")){ // for Containerisation
-                LOGGER.info("replacing 'Host' Header");
-                resource = resource.header(headerName, "route-by-path");
-                continue;
-            }
             for(String value : headers.get(headerName)) {
                 resource = resource.header(headerName,value);
                 LOGGER.debug("Sending Header: {}={}",headerName,value);
