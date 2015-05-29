@@ -11,10 +11,6 @@
 
     <artifactId>api-policy-component-json-schema</artifactId>
 
-    <properties>
-        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
-        <target-jdk>1.8</target-jdk>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>com.github.fge</groupId>
@@ -85,23 +81,5 @@
             </build>
         </profile>
     </profiles>
-
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
-                    <configuration>
-                        <source>${target-jdk}</source>
-                        <target>${target-jdk}</target>
-                        <encoding>UTF-8</encoding>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
-
 
 </project>
