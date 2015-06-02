@@ -1,15 +1,5 @@
 package com.ft.up.apipolicy.pipeline;
 
-import com.ft.api.util.transactionid.TransactionIdUtils;
-import com.ft.up.apipolicy.LinkedMultivalueMap;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.servlet.http.HttpServletRequest;
-
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,6 +8,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+
+import com.ft.api.util.transactionid.TransactionIdUtils;
+import com.ft.up.apipolicy.LinkedMultivalueMap;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MutableHttpTranslator
@@ -31,7 +30,6 @@ public class MutableHttpTranslator {
 
     // So we don't blindly pass on headers that should be set by THIS application on the request/response
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList(
-            "Host",
             "Connection",
             "Accept-Encoding",
             "Content-Length",
@@ -76,6 +74,8 @@ public class MutableHttpTranslator {
                             LOGGER.debug("Not Processed: {}={}", headerName, value);
                         }
                     }
+                } else if(("Host").equals(headerName)) { // for Containerisation
+                    headers.add(headerName, "public-services");
                 } else if(TransactionIdUtils.TRANSACTION_ID_HEADER.equals(headerName)) {
                     transactionId = values.nextElement();
                 }

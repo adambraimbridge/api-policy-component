@@ -1,5 +1,9 @@
 package com.ft.up.apipolicy;
 
+import java.io.IOException;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
+
 import com.ft.jerseyhttpwrapper.config.EndpointConfiguration;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
@@ -10,10 +14,6 @@ import com.sun.jersey.api.client.WebResource;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
-import java.io.IOException;
 
 /**
  * JerseyRequestForwarder
