@@ -24,8 +24,9 @@ To run the tests in this module.
 2. The Semantic Reader need to be up and running.
 3. In this module
 
-mvn clean install -Dtest.schemaValidation.configFile=int-schema-validation.yaml
+mvn clean install -P acceptance-test-schema -Dtest.schemaValidation.configFile=int-schema-validation.yaml     
 
 for local set up use local-schema-validation.yaml and configure an existent uuid
+
 
 

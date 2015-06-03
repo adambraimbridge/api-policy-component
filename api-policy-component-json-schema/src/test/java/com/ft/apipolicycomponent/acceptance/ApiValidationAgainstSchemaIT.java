@@ -27,13 +27,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ApiValidationAgainstSchemaTest {
+public class ApiValidationAgainstSchemaIT {
 
     private static final String SINCE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private static final String NOTIFICATION_URL = "http://%s:%s/content/notifications?since=%s";
     private static final String CONTENT_URL = "http://%s:%s/content/%s";
     private static final String HEALTHCHECK_URL = "http://%s:%s/healthcheck";
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiValidationAgainstSchemaTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiValidationAgainstSchemaIT.class);
     private SchemaValidationTestConfiguration configuration;
     private Client client;
 

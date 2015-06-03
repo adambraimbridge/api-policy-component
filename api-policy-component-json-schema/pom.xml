@@ -67,7 +67,7 @@
 
     <profiles>
         <profile>
-            <id>acceptance-test</id>
+            <id>acceptance-test-schema</id>
             <build>
             <plugins>
                 <plugin>
