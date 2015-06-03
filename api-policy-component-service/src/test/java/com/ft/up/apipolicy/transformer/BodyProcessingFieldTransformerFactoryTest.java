@@ -40,6 +40,13 @@ public class BodyProcessingFieldTransformerFactoryTest {
 
         checkTransformation(original, expected);
     }
+    
+    @Test
+    public void shouldRemovePromoBoxes() {
+        String original = "<body><p>This article contains a promobox</p><promo-box><promo-title><p><a href=\"http://www.ft.com/reports/ft-500-2011\" title=\"www.ft.com\">FT 500</a></p></promo-title><promo-headline><p>Headline</p></promo-headline><promo-image><content data-embedded=\"true\" id=\"432b5632-9e79-11e0-0a0f-978e959e1689\" type=\"http://www.ft.com/ontology/content/ImageSet\"></content></promo-image><promo-intro><p>The risers and fallers in our annual list of the world’s biggest companies</p></promo-intro><promo-link><p><a href=\"http://www.ft.com/cms/s/0/0bdf4bb6-6676-11e4-8bf6-00144feabdc0.html\"></a></p></promo-link></promo-box></body>";
+        String expected = "<body><p>This article contains a promobox</p></body>";
+        checkTransformation(original, expected);
+    }
 
 
     @Test
