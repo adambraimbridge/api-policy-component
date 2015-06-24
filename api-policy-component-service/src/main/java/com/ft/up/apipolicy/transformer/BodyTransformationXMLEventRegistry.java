@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy.transformer;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import com.ft.bodyprocessing.xml.eventhandlers.PlainTextHtmlEntityReferenceEventHandler;
@@ -8,6 +9,8 @@ import com.ft.bodyprocessing.xml.eventhandlers.StripElementAndContentsXMLEventHa
 import com.ft.bodyprocessing.xml.eventhandlers.StripElementByClassEventHandler;
 import com.ft.bodyprocessing.xml.eventhandlers.StripElementIfSpecificAttributesXmlEventHandler;
 import com.ft.bodyprocessing.xml.eventhandlers.XMLEventHandlerRegistry;
+import com.ft.up.apipolicy.transformer.xmlhandler.AttributeValue;
+import com.ft.up.apipolicy.transformer.xmlhandler.StripIfSpecificAttributes;
 
 public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry {
 
@@ -26,11 +29,15 @@ public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry 
         registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "promo-box");
 		registerStartAndEndElementEventHandler(new StripElementByClassEventHandler("twitter-tweet", new RetainXMLEventHandler()), "blockquote");
 		registerStartAndEndElementEventHandler(new StripElementAndContentsXMLEventHandler(), "timeline", "ft-timeline", "table", "big-number");
-
-        registerStartAndEndElementEventHandler(new StripElementIfSpecificAttributesXmlEventHandler(
-                Collections.singletonMap("data-asset-type","video"),
-                new RetainXMLEventHandler()),
-            "a"
+        registerStartAndEndElementEventHandler(
+                new StripIfSpecificAttributes(
+                        Arrays.asList(
+                                new AttributeValue("data-asset-type", "video"),
+                                new AttributeValue("data-asset-type", "interactive-graphic")
+                        ),
+                        new RetainXMLEventHandler()
+                ),
+                "a"
         );
         registerStartAndEndElementEventHandler(new StripElementIfSpecificAttributesXmlEventHandler(
                         Collections.singletonMap("type", IMAGE_SET_CLASS_URI),
