@@ -48,10 +48,25 @@ public class BodyProcessingFieldTransformerFactoryTest {
         checkTransformation(original, expected);
     }
 
-
     @Test
     public void shouldRemoveFastFTVideoAttachment(){
         String original = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p><a href=\"https://www.youtube.com/watch?v=nkEa0zTdJ-8\" data-asset-type=\"video\" data-embedded=\"true\" title=\"Causes of the Industrial Revolution\">Causes of the Industrial Revolution</a></body>";
+        String expected = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p></body>" ;
+
+        checkTransformation(original, expected);
+    }
+
+    @Test
+    public void shouldRemoveInteractiveGraphic(){
+        String original = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p><a href=\"http://www.ft.com/ig/widgets/sortable-table/v1/widget/index.html?key=1EbhZ99KsC8xd0Aj4UN6DnrZfjWAvsaaUn2AK4IGHC_o\" data-asset-type=\"interactive-graphic\" width=\"900\" height=\"670\"></a></body>";
+        String expected = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p></body>" ;
+
+        checkTransformation(original, expected);
+    }
+
+    @Test
+    public void shouldRemoveInteractiveGraphicWithTextBetweenTheTags(){
+        String original = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p><a href=\"http://www.ft.com/ig/widgets/sortable-table/v1/widget/index.html?key=1EbhZ99KsC8xd0Aj4UN6DnrZfjWAvsaaUn2AK4IGHC_o\" data-asset-type=\"interactive-graphic\" width=\"900\" height=\"670\">http://www.ft.com/ig/widgets/sortable-table/v1/widget/index.html?key=1EbhZ99KsC8xd0Aj4UN6DnrZfjWAvsaaUn2AK4IGHC_o</a></body>";
         String expected = "<body><p>Anton Howes discusses the standard theories regarding the causes of a 1500% GDP increase during the industrial revolution.</p></body>" ;
 
         checkTransformation(original, expected);
