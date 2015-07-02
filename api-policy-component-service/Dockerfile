@@ -1,4 +1,4 @@
-FROM coco/dropwizardbase
+FROM up-registry.ft.com/coco/dropwizardbase
 
 RUN git clone http://git.svc.ft.com:8080/scm/cp/api-policy-component.git
 RUN cd api-policy-component && mvn install
