@@ -125,8 +125,22 @@ public class ApiPolicyComponentTest {
                 "}" +
             "}";
 
+    private static final String CONTENT_WITH_COMMENTS_JSON =
+            "{" +
+                "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+                "\"identifiers\": [{\n" +
+                    "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                    "\"identifierValue\": \"220322\"\n" +
+                "}]," +
+                "\"comments\": {" +
+                    "\"enabled\": true" +
+                "}" +
+            "}";
+
 	public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
     public static final String EXAMPLE_TRANSACTION_ID = "010101";
+    private static final String COMMENTS_JSON_PROPERTY = "comments";
+    private static final String INCLUDE_COMMENTS_X_POLICY_VALUE = "INCLUDE_COMMENTS";
 
     @Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
@@ -574,8 +588,8 @@ public class ApiPolicyComponentTest {
     public void shouldRemoveMainImageFromJson() {
         final URI uri = fromFacade(CONTENT_PATH).build();
         stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .withStatus(200)));
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
@@ -600,6 +614,76 @@ public class ApiPolicyComponentTest {
             verify(getRequestedFor(urlMatching(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("mainImage"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveCommentsFromJsonForContentEndpoint() {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveCommentsFromJsonForEnrichedContentEndpoint() {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveCommentsInJsonForContentEndpointWhenPolicyIncludeRichContent() {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
+        } finally {
+            response.close();
+        }
+    }
+    
+    @Test
+    public void shouldLeaveCommentsInJsonForEnrichedContentEndpointWhenPolicyIncludeRichContent() {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty(COMMENTS_JSON_PROPERTY));
         } finally {
             response.close();
         }
