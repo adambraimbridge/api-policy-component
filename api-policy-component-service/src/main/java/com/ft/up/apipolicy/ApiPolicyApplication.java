@@ -15,6 +15,7 @@ import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
+import com.ft.up.apipolicy.filters.StripProvenanceFilter;
 import com.ft.up.apipolicy.filters.SuppressJsonPropertyFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
@@ -66,12 +67,14 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         final ApiFilter commentsFilterForEnrichedContentEndpoint = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
         final ApiFilter commentsFilterForContentEndpoint = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
 
+        final ApiFilter stripProvenance = new StripProvenanceFilter(jsonTweaker);
+
         ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
 
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder, identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForContentEndpoint)));
+				new HttpPipeline(requestForwarder, identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForContentEndpoint, stripProvenance)));
 
         PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
 
@@ -79,7 +82,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 new HttpPipeline(requestForwarder, new AddBrandFilterParameters(jsonTweaker, resolver))));
 
         knownEndpoints.add(new KnownEndpoint("^/enrichedcontent/.*",
-                new HttpPipeline(requestForwarder, identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForEnrichedContentEndpoint)));
+                new HttpPipeline(requestForwarder, identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForEnrichedContentEndpoint, stripProvenance)));
 
         // DEFAULT CASE: Just forward it
         knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));

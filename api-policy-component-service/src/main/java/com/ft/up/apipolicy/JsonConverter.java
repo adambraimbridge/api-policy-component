@@ -31,6 +31,11 @@ public class JsonConverter {
     }
 
     public boolean isJson(MutableResponse response) {
+
+        if(response.getContentType()==null) {
+            throw new NullPointerException("Content-Type not set");
+        }
+
         return response.getContentType().startsWith(MediaType.APPLICATION_JSON);
 
     }
