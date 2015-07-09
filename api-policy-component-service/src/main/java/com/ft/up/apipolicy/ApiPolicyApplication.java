@@ -15,6 +15,7 @@ import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
+import com.ft.up.apipolicy.filters.SuppressJsonPropertyFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
@@ -35,6 +36,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
     private static final String MAIN_IMAGE_JSON_PROPERTY = "mainImage";
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
+    private static final String COMMENTS_JSON_PROPERTY = "comments";
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -61,13 +63,15 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 jsonTweaker);
         final ApiFilter mainImageFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, MAIN_IMAGE_JSON_PROPERTY, Policy.INCLUDE_RICH_CONTENT);
         final ApiFilter identifiersFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, IDENTIFIERS_JSON_PROPERTY, Policy.INCLUDE_IDENTIFIERS);
+        final ApiFilter commentsFilterForEnrichedContentEndpoint = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
+        final ApiFilter commentsFilterForContentEndpoint = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
 
         ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
 
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
 		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder, identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter)));
+				new HttpPipeline(requestForwarder, identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForContentEndpoint)));
 
         PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
 
@@ -75,7 +79,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 new HttpPipeline(requestForwarder, new AddBrandFilterParameters(jsonTweaker, resolver))));
 
         knownEndpoints.add(new KnownEndpoint("^/enrichedcontent/.*",
-                new HttpPipeline(requestForwarder, identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter)));
+                new HttpPipeline(requestForwarder, identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForEnrichedContentEndpoint)));
 
         // DEFAULT CASE: Just forward it
         knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));

@@ -17,5 +17,8 @@
   ],
   "mainImage": {
     "id": "http://www.ft.com/content/273563f3-95a0-4f00-8966-6973c0111923"
+  },
+  "comments": {
+      "enabled": true
   }
 }
