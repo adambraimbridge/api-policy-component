@@ -2,6 +2,7 @@ package com.ft.up.apipolicy.filters;
 
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.configuration.Policy;
+import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
@@ -32,7 +33,7 @@ public class StripProvenanceFilterTest {
     @Mock
     private HttpPipelineChain mockChain;
 
-    private StripProvenanceFilter filter = new StripProvenanceFilter(JsonConverter.testConverter());
+    private ApiFilter filter = new RemoveJsonPropertyUnlessPolicyPresentFilter(JsonConverter.testConverter(),"publishReference",Policy.INCLUDE_PROVENANCE);
     private MutableRequest exampleRequest = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
     private MutableRequest monitoringRequest = new MutableRequest(
             Collections.singleton(Policy.INCLUDE_PROVENANCE.getHeaderValue()),
