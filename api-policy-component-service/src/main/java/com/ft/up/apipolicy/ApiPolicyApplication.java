@@ -69,8 +69,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         final ApiFilter stripProvenance = new StripProvenanceFilter(jsonTweaker);
 
-        final ApiFilter stripProvenance = new StripProvenanceFilter(jsonTweaker);
-
         ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
 
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
