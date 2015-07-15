@@ -15,7 +15,6 @@ import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.StripProvenanceFilter;
 import com.ft.up.apipolicy.filters.SuppressJsonPropertyFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
@@ -38,6 +37,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private static final String MAIN_IMAGE_JSON_PROPERTY = "mainImage";
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
     private static final String COMMENTS_JSON_PROPERTY = "comments";
+    private static final String PROVENANCE_JSON_PROPERTY = "publishReference";
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -67,7 +67,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         final ApiFilter commentsFilterForEnrichedContentEndpoint = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
         final ApiFilter commentsFilterForContentEndpoint = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
 
-        final ApiFilter stripProvenance = new StripProvenanceFilter(jsonTweaker);
+        final ApiFilter stripProvenance = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
 
         ApiFilter suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
 
