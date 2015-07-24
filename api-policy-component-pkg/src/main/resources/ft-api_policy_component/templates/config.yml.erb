@@ -78,3 +78,13 @@ logging:
 
       # The timezone used to format dates. HINT: USE THE DEFAULT, UTC.
       timeZone: UTC
+
+metrics:
+  reporters:
+  - type: graphite
+    frequency: 1 minute
+    durationUnit: milliseconds
+    rateUnit: seconds
+    host: graphite.ft.com
+    port: 2003
+    prefix: sandbox.dynamic-publishing.<%= @config_env %>.api-policy-componentp-service.<%= scope['::hostname'] %>

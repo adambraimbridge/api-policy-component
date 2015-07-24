@@ -22,6 +22,12 @@ class api_policy_component {
 
     $webUrlTemplates = hiera('webUrlTemplates')
 
+    $config_env = $ft_environment ? {
+        't'  => "test",
+        'p' => "prod",
+        default => "unkn",
+        }
+
     content_runnablejar { "${module_name}_runnablejar":
         service_name        => "${module_name}",
         service_description => 'API Policy Component',

@@ -55,6 +55,11 @@
             <version>${advanced-dropwizard-healthcheck.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-metrics-graphite</artifactId>
+            <version>${dw.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.ft</groupId>
             <artifactId>jaxrs-build-info-resource</artifactId>
             <version>${jaxrs-build-info-resource.version}</version>
