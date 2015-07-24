@@ -25,6 +25,7 @@ class api_policy_component {
     $config_env = $ft_environment ? {
         't'  => "test",
         'p' => "prod",
+        'int'=> "int",
         default => "unkn",
         }
 
