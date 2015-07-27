@@ -14,6 +14,12 @@ class api_policy_component {
 
     $jar_name = 'api-policy-component-service.jar'
     $dir_heap_dumps = "/var/log/apps/api-policy-component-heap-dumps"
+    $config_env = $ft_environment ? {
+        't'  => "test",
+        'p' => "prod",
+        'int' => "int",
+        default => "unkn",
+    }
 
     class { 'content_platform_nagios::client': }
     class { 'hosts::export': hostname => "$certname" }
