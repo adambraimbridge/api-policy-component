@@ -66,14 +66,14 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
-        knownEndpoints.add(createEndpoint(environment, configuration, "^/content/.*",
+        knownEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
                 identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForContentEndpoint, stripProvenance));
-        knownEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", brandFilter));
+        knownEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", brandFilter));
 
-        knownEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*",
+        knownEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
                 identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForEnrichedContentEndpoint, stripProvenance));
         // DEFAULT CASE: Just forward it
-        knownEndpoints.add(createEndpoint(environment, configuration, "^/.*", new ApiFilter[]{}));
+        knownEndpoints.add(createEndpoint(environment, configuration, "^/.*", "other", new ApiFilter[]{}));
 
         environment.jersey().register(new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints));
 
@@ -100,14 +100,15 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
     }
 
-    private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration, String urlPattern, ApiFilter... filterChain) {
-        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named(urlPattern).build();
+    private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
+                                         String urlPattern, String instanceName, ApiFilter... filterChain) {
+        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named(instanceName).build();
         RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
         KnownEndpoint endpoint = new KnownEndpoint(urlPattern,
                 new HttpPipeline(requestForwarder, filterChain));
         environment.healthChecks()
                 .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
+                        new ReaderNodesHealthCheck("Reader API Connectivity for endpoint " + instanceName, configuration.getVarnish(), client));
         return endpoint;
     }
 }
