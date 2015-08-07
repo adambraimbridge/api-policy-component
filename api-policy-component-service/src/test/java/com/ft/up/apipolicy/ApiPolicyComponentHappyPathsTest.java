@@ -16,7 +16,9 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import io.dropwizard.testing.junit.DropwizardAppRule;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,23 +28,12 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ft.api.util.transactionid.TransactionIdUtils;
-import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.pipeline.HttpPipeline;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.collect.Lists;
-import com.google.common.io.Resources;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import io.dropwizard.testing.junit.DropwizardAppRule;
 import org.apache.commons.io.IOUtils;
 import org.fest.util.Strings;
 import org.hamcrest.Description;
@@ -55,12 +46,25 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.api.util.transactionid.TransactionIdUtils;
+import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
+import com.ft.up.apipolicy.configuration.Policy;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.Lists;
+import com.google.common.io.Resources;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+
 /**
  * ApiPolicyComponentTest
  *
  * @author Simon.Gibbs
  */
-public class ApiPolicyComponentTest {
+public class ApiPolicyComponentHappyPathsTest {
 
     public static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
 
@@ -78,7 +82,7 @@ public class ApiPolicyComponentTest {
 
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentHappyPathsTest.class);
 
     private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
 
@@ -150,7 +154,9 @@ public class ApiPolicyComponentTest {
             ApiPolicyApplication.class,
             resourceFilePath("config-junit.yml"),
             config("varnish.primaryNodes",
-                    String.format("localhost:%d:%d", SOME_PORT, SOME_PORT +1 )
+                    String.format("localhost:%d:%d, localhost:%d:%d", 
+                            SOME_PORT, SOME_PORT +1, 
+                            SOME_PORT + 2, SOME_PORT + 3 )
             )
     );
 
@@ -169,6 +175,11 @@ public class ApiPolicyComponentTest {
 
     private Client client;
     private ObjectMapper objectMapper;
+    
+    int leasedConnectionsBeforeForContent = 0;
+    int leasedConnectionsBeforeForNotifications = 0;
+    int leasedConnectionsBeforeForEnrichedContent = 0;
+    int leasedConnectionsBeforeForOther = 0;
 
     @Before
     public void setup() {
@@ -176,13 +187,20 @@ public class ApiPolicyComponentTest {
         stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
         this.client = Client.create();
-
         objectMapper = new ObjectMapper();
+        leasedConnectionsBeforeForContent = getLeasedConnections("content");
+        leasedConnectionsBeforeForNotifications = getLeasedConnections("notifications");
+        leasedConnectionsBeforeForEnrichedContent = getLeasedConnections("enrichedcontent");
+        leasedConnectionsBeforeForOther = getLeasedConnections("other");
 
     }
 
     @After
-    public void tearDown() {
+    public void checkThatNumberOfLeasedConnectionsHaveNotChanged(){
+        assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
+        assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
+        assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
+        assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
         WireMock.reset();
     }
 
@@ -864,5 +882,15 @@ public class ApiPolicyComponentTest {
             }
         };
     }
+    
+    private int getLeasedConnections(String name){
+        return client.resource("http://localhost:" + 21082).path("/metrics") //hardcoded because we have no access to getAdminPort() on the app rule
+                .get(JsonNode.class)
+                .get("gauges")
+                .get("org.apache.http.conn.ClientConnectionManager." + name + ".leased-connections")
+                        .get("value").asInt();
+
+    }
+
 
 }
