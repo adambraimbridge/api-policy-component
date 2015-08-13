@@ -2,9 +2,7 @@ package com.ft.up.apipolicy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
@@ -19,7 +17,6 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -27,17 +24,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.google.common.io.Resources;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 
 /**
- * ApiPolicyComponentTest
+ * ApiPolicyComponentUnhappyPathsTest
  *
  * @author sarah.wells
  */
-@Ignore
 public class ApiPolicyComponentUnhappyPathsTest {
 
     public static final String EXAMPLE_PATH = "/example";
@@ -50,7 +45,9 @@ public class ApiPolicyComponentUnhappyPathsTest {
     private static final String SOCKET_TIMEOUT_JSON = "{\"message\":\"java.net.SocketTimeoutException: Read timed out\"}";
 
     @Rule
-    public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
+    public WireMockRule wireMockForVarnish1 = new WireMockRule(SOME_PORT);
+    @Rule
+    public WireMockRule wireMockForVarnish2 = new WireMockRule(SOME_PORT + 2);
 
     @Rule
     public DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
@@ -65,35 +62,40 @@ public class ApiPolicyComponentUnhappyPathsTest {
 
     private Client client;
     
-    int leasedConnectionsBeforeForContent = 0;
-    int leasedConnectionsBeforeForNotifications = 0;
-    int leasedConnectionsBeforeForEnrichedContent = 0;
-    int leasedConnectionsBeforeForOther = 0;
+    private int leasedConnectionsBeforeForContent = 0;
+    private int leasedConnectionsBeforeForNotifications = 0;
+    private int leasedConnectionsBeforeForEnrichedContent = 0;
+    private int leasedConnectionsBeforeForOther = 0;
 
     @Before
     public void setup() {
-
         this.client = Client.create();
         leasedConnectionsBeforeForContent = getLeasedConnections("content");
         leasedConnectionsBeforeForNotifications = getLeasedConnections("notifications");
         leasedConnectionsBeforeForEnrichedContent = getLeasedConnections("enrichedcontent");
         leasedConnectionsBeforeForOther = getLeasedConnections("other");
-
     }
 
     @After
-    public void checkThatNumberOfLeasedConnectionsHaveNotChanged(){
-        assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
-        assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
-        assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
-        assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
-        WireMock.reset();
+    public void checkThatNumberOfLeasedConnectionsHaveNotChanged() {
+        try {
+            assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
+            assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
+            assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
+            assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
+        }
+        finally {
+            WireMock.reset();
+        }
     }
 
     // Fails completely    
     @Test
     public void shouldFailWhereBothNodesAreReturning500() {
-        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(ERROR_JSON)
+        wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(ERROR_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(500)));
+        
+        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(SERVER_ERROR_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(500)));
         
         URI uri  = fromFacade(EXAMPLE_PATH).build();
@@ -101,7 +103,8 @@ public class ApiPolicyComponentUnhappyPathsTest {
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(500));//TODO should map downstream errors to a 503
             assertThat(response.getEntity(String.class), is(SERVER_ERROR_JSON));
@@ -113,7 +116,10 @@ public class ApiPolicyComponentUnhappyPathsTest {
     
     @Test
     public void shouldFailWhereBothNodesAreReturning503() {
-        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(ERROR_JSON)
+        wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(ERROR_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(503)));
+        
+        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(SERVER_ERROR_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(503)));
         
         URI uri  = fromFacade(EXAMPLE_PATH).build();
@@ -121,9 +127,10 @@ public class ApiPolicyComponentUnhappyPathsTest {
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
-            assertThat(response.getStatus(), is(500));//TODO should map downstream errors to a 503
+            assertThat(response.getStatus(), is(503));
             assertThat(response.getEntity(String.class), is(SERVER_ERROR_JSON));
 
         } finally {
@@ -135,7 +142,10 @@ public class ApiPolicyComponentUnhappyPathsTest {
     
     @Test
     public void shouldReturnErrorIfTimeoutOccurs() {
-        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON)
+        wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withFixedDelay(2000)));
+        
+        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withFixedDelay(2000)));
         
         URI uri  = fromFacade(EXAMPLE_PATH).build();
@@ -143,10 +153,11 @@ public class ApiPolicyComponentUnhappyPathsTest {
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(503));
-            assertThat(response.getEntity(String.class), is(CONNECT_TIMEOUT_JSON));
+            assertThat(response.getEntity(String.class), is(SOCKET_TIMEOUT_JSON));
 
         } finally {
             response.close();
@@ -154,29 +165,30 @@ public class ApiPolicyComponentUnhappyPathsTest {
     }
     
     // First request fails, second request is OK
-    
-    
-    
     @Test
     public void shouldReturnSuccessFromSecondNodeWhereRecoverableErrorOccursForFirstNode() {
 
-        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).inScenario("FailsFirst")
-                .whenScenarioStateIs(Scenario.STARTED)
-                .willReturn(aResponse()
-                .withBody(ERROR_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(500))
-                .willSetStateTo("First request made"));
+        wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH))
+                .willReturn(
+                        aResponse()
+                        .withBody(ERROR_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(500)
+                ));
         
-        stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).inScenario("FailsFirst")
-                .whenScenarioStateIs("First request made")
-                .willReturn(aResponse()
-                .withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH))
+                .willReturn(
+                        aResponse()
+                        .withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)
+                ));
         
         URI uri  = fromFacade(EXAMPLE_PATH).build();
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), is(EXAMPLE_JSON));
@@ -218,6 +230,4 @@ public class ApiPolicyComponentUnhappyPathsTest {
                         .get("value").asInt();
 
     }
-
-
 }
