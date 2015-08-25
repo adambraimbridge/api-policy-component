@@ -6,9 +6,9 @@ from Orchestration import ActionStep
 check_root()
 
 # Define our actions
-stop_puppet = ActionStep('Stop Puppet', parallel=True, node_identifier_method = 'nodegroup', node_identifier_qualifier="", action="stop_puppet_service")
+stop_puppet = ActionStep('Stop Puppet', parallel=True, node_identifier_method ='nodegroup', node_identifier_qualifier="", action="stop_puppet_service")
 kick_puppet_agents = ActionStep('Kick Puppet agents', parallel=False, node_identifier_method='nodegroup', node_identifier_qualifier="", action="run_puppet_agent")
-start_puppet = ActionStep('Start Puppet', parallel=True, node_identifier_method = 'nodegroup', node_identifier_qualifier = "", action = "start_puppet_service")
+start_puppet = ActionStep('Start Puppet', parallel=True, node_identifier_method ='nodegroup', node_identifier_qualifier = "", action = "start_puppet_service")
 
 # Build our list of steps
 steps = []
