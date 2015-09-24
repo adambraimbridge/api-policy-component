@@ -1,8 +1,13 @@
 package com.ft.up.apipolicy;
 
+import io.dropwizard.Application;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+
 import java.util.EnumSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import javax.servlet.DispatcherType;
 
 import com.ft.api.jaxrs.errors.RuntimeExceptionMapper;
@@ -24,13 +29,11 @@ import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.KnownEndpoint;
+import com.ft.up.apipolicy.resources.RequestHandler;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 import com.sun.jersey.api.client.Client;
-import io.dropwizard.Application;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
@@ -63,20 +66,26 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.jersey().register(new RuntimeExceptionMapper());
         setFilters(configuration, environment);
 
-        SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
+        SortedSet<KnownEndpoint> knownWildcardEndpoints = new TreeSet<>();
+        SortedSet<KnownEndpoint> knownWhitelistedPostEndpoints = new TreeSet<>();
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
-        knownEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
                 identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForContentEndpoint, stripProvenance));
-        knownEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", brandFilter));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", brandFilter));
 
-        knownEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
                 identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForEnrichedContentEndpoint, stripProvenance));
+        
         // DEFAULT CASE: Just forward it
-        knownEndpoints.add(createEndpoint(environment, configuration, "^/.*", "other", new ApiFilter[]{}));
-
-        environment.jersey().register(new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints));
-
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/.*", "other", new ApiFilter[]{}));
+        
+        // Must specifically list any POST, PUT etc endpoint you want access to
+        knownWhitelistedPostEndpoints.add(createEndpoint(environment, configuration, "^/suggest", "suggest", new ApiFilter[]{}));
+        
+        environment.jersey().register(new WildcardEndpointResource(new RequestHandler(new MutableHttpTranslator(), knownWildcardEndpoints),
+                new RequestHandler(new MutableHttpTranslator(), knownWhitelistedPostEndpoints)));
+        
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
     }

@@ -65,7 +65,7 @@ public class MutableHttpTranslatorTest {
 
         MutableHttpTranslator translator = new MutableHttpTranslator();
 
-        MutableRequest result = translator.translateFrom(request);
+        MutableRequest result = translator.translateFrom(request, null);
 
         assertThat(result.getHeaders().keySet(), hasItems("Foo","Bar","Baz"));
 
@@ -87,7 +87,7 @@ public class MutableHttpTranslatorTest {
 
         MutableHttpTranslator translator = new MutableHttpTranslator();
 
-        MutableRequest result = translator.translateFrom(request);
+        MutableRequest result = translator.translateFrom(request, null);
 
         assertThat(result.getHeaders().keySet(), hasItems("Foo","Bar"));
         assertThat(result.getHeaders().keySet(), hasItems("Host"));
@@ -144,7 +144,7 @@ public class MutableHttpTranslatorTest {
     public void shouldRecordPathElementOfOriginalURI() {
         MutableHttpTranslator translator = new MutableHttpTranslator();
 
-        MutableRequest result = translator.translateFrom(request);
+        MutableRequest result = translator.translateFrom(request, null);
 
 
         assertThat(result.getAbsolutePath(),is("/test"));
@@ -168,7 +168,7 @@ public class MutableHttpTranslatorTest {
 
         MutableHttpTranslator translator = new MutableHttpTranslator();
 
-        MutableRequest result  = translator.translateFrom(request);
+        MutableRequest result  = translator.translateFrom(request, null);
         assertThat(result.getPolicies(),hasItems("POLICY_ONE","POLICY_TWO","POLICY_THREE"));
 
 

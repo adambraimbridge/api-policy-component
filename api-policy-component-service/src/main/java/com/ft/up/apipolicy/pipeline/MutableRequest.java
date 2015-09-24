@@ -1,10 +1,11 @@
 package com.ft.up.apipolicy.pipeline;
 
-import com.ft.up.apipolicy.configuration.Policy;
-
-import javax.ws.rs.core.MultivaluedMap;
 import java.util.Collections;
 import java.util.Set;
+
+import javax.ws.rs.core.MultivaluedMap;
+
+import com.ft.up.apipolicy.configuration.Policy;
 
 /**
  * MutableRequest
@@ -16,6 +17,8 @@ public class MutableRequest {
     private MultivaluedMap<String, String> headers;
     private MultivaluedMap<String, String> queryParameters;
     private String absolutePath;
+    private String httpMethod;
+    private Object requestEntity;
 
     private final Set<String> policies;
     private String transactionId;
@@ -37,24 +40,39 @@ public class MutableRequest {
         return headers;
     }
 
+    public String getAbsolutePath() {
+        return absolutePath;
+    }
+
     public MultivaluedMap<String, String> getQueryParameters() {
         return queryParameters;
+    }
+
+    public String getHttpMethod() {
+        return httpMethod;
+    }
+
+    public Object getRequestEntity() {
+        return requestEntity;
+    }
+
+    public void setRequestEntity(Object requestEntity) {
+        this.requestEntity = requestEntity;
     }
 
     public void setQueryParameters(MultivaluedMap<String, String> queryParameters) {
         this.queryParameters = queryParameters;
     }
-
-    public String getAbsolutePath() {
-        return absolutePath;
-    }
-
     public void setAbsolutePath(String absolutePath) {
         this.absolutePath = absolutePath;
     }
 
     public void setHeaders(MultivaluedMap<String, String> headers) {
         this.headers = headers;
+    }
+
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
     }
 
     public String getTransactionId() {

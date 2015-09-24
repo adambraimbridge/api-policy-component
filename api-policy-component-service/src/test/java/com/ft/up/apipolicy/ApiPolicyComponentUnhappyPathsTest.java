@@ -2,7 +2,9 @@ package com.ft.up.apipolicy;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
@@ -41,8 +43,8 @@ public class ApiPolicyComponentUnhappyPathsTest {
     private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
     private static final String ERROR_JSON = "{\"message\":\"Something went wrong\"}";
     private static final String SERVER_ERROR_JSON = "{\"message\":\"server error\"}";
-    private static final String CONNECT_TIMEOUT_JSON = "{\"message\":\"org.apache.http.conn.ConnectTimeoutException: Connect to localhost:" + (SOME_PORT + 2) + " timed out\"}";
     private static final String SOCKET_TIMEOUT_JSON = "{\"message\":\"java.net.SocketTimeoutException: Read timed out\"}";
+    private static final String UNSUPPORTED_REQUEST_EXCEPTION_JSON = "{\"message\":\"Unsupported request: path [/example] with method [POST].\"}";
 
     @Rule
     public WireMockRule wireMockForVarnish1 = new WireMockRule(SOME_PORT);
@@ -86,6 +88,26 @@ public class ApiPolicyComponentUnhappyPathsTest {
         }
         finally {
             WireMock.reset();
+        }
+    }
+    
+   
+    @Test
+    public void shouldNotAllowNonWhitelistedPostRequestsThrough() {
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, "{}");
+
+        try {
+            verify(0, postRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+
+            assertThat(response.getStatus(), is(400));
+            assertThat(response.getEntity(String.class), is(UNSUPPORTED_REQUEST_EXCEPTION_JSON));
+
+        } finally {
+            response.close();
         }
     }
 

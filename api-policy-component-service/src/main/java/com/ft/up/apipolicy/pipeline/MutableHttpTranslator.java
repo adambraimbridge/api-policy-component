@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -15,6 +16,7 @@ import javax.ws.rs.core.Response;
 import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.LinkedMultivalueMap;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +42,7 @@ public class MutableHttpTranslator {
     ));
 
 
-    public MutableRequest translateFrom(HttpServletRequest realRequest) {
+    public MutableRequest translateFrom(HttpServletRequest realRequest, Object requestEntity) {
 
 
         MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
@@ -114,6 +116,8 @@ public class MutableHttpTranslator {
         request.setAbsolutePath(absolutePath);
         request.setQueryParameters(queryParameters);
         request.setHeaders(headers);
+        request.setRequestEntity(requestEntity);
+        request.setHttpMethod(realRequest.getMethod());
 
         return request;
     }
