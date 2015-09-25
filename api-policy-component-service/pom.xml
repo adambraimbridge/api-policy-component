@@ -38,7 +38,7 @@
         <ft-build-info-maven-plugin.version>1.0</ft-build-info-maven-plugin.version>
         <maven-jar-plugin.version>2.3.2</maven-jar-plugin.version>
         <target-jdk>1.7</target-jdk>
-        <jaxrs.transaction-id-handling.version>1.9</jaxrs.transaction-id-handling.version>
+        <jaxrs.transaction-id-handling.version>2.4</jaxrs.transaction-id-handling.version>
         <jaxrs.errorhandling.version>1.1.0</jaxrs.errorhandling.version>
     </properties>
 
@@ -55,6 +55,11 @@
             <version>${advanced-dropwizard-healthcheck.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-metrics-graphite</artifactId>
+            <version>${dw.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.ft</groupId>
             <artifactId>jaxrs-build-info-resource</artifactId>
             <version>${jaxrs-build-info-resource.version}</version>
@@ -67,7 +72,7 @@
       <dependency>
         <groupId>com.ft.resilient-jersey-wrapper</groupId>
         <artifactId>resilient-jersey-wrapper</artifactId>
-        <version>0.2.53</version>
+        <version>0.3.67</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>
@@ -94,6 +99,11 @@
                     <groupId>com.fasterxml.jackson.core</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.ft.bodyprocessing</groupId>
+            <artifactId>body-processing</artifactId>
+            <version>0.1.2</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -138,6 +148,18 @@
           <artifactId>dropwizard-testing</artifactId>
           <version>${dw.version}</version>
           <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>1.1.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>1.1.5</version>
+            <scope>test</scope>
         </dependency>
       <dependency>
         <groupId>commons-io</groupId>

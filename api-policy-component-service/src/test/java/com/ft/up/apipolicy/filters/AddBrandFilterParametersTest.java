@@ -1,5 +1,14 @@
 package com.ft.up.apipolicy.filters;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.Collections;
+
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
@@ -11,15 +20,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
 
 /**
  * AddBrandFilterParametersTest
@@ -38,8 +38,11 @@ public class AddBrandFilterParametersTest {
     @Mock
     private HttpPipelineChain mockChain;
 
+    @Mock
+    private PolicyBrandsResolver policyBrandsResolver;
 
-    private MutableRequest exampleRequest = new MutableRequest(Collections.singleton("TEST"));
+
+    private MutableRequest exampleRequest = new MutableRequest(Collections.singleton("TEST"),getClass().getSimpleName());
 
     private MutableResponse exampleErrorResponse;
     private MutableResponse minimalExampleResponse;
@@ -63,7 +66,7 @@ public class AddBrandFilterParametersTest {
 
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(exampleErrorResponse);
 
-        AddBrandFilterParameters filter  = new AddBrandFilterParameters(JsonConverter.testConverter());
+        AddBrandFilterParameters filter  = new AddBrandFilterParameters(JsonConverter.testConverter(), policyBrandsResolver);
 
         MutableResponse response = filter.processRequest(exampleRequest,mockChain);
 
@@ -76,7 +79,7 @@ public class AddBrandFilterParametersTest {
 
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(minimalExampleResponse);
 
-        AddBrandFilterParameters filter  = new AddBrandFilterParameters(JsonConverter.testConverter());
+        AddBrandFilterParameters filter  = new AddBrandFilterParameters(JsonConverter.testConverter(), policyBrandsResolver);
 
         MutableResponse response = filter.processRequest(exampleRequest,mockChain);
 

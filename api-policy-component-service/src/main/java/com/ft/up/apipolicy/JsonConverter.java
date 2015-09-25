@@ -8,8 +8,8 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
 
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * JsonConverter
@@ -31,14 +31,16 @@ public class JsonConverter {
     }
 
     public boolean isJson(MutableResponse response) {
-        if(response.getContentType().startsWith(MediaType.APPLICATION_JSON)) {
-            return true;
+
+        if(response.getContentType()==null) {
+            throw new NullPointerException("Content-Type not set");
         }
 
-        return false;
+        return response.getContentType().startsWith(MediaType.APPLICATION_JSON);
+
     }
 
-    public HashMap<String, Object> readEntity(MutableResponse response) {
+    public Map<String, Object> readEntity(MutableResponse response) {
         try {
             return objectMapper.readValue(response.getEntity(), JSON_MAP_TYPE);
         } catch (IOException e) {
@@ -47,7 +49,7 @@ public class JsonConverter {
     }
 
 
-    public void replaceEntity(MutableResponse response, HashMap<String, Object> content) {
+    public void replaceEntity(MutableResponse response, Map<String, Object> content) {
         try {
             response.setEntity(objectMapper.writeValueAsBytes(content));
         } catch (JsonProcessingException e) {

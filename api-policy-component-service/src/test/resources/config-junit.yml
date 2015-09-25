@@ -3,14 +3,25 @@ varnish:
   shortName: "semanticReaderVarnish"
   path: content/
   jerseyClient:
-      timeout: 2000ms
+      timeout: 200ms
   primaryNodes: ["localhost:9090:9091"]
   secondaryNodes: null
+  resilienceStrategy: SIMPLE_FAILOVER_STRATEGY
 
 pipeline:
   webUrlTemplates:
-    "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/{{originatingIdentifier}}.html"
-    "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft/{{originatingIdentifier}}"
+    "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/{{identifierValue}}.html"
+    "http://www.ft.com/ontology/origin/FT-CLAMO"  : "http://www.ft.com/fastft/{{identifierValue}}"
+
+policyBrandsMapper:
+  policyFilterParameterList:
+       - policy: FASTFT_CONTENT_ONLY
+         forBrand:
+                  - http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54
+       - policy: EXCLUDE_FASTFT_CONTENT
+         notForBrand:
+                  - http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54
+
 
 server:
 

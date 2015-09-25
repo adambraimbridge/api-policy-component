@@ -15,10 +15,12 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,9 +42,9 @@ public class ApiValidationAgainstSchemaIT {
 
     @Before
     public void setUp() throws Exception{
-        final String configFileName = System.getProperty("test.schemaValidation.configFile");
-
-        Preconditions.checkNotNull(configFileName, "System property test.schemaValidation.configFile is null");
+        final String configFileName = System.getProperty("test.schemaValidation.configFile", "int-schema-validation.yaml");
+        
+        Preconditions.checkNotNull(Strings.emptyToNull(configFileName), "System property test.schemaValidation.configFile is null");
 
         LOGGER.debug("test.schemaValidation.configFile = {}", configFileName);
         final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());

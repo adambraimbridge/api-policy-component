@@ -11,7 +11,12 @@ import com.ft.api.util.transactionid.TransactionIdFilter;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
+import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
+import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
+import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
+import com.ft.up.apipolicy.filters.SuppressJsonPropertyFilter;
+import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
@@ -20,12 +25,28 @@ import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.KnownEndpoint;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
+import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
+
+    private static final String MAIN_IMAGE_JSON_PROPERTY = "mainImage";
+    private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
+    private static final String COMMENTS_JSON_PROPERTY = "comments";
+    private static final String PROVENANCE_JSON_PROPERTY = "publishReference";
+
+    private ApiFilter mainImageFilter;
+    private ApiFilter identifiersFilter;
+    private ApiFilter commentsFilterForEnrichedContentEndpoint;
+    private ApiFilter commentsFilterForContentEndpoint;
+    private ApiFilter stripProvenance;
+    private ApiFilter suppressMarkup;
+    private ApiFilter webUrlAdder;
+    private ApiFilter brandFilter;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -40,38 +61,54 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     public void run(final ApiPolicyConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
         environment.jersey().register(new RuntimeExceptionMapper());
-        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
-
-
-		RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
-
-        JsonConverter tweaker = new JsonConverter(environment.getObjectMapper());
-
-
-        ApiFilter webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),tweaker);
+        setFilters(configuration, environment);
 
         SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
-		knownEndpoints.add(new KnownEndpoint("^/content/.*",
-				new HttpPipeline(requestForwarder,webUrlAdder)));
 
-        knownEndpoints.add(new KnownEndpoint("^/content/notifications.*",
-                new HttpPipeline(requestForwarder, new AddBrandFilterParameters(tweaker))));
+        //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
+        knownEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
+                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForContentEndpoint, stripProvenance));
+        knownEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", brandFilter));
 
-        knownEndpoints.add(new KnownEndpoint("^/enrichedcontent/.*",
-                new HttpPipeline(requestForwarder,webUrlAdder)));
-
+        knownEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
+                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForEnrichedContentEndpoint, stripProvenance));
         // DEFAULT CASE: Just forward it
-        knownEndpoints.add(new KnownEndpoint("^/.*", new HttpPipeline(requestForwarder)));
-
+        knownEndpoints.add(createEndpoint(environment, configuration, "^/.*", "other", new ApiFilter[]{}));
 
         environment.jersey().register(new WildcardEndpointResource(new MutableHttpTranslator(), knownEndpoints));
 
-        environment.healthChecks()
-                .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), client));
-
         environment.servlets().addFilter("Transaction ID Filter",
-                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/content/*");
+                new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
     }
 
+    private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
+        return (BodyProcessingFieldTransformer) (new BodyProcessingFieldTransformerFactory()).newInstance();
+    }
+
+    private void setFilters(ApiPolicyConfiguration configuration, Environment environment) {
+        JsonConverter jsonTweaker = new JsonConverter(environment.getObjectMapper());
+        PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
+
+        mainImageFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, MAIN_IMAGE_JSON_PROPERTY, Policy.INCLUDE_RICH_CONTENT);
+        identifiersFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, IDENTIFIERS_JSON_PROPERTY, Policy.INCLUDE_IDENTIFIERS);
+        commentsFilterForEnrichedContentEndpoint = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
+        commentsFilterForContentEndpoint = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
+        stripProvenance = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
+        suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
+        webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),
+                jsonTweaker);
+        brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
+    }
+
+    private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
+                                         String urlPattern, String instanceName, ApiFilter... filterChain) {
+        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named(instanceName).build();
+        RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
+        KnownEndpoint endpoint = new KnownEndpoint(urlPattern,
+                new HttpPipeline(requestForwarder, filterChain));
+        environment.healthChecks()
+                .register("Reader API Connectivity",
+                        new ReaderNodesHealthCheck("Reader API Connectivity for endpoint " + instanceName, configuration.getVarnish(), client));
+        return endpoint;
+    }
 }
