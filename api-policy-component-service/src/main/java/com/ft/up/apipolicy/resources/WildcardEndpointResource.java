@@ -27,14 +27,14 @@ public class WildcardEndpointResource {
     @GET
     @Consumes(MediaType.WILDCARD) @Produces(MediaType.WILDCARD)
     public Response get(@Context final HttpServletRequest request, @Context final UriInfo uriInfo) {
-        return requestHandler.handleRequest(request, uriInfo, null);
+        return requestHandler.handleRequest(request, uriInfo);
     }
     
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public final Response post(Object requestEntity, @Context final HttpServletRequest request, @Context final UriInfo uriInfo) {
-        return nonIdempotentRequestHandler.handleRequest(request, uriInfo, requestEntity);   
+    public final Response post(@Context final HttpServletRequest request, @Context final UriInfo uriInfo) {
+        return nonIdempotentRequestHandler.handleRequest(request, uriInfo);   
     }
 
 }

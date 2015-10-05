@@ -35,10 +35,10 @@ public class RequestHandler {
         this.knownEndpoints = knownEndpoints;
     }
 
-    public Response handleRequest(HttpServletRequest request, UriInfo uriInfo, Object requestEntity) {
+    public Response handleRequest(HttpServletRequest request, UriInfo uriInfo) {
 
         
-        MutableRequest mutableRequest = translator.translateFrom(request, requestEntity);
+        MutableRequest mutableRequest = translator.translateFrom(request);
 
         String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath();
         MutableResponse response = null;
@@ -49,7 +49,7 @@ public class RequestHandler {
             if(e instanceof ClientHandlerException){
                 throw ServerError.status(503).error(e.getMessage()).exception(e);
             } else if (e instanceof UnsupportedRequestException) {
-                throw ClientError.status(400).error(e.getMessage()).exception(e);
+                throw ClientError.status(405).error(e.getMessage()).exception(e);
             }
             else{
                 throw e;
@@ -79,7 +79,7 @@ public class RequestHandler {
 
             if(matcher.find()) {
 
-                LOGGER.debug("Matched request to pipeline=" + candidate);//TODO check alerts don't use this log
+                LOGGER.debug("Matched request to pipeline=" + candidate);
 
                 HttpPipelineChain chain = new HttpPipelineChain(candidate.getPipeline());
                 return chain.callNextFilter(request);

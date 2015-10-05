@@ -10,13 +10,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriInfo;
 
@@ -119,14 +124,14 @@ public class WildcardEndpointResourceTest {
     }
     
     @Test
-    public void shouldUseSuggestPipelineWhenSuggestUrlPassed() throws URISyntaxException {
+    public void shouldUseSuggestPipelineWhenSuggestUrlPassed() throws URISyntaxException, IOException {
         mockEnvironmentForRequestTo("/suggest/54307a12-37fa-11e3-8f44-002128161462");
         when(request.getMethod()).thenReturn("POST");
-        
         Object requestEntity = "{\"body\": \"text\""
                 + "}";
+        when(request.getInputStream()).thenReturn(createServletInputStream(requestEntity));
 
-        wildcardEndpointResource.post(requestEntity, request, uriInfo);
+        wildcardEndpointResource.post(request, uriInfo);
 
         verify(suggestPipeline, times(1)).forwardRequest(any(MutableRequest.class));
     }
@@ -157,9 +162,25 @@ public class WildcardEndpointResourceTest {
                 + "with method [POST].")));
 
         
-        wildcardEndpointResource.post(new Object(), request, uriInfo);
+        wildcardEndpointResource.post(request, uriInfo);
 
         verify(suggestPipeline, never()).forwardRequest(any(MutableRequest.class));
     }
+    
+    private ServletInputStream createServletInputStream(Object object) throws IOException {
+         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+         ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+         objectOutputStream.writeObject(object);
+
+         final InputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+
+         return new ServletInputStream() {
+
+             @Override
+             public int read() throws IOException {
+                 return byteArrayInputStream.read();
+             }
+         };
+     }
 
 }

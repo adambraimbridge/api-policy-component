@@ -103,7 +103,7 @@ public class ApiPolicyComponentUnhappyPathsTest {
         try {
             verify(0, postRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
-            assertThat(response.getStatus(), is(400));
+            assertThat(response.getStatus(), is(405));
             assertThat(response.getEntity(String.class), is(UNSUPPORTED_REQUEST_EXCEPTION_JSON));
 
         } finally {
