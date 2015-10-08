@@ -15,15 +15,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
-import com.ft.api.jaxrs.errors.ServerError;
-import com.ft.api.util.transactionid.TransactionIdUtils;
-import com.ft.up.apipolicy.LinkedMultivalueMap;
-import com.google.common.base.Strings;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.ft.api.jaxrs.errors.ServerError;
+import com.ft.api.util.transactionid.TransactionIdUtils;
+import com.ft.up.apipolicy.LinkedMultivalueMap;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * MutableHttpTranslator
@@ -120,20 +119,18 @@ public class MutableHttpTranslator {
         request.setAbsolutePath(absolutePath);
         request.setQueryParameters(queryParameters);
         request.setHeaders(headers);
-        request.setRequestEntity(getBodyIfSupplied(realRequest));
+        request.setRequestEntity(getEntityIfSupplied(realRequest));
         request.setHttpMethod(realRequest.getMethod());
 
         return request;
     }
 
-    private String getBodyIfSupplied(HttpServletRequest realRequest) {
+    private byte[] getEntityIfSupplied(HttpServletRequest realRequest) {
         try {
             ServletInputStream inputStream = realRequest.getInputStream();
             if (inputStream != null) {
-                String body = IOUtils.toString(inputStream);
-                if (!Strings.isNullOrEmpty(body)) {
-                    return body;
-                }
+                byte[] entity = IOUtils.toByteArray(inputStream);
+                return entity;
             }
             return null;
         } catch (IOException e) {

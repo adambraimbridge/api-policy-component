@@ -14,6 +14,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,9 +59,11 @@ public class JerseyRequestForwarder implements RequestForwarder {
         }
         
         ClientResponse clientResponse = null;
+        
+        String requestEntity = request.getRequestEntityAsString();
 
-        if (request.getRequestEntity() != null) {
-            clientResponse = resource.method(request.getHttpMethod(), ClientResponse.class, request.getRequestEntity());
+        if (StringUtils.isNotEmpty(requestEntity)) {
+            clientResponse = resource.method(request.getHttpMethod(), ClientResponse.class, requestEntity);
         } else {
             clientResponse = resource.method(request.getHttpMethod(), ClientResponse.class);
         }

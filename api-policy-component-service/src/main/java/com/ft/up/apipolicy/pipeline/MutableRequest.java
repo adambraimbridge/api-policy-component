@@ -18,7 +18,7 @@ public class MutableRequest {
     private MultivaluedMap<String, String> queryParameters;
     private String absolutePath;
     private String httpMethod;
-    private Object requestEntity;
+    private byte[] requestEntity;
 
     private final Set<String> policies;
     private String transactionId;
@@ -52,11 +52,11 @@ public class MutableRequest {
         return httpMethod;
     }
 
-    public Object getRequestEntity() {
-        return requestEntity;
+    public String getRequestEntityAsString() {
+        return new String(requestEntity);
     }
 
-    public void setRequestEntity(Object requestEntity) {
+    public void setRequestEntity(byte[] requestEntity) {
         this.requestEntity = requestEntity;
     }
 
