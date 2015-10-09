@@ -1,6 +1,7 @@
 package com.ft.up.apipolicy;
 
 import java.io.IOException;
+
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
@@ -11,7 +12,9 @@ import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +57,16 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 LOGGER.debug("Sending Header: {}={}",headerName,value);
             }
         }
+        
+        ClientResponse clientResponse = null;
+        
+        String requestEntity = request.getRequestEntityAsString();
 
-        ClientResponse clientResponse = resource.method("GET", ClientResponse.class);
+        if (StringUtils.isNotEmpty(requestEntity)) {
+            clientResponse = resource.method(request.getHttpMethod(), ClientResponse.class, requestEntity);
+        } else {
+            clientResponse = resource.method(request.getHttpMethod(), ClientResponse.class);
+        }
         MutableResponse result = new MutableResponse();
 
         try {

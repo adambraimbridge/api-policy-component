@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
@@ -82,6 +83,8 @@ public class ApiPolicyComponentHappyPathsTest {
 
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
 
+    public static final String SUGGEST_PATH = "/suggest";
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentHappyPathsTest.class);
 
     private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
@@ -141,7 +144,17 @@ public class ApiPolicyComponentHappyPathsTest {
                 "}" +
             "}";
 
-	public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
+	private static final String SUGGEST_REQUEST_JSON = 
+	        "{"
+	        + "\"body\": \"Test content\""
+	        + "}";
+	
+	private static final String SUGGEST_RESPONSE_JSON = 
+            "{"
+            + "\"suggestions\": [ ]"
+            + "}";
+    
+    public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
     public static final String EXAMPLE_TRANSACTION_ID = "010101";
     private static final String COMMENTS_JSON_PROPERTY = "comments";
     private static final String INCLUDE_COMMENTS_X_POLICY_VALUE = "INCLUDE_COMMENTS";
@@ -184,6 +197,7 @@ public class ApiPolicyComponentHappyPathsTest {
     @Before
     public void setup() {
         stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        stubFor(WireMock.post(urlEqualTo(SUGGEST_PATH)).willReturn(aResponse().withBody(SUGGEST_RESPONSE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
         this.client = Client.create();
@@ -209,7 +223,7 @@ public class ApiPolicyComponentHappyPathsTest {
     @Test
     public void shouldAllowUnknownRequestsThrough() {
         URI uri  = fromFacade(EXAMPLE_PATH).build();
-
+        
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
@@ -222,6 +236,25 @@ public class ApiPolicyComponentHappyPathsTest {
             response.close();
         }
     }
+    
+    @Test
+    public void shouldAllowSuggestPostRequestsThrough() {
+        URI uri  = fromFacade(SUGGEST_PATH).build();
+
+        ClientResponse response = client.resource(uri)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, SUGGEST_REQUEST_JSON);
+
+        try {
+            verify(postRequestedFor(urlEqualTo(SUGGEST_PATH)));
+
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), is(SUGGEST_RESPONSE_JSON));
+
+        } finally {
+            response.close();
+        }
+    }  
 
     @Test
     public void shouldForwardUnknownHeaders() {

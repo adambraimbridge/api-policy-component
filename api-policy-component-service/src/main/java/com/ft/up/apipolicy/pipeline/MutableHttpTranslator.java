@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy.pipeline;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,15 +9,20 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ft.api.jaxrs.errors.ServerError;
 import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.LinkedMultivalueMap;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * MutableHttpTranslator
@@ -109,13 +115,27 @@ public class MutableHttpTranslator {
 
         String absolutePath = URI.create(realRequest.getRequestURL().toString()).getPath();
 
-
         MutableRequest request = new MutableRequest(policies, transactionId);
         request.setAbsolutePath(absolutePath);
         request.setQueryParameters(queryParameters);
         request.setHeaders(headers);
+        request.setRequestEntity(getEntityIfSupplied(realRequest));
+        request.setHttpMethod(realRequest.getMethod());
 
         return request;
+    }
+
+    private byte[] getEntityIfSupplied(HttpServletRequest realRequest) {
+        try {
+            ServletInputStream inputStream = realRequest.getInputStream();
+            if (inputStream != null) {
+                byte[] entity = IOUtils.toByteArray(inputStream);
+                return entity;
+            }
+            return null;
+        } catch (IOException e) {
+            throw ServerError.status(500).error(e.getMessage()).exception(e);
+        }
     }
 
     public Response.ResponseBuilder translateTo(MutableResponse mutableResponse) {
