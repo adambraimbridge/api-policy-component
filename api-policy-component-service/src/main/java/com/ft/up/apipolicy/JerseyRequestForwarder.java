@@ -70,7 +70,10 @@ public class JerseyRequestForwarder implements RequestForwarder {
                     responseEntity = IOUtils.toByteArray(clientResponse.getEntityInputStream());
                 }
             }
-            catch (ClientHandlerException e) {/* thrown if there is an IOException in hasEntity(), ignore */}
+            catch (ClientHandlerException e) {
+                // thrown if there is an IOException in hasEntity()
+                LOGGER.warn("unable to obtain a response entity", e);
+            }
             
             int responseStatus = clientResponse.getStatus();
             if ((responseStatus >= 500)
