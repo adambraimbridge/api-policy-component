@@ -3,6 +3,7 @@ package com.ft.up.apipolicy.filters;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
 import javax.ws.rs.core.Response.Status;
 
 import com.ft.up.apipolicy.JsonConverter;
@@ -10,12 +11,16 @@ import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
+import com.google.common.base.Optional;
 
 public class WebUrlCalculator implements ApiFilter {
-
     private static final String BODY_KEY = "bodyXML";
     private static final String WEB_URL_KEY = "webUrl";
-
+    private static final String TYPE_KEY = "type";
+    private static final String REALTIME_KEY = "realtime";
+    
+    private static final String ARTICLE_TYPE = "http://www.ft.com/ontology/content/Article";
+    
     private final Map<String, String> urlTemplates;
     private JsonConverter jsonConverter;
 
@@ -39,7 +44,14 @@ public class WebUrlCalculator implements ApiFilter {
             return false;
         }
         final Map<String, Object> content = jsonConverter.readEntity(response);
-        return content.containsKey(BODY_KEY);
+        
+        boolean bodyPresent = content.containsKey(BODY_KEY);
+        
+        String documentType = (String)content.get(TYPE_KEY);
+        boolean realtime = Optional.fromNullable((Boolean)content.get(REALTIME_KEY)).or(false);
+        
+        return bodyPresent
+                || (ARTICLE_TYPE.equals(documentType) && realtime);
     }
 
     private boolean isNotOKResponse(final MutableResponse response) {
