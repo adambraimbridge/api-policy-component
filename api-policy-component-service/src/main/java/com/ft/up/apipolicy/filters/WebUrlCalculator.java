@@ -11,13 +11,12 @@ import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.google.common.base.Optional;
+
 
 public class WebUrlCalculator implements ApiFilter {
     private static final String BODY_KEY = "bodyXML";
     private static final String WEB_URL_KEY = "webUrl";
     private static final String TYPE_KEY = "type";
-    private static final String REALTIME_KEY = "realtime";
     
     private static final String ARTICLE_TYPE = "http://www.ft.com/ontology/content/Article";
     
@@ -48,10 +47,9 @@ public class WebUrlCalculator implements ApiFilter {
         boolean bodyPresent = content.containsKey(BODY_KEY);
         
         String documentType = (String)content.get(TYPE_KEY);
-        boolean realtime = Optional.fromNullable((Boolean)content.get(REALTIME_KEY)).or(false);
         
         return bodyPresent
-                || (ARTICLE_TYPE.equals(documentType) && realtime);
+                || ARTICLE_TYPE.equals(documentType);
     }
 
     private boolean isNotOKResponse(final MutableResponse response) {
