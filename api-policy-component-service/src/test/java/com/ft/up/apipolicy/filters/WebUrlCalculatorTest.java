@@ -36,12 +36,18 @@ public class WebUrlCalculatorTest {
             "\"identifierValue\": \"219512\"\n" +
             "}],\n" +
             "\"bodyXML\": \"<body>something here</body>\" }").getBytes(UTF8);
+    private final static byte[] WEB_URL_ELIGIBLE_LIVE_BLOG_RESPONSE = ("{ \"identifiers\": [{\n" +
+            "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+            "\"identifierValue\": \"219512\"\n" +
+            "}],\n" +
+            "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
+            "\"realtime\": true }").getBytes(UTF8);
     private final static String MINIMAL_PARTIAL_EXAMPLE_IDENTIFIER_RESPONSE = "{ \"identifiers\": [{\n" +
             "\"authority\": \"http://api.ft.com/system/FT-LABS-WP-1-91\",\n" +
             "\"identifierValue\": \"219512\"\n" +
             "}] }";
     private final static String NO_IDENTIFIERS_RESPONSE = "{ \"identifiers\": [] }";
-    private final static Map<String, String> WEB_URL_TEMPLATES = new HashMap();
+    private final static Map<String, String> WEB_URL_TEMPLATES = new HashMap<>();
 
 
     @Mock
@@ -113,6 +119,19 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldAddWebUrlToSuccessResponseForEligibleWithIdentifiers() {
         when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlEligibleIdentifierResponse);
+
+        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
+
+        assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"TEST219512\""));
+    }
+
+    @Test
+    public void shouldAddWebUrlToSuccessResponseForLiveBlog() {
+        MutableResponse liveBlogResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_LIVE_BLOG_RESPONSE);
+        liveBlogResponse.setStatus(200);
+        liveBlogResponse.getHeaders().putSingle("Content-Type", "application/json");
+
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(liveBlogResponse);
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
