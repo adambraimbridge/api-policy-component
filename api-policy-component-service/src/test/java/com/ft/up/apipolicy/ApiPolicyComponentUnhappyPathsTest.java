@@ -160,6 +160,30 @@ public class ApiPolicyComponentUnhappyPathsTest {
         }
     }
     
+    @Test
+    public void shouldFailWhereBothNodesAreReturning503WithoutABody() {
+        wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse()
+                .withStatus(503)));
+        
+        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse()
+                .withStatus(503)));
+        
+        URI uri  = fromFacade(EXAMPLE_PATH).build();
+
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+        try {
+            wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
+
+            assertThat(response.getStatus(), is(503));
+            assertThat(response.getEntity(String.class), is(SERVER_ERROR_JSON));
+
+        } finally {
+            response.close();
+        }
+    }
+    
 
     
     @Test

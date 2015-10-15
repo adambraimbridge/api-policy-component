@@ -1,5 +1,7 @@
 package com.ft.up.apipolicy;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.IOException;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -10,6 +12,7 @@ import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
@@ -70,8 +73,27 @@ public class JerseyRequestForwarder implements RequestForwarder {
         MutableResponse result = new MutableResponse();
 
         try {
-            result.setEntity(IOUtils.toByteArray(clientResponse.getEntityInputStream()));
-            result.setStatus(clientResponse.getStatus());
+            byte[] responseEntity = null;
+            try {
+                if (clientResponse.hasEntity()) {
+                    responseEntity = IOUtils.toByteArray(clientResponse.getEntityInputStream());
+                }
+            }
+            catch (ClientHandlerException e) {
+                // thrown if there is an IOException in hasEntity()
+                LOGGER.error("unable to obtain a response entity", e);
+            }
+            
+            int responseStatus = clientResponse.getStatus();
+            if ((responseStatus >= 500)
+                    && ((responseEntity == null) || (responseEntity.length == 0))) {
+                
+                LOGGER.debug("server error response has no entity");
+                responseEntity = "{\"message\":\"server error\"}".getBytes(UTF_8);
+            }
+            result.setEntity(responseEntity);
+            
+            result.setStatus(responseStatus);
             result.setHeaders(clientResponse.getHeaders());
         } catch (IOException e) {
             throw new ForwarderException(e);
