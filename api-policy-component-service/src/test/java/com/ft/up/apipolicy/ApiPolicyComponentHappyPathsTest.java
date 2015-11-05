@@ -84,7 +84,9 @@ public class ApiPolicyComponentHappyPathsTest {
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
 
     public static final String SUGGEST_PATH = "/suggest";
-    
+
+    public static final String LISTS_PATH = "/lists/9125b25e-8305-11e5-8317-6f9588949b85";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentHappyPathsTest.class);
 
     private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
@@ -144,16 +146,25 @@ public class ApiPolicyComponentHappyPathsTest {
                 "}" +
             "}";
 
-	private static final String SUGGEST_REQUEST_JSON = 
+	private static final String SUGGEST_REQUEST_JSON =
 	        "{"
 	        + "\"body\": \"Test content\""
 	        + "}";
-	
-	private static final String SUGGEST_RESPONSE_JSON = 
+
+    private static final String SUGGEST_RESPONSE_JSON =
             "{"
             + "\"suggestions\": [ ]"
             + "}";
-    
+
+    private static final String LISTS_JSON =
+            "{" +
+                "\"id\": \"http://api.ft.com/things/9125b25e-8305-11e5-8317-6f9588949b85\", " +
+                "\"title\": \"Home-INTL Top Stories\", " +
+                "\"apiUrl\": \"http://int.api.ft.com/lists/9125b25e-8305-11e5-8317-6f9588949b85\", " +
+                "\"layoutHint\": \"Standard\", " +
+                "\"publishReference\": \"tid_vcxz08642\" " +
+            "}";
+
     public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
     public static final String EXAMPLE_TRANSACTION_ID = "010101";
     private static final String COMMENTS_JSON_PROPERTY = "comments";
@@ -263,7 +274,7 @@ public class ApiPolicyComponentHappyPathsTest {
         ClientResponse response = client.resource(uri).header("Arbitrary", "Example").get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader("Arbitrary",equalTo("Example")));
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader("Arbitrary", equalTo("Example")));
         } finally {
             response.close();
         }
@@ -289,7 +300,7 @@ public class ApiPolicyComponentHappyPathsTest {
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER,containing("tid_")));
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER, containing("tid_")));
         } finally {
             response.close();
         }
@@ -496,7 +507,7 @@ public class ApiPolicyComponentHappyPathsTest {
     public void givenVaryHeaderWithAcceptShouldAddXPolicy() {
         URI uri  = fromFacade(CONTENT_PATH_2).build();
 
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withHeader("Vary","Accept")));
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withHeader("Vary", "Accept")));
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
@@ -507,7 +518,7 @@ public class ApiPolicyComponentHappyPathsTest {
             assertThat(response.getHeaders().get("Vary").size(), is(1));
 
             List<String> varyHeaderValue = atomise(response.getHeaders().get("Vary"));
-            assertThat(varyHeaderValue, hasItems("Accept",HttpPipeline.POLICY_HEADER_NAME));
+            assertThat(varyHeaderValue, hasItems("Accept", HttpPipeline.POLICY_HEADER_NAME));
 
         } finally {
             response.close();
@@ -564,12 +575,12 @@ public class ApiPolicyComponentHappyPathsTest {
 
         stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
                 aResponse()
-                    .withBody(CONTENT_JSON)
-                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                    .withStatus(200)
-                    .withHeader("X-Example", "100")
-                    .withHeader("Accept-Encoding", "test") // out of place for a response, but this is a test
-                ));
+                        .withBody(CONTENT_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)
+                        .withHeader("X-Example", "100")
+                        .withHeader("Accept-Encoding", "test") // out of place for a response, but this is a test
+        ));
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
@@ -846,6 +857,30 @@ public class ApiPolicyComponentHappyPathsTest {
         } finally {
             response.close();
         }
+    }
+
+    @Test
+    public void shouldRemovePublishReferenceAndLeaveAllOthersInJSONForLists() {
+        final URI uri = fromFacade(LISTS_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(LISTS_PATH)).willReturn(aResponse().withBody(LISTS_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlMatching(LISTS_PATH)));
+            assertThat(response.getStatus(), is(200));
+            String jsonPayload = response.getEntity(String.class);
+            assertThat(jsonPayload, not(containsJsonProperty("publishReference")));
+            assertThat(jsonPayload, containsJsonProperty("id"));
+            assertThat(jsonPayload, containsJsonProperty("title"));
+            assertThat(jsonPayload, containsJsonProperty("apiUrl"));
+            assertThat(jsonPayload, containsJsonProperty("layoutHint"));
+        } finally {
+            response.close();
+        }
+
     }
 
     private void stubForRichContentWithYouTubeVideo() {
