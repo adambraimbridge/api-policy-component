@@ -42,6 +42,12 @@ public class WebUrlCalculatorTest {
             "}],\n" +
             "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
             "\"realtime\": true }").getBytes(UTF8);
+    private final static byte[] WEB_URL_ELIGIBLE_LIVE_BLOG_MULTI_TYPES_RESPONSE = ("{ \"identifiers\": [{\n" +
+            "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+            "\"identifierValue\": \"219512\"\n" +
+            "}],\n" +
+            "\"types\": [\"http://www.ft.com/ontology/content/Article\"],\n" +
+            "\"realtime\": true }").getBytes(UTF8);
     private final static String MINIMAL_PARTIAL_EXAMPLE_IDENTIFIER_RESPONSE = "{ \"identifiers\": [{\n" +
             "\"authority\": \"http://api.ft.com/system/FT-LABS-WP-1-91\",\n" +
             "\"identifierValue\": \"219512\"\n" +
@@ -128,6 +134,19 @@ public class WebUrlCalculatorTest {
     @Test
     public void shouldAddWebUrlToSuccessResponseForLiveBlog() {
         MutableResponse liveBlogResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_LIVE_BLOG_RESPONSE);
+        liveBlogResponse.setStatus(200);
+        liveBlogResponse.getHeaders().putSingle("Content-Type", "application/json");
+
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(liveBlogResponse);
+
+        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
+
+        assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"TEST219512\""));
+    }
+
+    @Test
+    public void shouldAddWebUrlToSuccessResponseForLiveBlogEnrichedContent() {
+        MutableResponse liveBlogResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_LIVE_BLOG_MULTI_TYPES_RESPONSE);
         liveBlogResponse.setStatus(200);
         liveBlogResponse.getHeaders().putSingle("Content-Type", "application/json");
 

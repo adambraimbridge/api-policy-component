@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy.filters;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -17,6 +18,7 @@ public class WebUrlCalculator implements ApiFilter {
     private static final String BODY_KEY = "bodyXML";
     private static final String WEB_URL_KEY = "webUrl";
     private static final String TYPE_KEY = "type";
+    private static final String TYPES_KEY = "types";
     
     private static final String ARTICLE_TYPE = "http://www.ft.com/ontology/content/Article";
     
@@ -46,12 +48,16 @@ public class WebUrlCalculator implements ApiFilter {
         
         boolean bodyPresent = content.containsKey(BODY_KEY);
         
-        String documentType = (String)content.get(TYPE_KEY);
-        
-        return bodyPresent
-                || ARTICLE_TYPE.equals(documentType);
+        return bodyPresent || isArticle(content);
     }
-
+    
+    private boolean isArticle(Map<String,Object> content) {
+        Object type = content.get(TYPE_KEY);
+        Object types = content.get(TYPES_KEY);
+        return ARTICLE_TYPE.equals(type)
+                || ((types instanceof Collection) && ((Collection)types).contains(ARTICLE_TYPE));
+    }
+    
     private boolean isNotOKResponse(final MutableResponse response) {
         return Status.OK.getStatusCode() != response.getStatus();
     }
