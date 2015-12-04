@@ -25,7 +25,7 @@ public class RemoveNotificationsProvenanceFilter implements ApiFilter {
     @Override
     public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
         final MutableResponse response = chain.callNextFilter(request);
-        if (response.getStatus() != 200 || !jsonConverter.isJson(response) || request.policyIs(includeProvenance)) {
+        if (shouldSkipFilteringProvenanceProperty(request, response)) {
             return response;
         }
 
@@ -40,6 +40,10 @@ public class RemoveNotificationsProvenanceFilter implements ApiFilter {
         }
         jsonConverter.replaceEntity(response, content);
         return response;
+    }
+
+    private boolean shouldSkipFilteringProvenanceProperty(MutableRequest request, MutableResponse response) {
+        return response.getStatus() != 200 || !jsonConverter.isJson(response) || request.policyIs(includeProvenance);
     }
 
     private boolean typeCheckFails(Map<String, Object> content) {
