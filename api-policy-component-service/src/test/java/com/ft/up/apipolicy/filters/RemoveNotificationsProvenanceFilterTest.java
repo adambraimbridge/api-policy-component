@@ -30,7 +30,6 @@ public class RemoveNotificationsProvenanceFilterTest {
     private HttpPipelineChain mockChain;
     @Mock
     private MultivaluedMap<String, String> mockHeaders;
-
     private RemoveNotificationsProvenanceFilter filter;
 
     private static final String NOTIFICATIONS_RESPONSE = "{" +
@@ -41,6 +40,11 @@ public class RemoveNotificationsProvenanceFilterTest {
             "\"apiUrl\": \"http://int.api.ft.com/content/a1d6ca52-f9aa-407e-b682-03052dea7e25\", " +
             "\"publishReference\": \"tid_AbCd1203\" } " +
             " ] " +
+            "}";
+
+    private static final String NOTIFICATIONS_EMPTY_RESPONSE = "{" +
+            "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15T00:00:00.000T\", " +
+            "\"notifications\": [ ] " +
             "}";
 
     private static final String NOTIFICATIONS_FILTERED_RESPONSE = "{" +
@@ -79,6 +83,17 @@ public class RemoveNotificationsProvenanceFilterTest {
         when(mockChain.callNextFilter(mockRequest)).thenReturn(mutableResponse(200, NOTIFICATIONS_RESPONSE));
         Map<String, Object> expected = jsonConverter.readEntity(mutableResponse(NOTIFICATIONS_FILTERED_RESPONSE));
 
+        Map<String, Object> actual = jsonConverter.readEntity(filter.processRequest(mockRequest, mockChain));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void shouldNotFilterAnythingWhenNotificationsListIsEmpty() {
+        MutableResponse expectedResponse = mutableResponse(200, NOTIFICATIONS_EMPTY_RESPONSE);
+        when(mockChain.callNextFilter(mockRequest)).thenReturn(expectedResponse);
+
+        Map<String, Object> expected = jsonConverter.readEntity(expectedResponse);
         Map<String, Object> actual = jsonConverter.readEntity(filter.processRequest(mockRequest, mockChain));
 
         assertEquals(expected, actual);
