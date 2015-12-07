@@ -164,7 +164,6 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"layoutHint\": \"Standard\", " +
                 "\"publishReference\": \"tid_vcxz08642\" " +
             "}";
-
     public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
     public static final String EXAMPLE_TRANSACTION_ID = "010101";
     private static final String COMMENTS_JSON_PROPERTY = "comments";
@@ -178,28 +177,32 @@ public class ApiPolicyComponentHappyPathsTest {
             ApiPolicyApplication.class,
             resourceFilePath("config-junit.yml"),
             config("varnish.primaryNodes",
-                    String.format("localhost:%d:%d, localhost:%d:%d", 
-                            SOME_PORT, SOME_PORT +1, 
+                    String.format("localhost:%d:%d, localhost:%d:%d",
+                            SOME_PORT, SOME_PORT +1,
                             SOME_PORT + 2, SOME_PORT + 3 )
             )
     );
 
 
-
-
     private static final String NOTIFICATIONS_RESPONSE_TEMPLATE = "{" +
-            "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\" " +
+            "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\", " +
+            "\"notifications\": [ %s ] " +
             "}";
-    
-    private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "");
-    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND);
-    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND);
+
+    private static final String NOTIFICATIONS = "{ \"type\": \"http://www.ft.com/thing/ThingChangeType/UPDATE\", " +
+            "\"id\": \"http://www.ft.com/thing/a1d6ca52-f9aa-407e-b682-03052dea7e25\", " +
+            "\"apiUrl\": \"http://int.api.ft.com/content/a1d6ca52-f9aa-407e-b682-03052dea7e25\", " +
+            "\"publishReference\": \"tid_AbCd1203\" } ";
+
+    private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", NOTIFICATIONS);
+    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND, "");
+    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND, "");
     private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
-            FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND);
+            FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND, "");
 
     private Client client;
     private ObjectMapper objectMapper;
-    
+
     int leasedConnectionsBeforeForContent = 0;
     int leasedConnectionsBeforeForNotifications = 0;
     int leasedConnectionsBeforeForEnrichedContent = 0;
@@ -234,7 +237,7 @@ public class ApiPolicyComponentHappyPathsTest {
     @Test
     public void shouldAllowUnknownRequestsThrough() {
         URI uri  = fromFacade(EXAMPLE_PATH).build();
-        
+
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
@@ -247,7 +250,7 @@ public class ApiPolicyComponentHappyPathsTest {
             response.close();
         }
     }
-    
+
     @Test
     public void shouldAllowSuggestPostRequestsThrough() {
         URI uri  = fromFacade(SUGGEST_PATH).build();
@@ -265,7 +268,7 @@ public class ApiPolicyComponentHappyPathsTest {
         } finally {
             response.close();
         }
-    }  
+    }
 
     @Test
     public void shouldForwardUnknownHeaders() {
@@ -350,7 +353,7 @@ public class ApiPolicyComponentHappyPathsTest {
     public void shouldTreatMultiplePolicyHeadersTheSame() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
-        
+
         String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND
                 + NOT_FOR_BRAND + FASTFT_BRAND;
 
@@ -369,14 +372,14 @@ public class ApiPolicyComponentHappyPathsTest {
         Socket socket = null;
         PrintWriter writer = null;
         BufferedReader reader = null;
-        
+
         try {
             socket = new Socket(facadeUri.getHost(), facadeUri.getPort());
 
             writer = new PrintWriter( socket.getOutputStream() );
             reader = new BufferedReader( new InputStreamReader( socket.getInputStream() )); // the buffer enables readLine()
 
-        
+
             writer.println("GET /content/notifications?since=2014-10-15 HTTP/1.1");
             writer.println("Host: " + facadeUri.getAuthority()); // I think we want the port number so "authority" not "host"
             writer.println("X-Policy: FASTFT_CONTENT_ONLY");
@@ -404,12 +407,12 @@ public class ApiPolicyComponentHappyPathsTest {
         verify(getRequestedFor(urlEqualTo(url)));
 
     }
-    
+
     @Test
     public void givenNoFastFtRelatedPolicyShouldGetNotificationsWithNoBrandParameter() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
-        
+
         String url = BASE_NOTIFICATION_PATH;
 
         stubForNotifications(url, ALL_NOTIFICATIONS_JSON);
@@ -432,7 +435,7 @@ public class ApiPolicyComponentHappyPathsTest {
     public void givenPolicyFASTFT_CONTENT_ONLYShouldGetNotificationsWithForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
-        
+
         String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND;
 
         stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
@@ -455,7 +458,7 @@ public class ApiPolicyComponentHappyPathsTest {
     public void givenPolicyEXCLUDE_FASTFT_CONTENTShouldGetNotificationsWithNotForBrandParameterAndStripItFromResponseRequestUrl() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
-        
+
         String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + FASTFT_BRAND;
 
         stubForNotifications(url, NOT_FASTFT_NOTIFICATIONS_JSON);
@@ -480,7 +483,7 @@ public class ApiPolicyComponentHappyPathsTest {
     public void givenListedPoliciesFASTFT_CONTENT_ONLYCommaEXCLUDE_FASTFT_CONTENTShouldProcessBothAsNormal() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
-        
+
         String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND
                 + NOT_FOR_BRAND + FASTFT_BRAND;
 
@@ -530,10 +533,12 @@ public class ApiPolicyComponentHappyPathsTest {
                 .queryParam("since","2014-10-15")
                 .build();
     }
-    
+
     private void stubForNotifications(String url, String responseBody) {
         stubFor(get(urlEqualTo(url))
-                .willReturn(aResponse().withBody(responseBody)));
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseBody)));
     }
 
     private List<String> atomise(List<String> varyHeaderValues) {
@@ -732,7 +737,7 @@ public class ApiPolicyComponentHappyPathsTest {
             response.close();
         }
     }
-    
+
     @Test
     public void shouldLeaveCommentsInJsonForEnrichedContentEndpointWhenPolicyIncludeRichContent() {
         final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
@@ -883,6 +888,61 @@ public class ApiPolicyComponentHappyPathsTest {
 
     }
 
+    @Test
+    public void shouldRemovePublishReferenceAndLeaveAllOthersInJSONForNotifications() {
+        final URI uri = fromFacade("/content/notifications")
+                .queryParam("since", "2014-10-15")
+                .build();
+        stubFor(WireMock.get(urlEqualTo(BASE_NOTIFICATION_PATH))
+                .willReturn(aResponse()
+                        .withBody(ALL_NOTIFICATIONS_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200))
+        );
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH)));
+            assertThat(response.getStatus(), is(200));
+            String jsonPayload = response.getEntity(String.class);
+            assertThat(jsonPayload, not(containsNestedJsonProperty("notifications", "publishReference")));
+            assertThat(jsonPayload, containsNestedJsonProperty("notifications", "type"));
+            assertThat(jsonPayload, containsNestedJsonProperty("notifications", "id"));
+            assertThat(jsonPayload, containsNestedJsonProperty("notifications", "apiUrl"));
+            assertThat(jsonPayload, containsJsonProperty("requestUrl"));
+        } finally {
+            response.close();
+        }
+    }
+
+    private Matcher<? super String> containsNestedJsonProperty(final String property, final String nestedProperty) {
+        return new TypeSafeMatcher<String>() {
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("json property should be present: ").appendValue(property + "[i]." + nestedProperty);
+            }
+
+            @Override
+            protected boolean matchesSafely(String jsonPayload) {
+                Map<String, Object> notificationsResponse;
+                try {
+                    notificationsResponse = objectMapper.readValue(jsonPayload, JSON_MAP_TYPE);
+                    List<Map<String, String>> notifications = (List) notificationsResponse.get(property);
+
+                    for (Map<String, String> notification : notifications) {
+                        if (notification.containsKey(nestedProperty)) {
+                            return true;
+                        }
+                    }
+                    return false;
+
+                } catch (IOException e) {
+                    return false;
+                }
+            }
+        };
+    }
+
     private void stubForRichContentWithYouTubeVideo() {
 		stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
 				aResponse()
@@ -901,7 +961,6 @@ public class ApiPolicyComponentHappyPathsTest {
     private UriBuilder fromFacade(String path) {
         return UriBuilder.fromPath(path).host("localhost").port(policyComponent.getLocalPort()).scheme("http");
     }
-
 
     public static String resourceFilePath(String resourceClassPathLocation) {
 
@@ -950,7 +1009,7 @@ public class ApiPolicyComponentHappyPathsTest {
             }
         };
     }
-    
+
     private int getLeasedConnections(String name){
         return client.resource("http://localhost:" + 21082).path("/metrics") //hardcoded because we have no access to getAdminPort() on the app rule
                 .get(JsonNode.class)
