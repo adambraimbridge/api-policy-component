@@ -121,7 +121,7 @@ public class RemoveNotificationsProvenanceFilterTest {
         filter.processRequest(mockRequest, mockChain);
     }
 
-    public static Matcher<? super String> containsPublishReference() {
+    private Matcher<? super String> containsPublishReference() {
         return new TypeSafeMatcher<String>() {
             @Override
             public void describeTo(Description description) {
