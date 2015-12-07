@@ -101,7 +101,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         commentsFilterForEnrichedContentEndpoint = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
         commentsFilterForContentEndpoint = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
         stripProvenance = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
-        stripNestedProvenance = new RemoveNotificationsProvenanceFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
+        stripNestedProvenance = new RemoveNotificationsProvenanceFilter(jsonTweaker, Policy.INCLUDE_PROVENANCE);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),
                 jsonTweaker);

@@ -12,13 +12,12 @@ import java.util.*;
 public class RemoveNotificationsProvenanceFilter implements ApiFilter {
 
     public static final String NOTIFICATIONS = "notifications";
+    public static final String PROVENANCE = "publishReference";
     private JsonConverter jsonConverter;
-    private String provenanceJsonProperty;
     private Policy includeProvenance;
 
-    public RemoveNotificationsProvenanceFilter(JsonConverter jsonConverter, String provenanceJsonProperty, Policy includeProvenance) {
+    public RemoveNotificationsProvenanceFilter(JsonConverter jsonConverter, Policy includeProvenance) {
         this.jsonConverter = jsonConverter;
-        this.provenanceJsonProperty = provenanceJsonProperty;
         this.includeProvenance = includeProvenance;
     }
 
@@ -36,7 +35,7 @@ public class RemoveNotificationsProvenanceFilter implements ApiFilter {
 
         List<Map<String, Object>> notifications = (List) content.get(NOTIFICATIONS);
         for (Map<String, Object> notification : notifications) {
-            notification.remove(provenanceJsonProperty);
+            notification.remove(PROVENANCE);
         }
         jsonConverter.replaceEntity(response, content);
         return response;
