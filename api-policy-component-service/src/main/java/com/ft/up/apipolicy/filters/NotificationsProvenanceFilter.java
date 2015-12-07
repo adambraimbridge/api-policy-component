@@ -9,14 +9,14 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
 
 import java.util.*;
 
-public class RemoveNotificationsProvenanceFilter implements ApiFilter {
+public class NotificationsProvenanceFilter implements ApiFilter {
 
     public static final String NOTIFICATIONS = "notifications";
     public static final String PROVENANCE = "publishReference";
     private JsonConverter jsonConverter;
     private Policy includeProvenance;
 
-    public RemoveNotificationsProvenanceFilter(JsonConverter jsonConverter, Policy includeProvenance) {
+    public NotificationsProvenanceFilter(JsonConverter jsonConverter, Policy includeProvenance) {
         this.jsonConverter = jsonConverter;
         this.includeProvenance = includeProvenance;
     }
