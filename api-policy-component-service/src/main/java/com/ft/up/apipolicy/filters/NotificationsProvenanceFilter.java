@@ -7,7 +7,8 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public class NotificationsProvenanceFilter implements ApiFilter {
 
