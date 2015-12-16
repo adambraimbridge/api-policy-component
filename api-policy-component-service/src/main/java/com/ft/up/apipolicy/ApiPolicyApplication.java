@@ -36,6 +36,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
     private static final String COMMENTS_JSON_PROPERTY = "comments";
     private static final String PROVENANCE_JSON_PROPERTY = "publishReference";
+    private static final String LAST_MODIFIED_JSON_PROPERTY = "lastModified";
 
     private ApiFilter mainImageFilter;
     private ApiFilter identifiersFilter;
@@ -46,6 +47,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter webUrlAdder;
     private ApiFilter brandFilter;
     private ApiFilter stripNestedProvenance;
+    private ApiFilter stripLastModifiedDate;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -67,13 +69,13 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
-                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForContentEndpoint, stripProvenance));
+                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForContentEndpoint, stripProvenance, stripLastModifiedDate));
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", brandFilter, stripNestedProvenance));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
-                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForEnrichedContentEndpoint, stripProvenance));
+                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, commentsFilterForEnrichedContentEndpoint, stripProvenance, stripLastModifiedDate));
 
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/.*", "lists", stripProvenance));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/.*", "lists", stripProvenance, stripLastModifiedDate));
 
         // DEFAULT CASE: Just forward it
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/.*", "other", new ApiFilter[]{}));
@@ -102,6 +104,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         commentsFilterForContentEndpoint = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
         stripProvenance = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
         stripNestedProvenance = new NotificationsProvenanceFilter(jsonTweaker, Policy.INCLUDE_PROVENANCE);
+        stripLastModifiedDate =  new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, LAST_MODIFIED_JSON_PROPERTY, Policy.INCLUDE_LAST_MODIFIED_DATE);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),
                 jsonTweaker);

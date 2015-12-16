@@ -95,6 +95,7 @@ public class ApiPolicyComponentHappyPathsTest {
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
                 "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
+                "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"identifiers\": [{\n" +
                 "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
                 "\"identifierValue\": \"220322\"\n" +
@@ -105,6 +106,7 @@ public class ApiPolicyComponentHappyPathsTest {
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
                 "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
+                "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"identifiers\": [{\n" +
                 "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
                 "\"identifierValue\": \"220322\"\n" +
@@ -162,6 +164,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"title\": \"Home-INTL Top Stories\", " +
                 "\"apiUrl\": \"http://int.api.ft.com/lists/9125b25e-8305-11e5-8317-6f9588949b85\", " +
                 "\"layoutHint\": \"Standard\", " +
+                "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"publishReference\": \"tid_vcxz08642\" " +
             "}";
     public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
@@ -290,7 +293,7 @@ public class ApiPolicyComponentHappyPathsTest {
         ClientResponse response = client.resource(uri).header(TransactionIdUtils.TRANSACTION_ID_HEADER, EXAMPLE_TRANSACTION_ID).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER,equalTo("010101")));
+            verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER, equalTo("010101")));
         } finally {
             response.close();
         }
@@ -424,7 +427,7 @@ public class ApiPolicyComponentHappyPathsTest {
 
             String requestUrl = expectRequestUrl(response);
 
-            assertThat(requestUrl,is(PLAIN_NOTIFICATIONS_FEED_URI));
+            assertThat(requestUrl, is(PLAIN_NOTIFICATIONS_FEED_URI));
         } finally {
             response.close();
         }
@@ -790,6 +793,113 @@ public class ApiPolicyComponentHappyPathsTest {
             response.close();
         }
     }
+
+    @Test
+    public void shouldLeaveLastModifiedInJsonWhenPolicyIncludeIsPresentForContent() throws Exception {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveLastModifiedFromJsonForContent() throws Exception {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveLastModifiedInJsonWhenPolicyIncludeIsPresentForLists() throws Exception {
+        final URI uri = fromFacade(LISTS_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(LISTS_PATH)).willReturn(aResponse().withBody(LISTS_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(LISTS_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveLastModifiedFromJsonForLists() throws Exception {
+        final URI uri = fromFacade(LISTS_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(LISTS_PATH)).willReturn(aResponse().withBody(LISTS_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(LISTS_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveLastModifiedInJsonWhenPolicyIncludeIsPresentForEnrichedContent() throws Exception {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveLastModifiedFromJsonForEnrichedContent() throws Exception {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
+        } finally {
+            response.close();
+        }
+    }
+
+
 
     @Test
     public void shouldRemoveIdentifiersFromJsonAndAddWebUrlForContent() {
