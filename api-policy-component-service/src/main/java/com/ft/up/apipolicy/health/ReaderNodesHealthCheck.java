@@ -43,7 +43,6 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
                     .scheme("http")
                     .build();
         }
-        System.out.println("checking******:" + healthcheckUri);
 
         ClientResponse response = null;
         try {
