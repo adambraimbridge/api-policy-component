@@ -91,9 +91,9 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         Client healthcheckClient;
         if (configuration.isCheckingVulcanHealth()) {
-            healthcheckClient = ResilientClientBuilder.in(environment).usingDNS().build();
+            healthcheckClient = ResilientClientBuilder.in(environment).usingDNS().named("healthcheck-client").build();
         } else {
-            healthcheckClient = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).build();
+            healthcheckClient = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named("healthcheck-client").build();
         }
         environment.healthChecks()
                 .register("Reader API Connectivity",
