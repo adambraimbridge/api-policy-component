@@ -30,7 +30,7 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
         if (checkVulcanHealth) {
             healthcheckUri = UriBuilder
-                    .fromPath("/v1/status")
+                    .fromPath("/v2/status")
                     .host(endpoint.getHost())
                     .port(endpoint.getAdminPort())
                     .scheme("http")
