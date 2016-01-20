@@ -29,7 +29,7 @@ public class ReaderNodesHealthCheckTest {
 
         when(mockHandler.handle(any(ClientRequest.class))).thenThrow(new RuntimeException("Synthetic client exception"));
 
-        ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test",config,client);
+        ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test",config,client,false);
 
         assertThat(check.checkAdvanced().status(),is(AdvancedResult.Status.ERROR));
     }
@@ -41,7 +41,7 @@ public class ReaderNodesHealthCheckTest {
 
         Client client = primeClientToGive(500);
 
-        ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test",config,client);
+        ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test",config,client,false);
 
         assertThat(check.checkAdvanced().status(),is(AdvancedResult.Status.ERROR));
     }
@@ -54,7 +54,7 @@ public class ReaderNodesHealthCheckTest {
 
         Client client = primeClientToGive(200);
 
-        ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test",config,client);
+        ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test",config,client,false);
 
         assertThat(check.checkAdvanced().status(),is(AdvancedResult.Status.OK));
     }

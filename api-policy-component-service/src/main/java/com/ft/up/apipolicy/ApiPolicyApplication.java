@@ -79,15 +79,25 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         // DEFAULT CASE: Just forward it
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/.*", "other", new ApiFilter[]{}));
-        
+
         // Must specifically list any POST, PUT etc endpoint you want access to
         knownWhitelistedPostEndpoints.add(createEndpoint(environment, configuration, "^/suggest", "suggest", new ApiFilter[]{}));
-        
+
         environment.jersey().register(new WildcardEndpointResource(new RequestHandler(new MutableHttpTranslator(), knownWildcardEndpoints),
                 new RequestHandler(new MutableHttpTranslator(), knownWhitelistedPostEndpoints)));
-        
+
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+        Client healthcheckClient;
+        if (configuration.isCheckingVulcanHealth()) {
+            healthcheckClient = ResilientClientBuilder.in(environment).usingDNS().named("healthcheck-client").build();
+        } else {
+            healthcheckClient = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named("healthcheck-client").build();
+        }
+        environment.healthChecks()
+                .register("Reader API Connectivity",
+                        new ReaderNodesHealthCheck("Reader API Connectivity ", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
     }
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
@@ -117,9 +127,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
         KnownEndpoint endpoint = new KnownEndpoint(urlPattern,
                 new HttpPipeline(requestForwarder, filterChain));
-        environment.healthChecks()
-                .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity for endpoint " + instanceName, configuration.getVarnish(), client));
         return endpoint;
     }
 }
