@@ -28,7 +28,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class NotificationsProvenanceFilterTest {
+public class RemoveJsonPropertyFromArrayUnlessPolicyPresentFilterTest {
 
     @Mock
     private MutableRequest mockRequest;
@@ -38,7 +38,7 @@ public class NotificationsProvenanceFilterTest {
     private HttpPipelineChain mockChain;
     @Mock
     private MultivaluedMap<String, String> mockHeaders;
-    private NotificationsProvenanceFilter filter;
+    private RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter filter;
 
     private static final String NOTIFICATIONS_RESPONSE = "{" +
             "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15T00:00:00.000T\", " +
@@ -68,7 +68,7 @@ public class NotificationsProvenanceFilterTest {
     @Before
     public void setUp() throws Exception {
         JsonConverter jsonConverter = new JsonConverter(new ObjectMapper());
-        filter = new NotificationsProvenanceFilter(jsonConverter, Policy.INCLUDE_PROVENANCE);
+        filter = new RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter(jsonConverter, "publishReference", Policy.INCLUDE_PROVENANCE);
 
         when(mockHeaders.getFirst("Content-Type")).thenReturn(MediaType.APPLICATION_JSON);
     }
