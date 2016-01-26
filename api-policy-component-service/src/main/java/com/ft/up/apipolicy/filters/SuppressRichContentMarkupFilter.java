@@ -6,14 +6,17 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.Map;
+import java.util.Set;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
 
 public class SuppressRichContentMarkupFilter implements ApiFilter {
 
-    public static final String BODY_XML_KEY = "bodyXML";
+    private static final Set<String> XML_KEYS = ImmutableSet.of("bodyXML", "openingXML");
 	private final JsonConverter jsonConverter;
     private BodyProcessingFieldTransformer transformer;
 
@@ -36,16 +39,14 @@ public class SuppressRichContentMarkupFilter implements ApiFilter {
         }
 
         Map<String, Object> content = jsonConverter.readEntity(response);
-
-        String body = ((String)content.get(BODY_XML_KEY));
-
-        if(body == null) {
-            return response;
+        
+        for (String key : XML_KEYS) {
+            String xml = (String)content.get(key);
+            if (!Strings.isNullOrEmpty(xml)) {
+                xml = transformer.transform(xml, request.getTransactionId());
+                content.put(key, xml);
+            }
         }
-
-        body = transformer.transform(body, request.getTransactionId());
-
-        content.put(BODY_XML_KEY, body);
 
         jsonConverter.replaceEntity(response, content);
 
