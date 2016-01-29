@@ -10,16 +10,17 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
 import java.util.List;
 import java.util.Map;
 
-public class NotificationsProvenanceFilter implements ApiFilter {
+public class RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter implements ApiFilter {
 
     public static final String NOTIFICATIONS = "notifications";
-    public static final String PROVENANCE = "publishReference";
+    private final String jsonProperty;
     private JsonConverter jsonConverter;
-    private Policy includeProvenance;
+    private Policy policy;
 
-    public NotificationsProvenanceFilter(JsonConverter jsonConverter, Policy includeProvenance) {
+    public RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter(JsonConverter jsonConverter, String jsonProperty, Policy policy) {
         this.jsonConverter = jsonConverter;
-        this.includeProvenance = includeProvenance;
+        this.policy = policy;
+        this.jsonProperty = jsonProperty;
     }
 
     @Override
@@ -36,14 +37,14 @@ public class NotificationsProvenanceFilter implements ApiFilter {
 
         List<Map<String, Object>> notifications = (List) content.get(NOTIFICATIONS);
         for (Map<String, Object> notification : notifications) {
-            notification.remove(PROVENANCE);
+            notification.remove(jsonProperty);
         }
         jsonConverter.replaceEntity(response, content);
         return response;
     }
 
     private boolean shouldSkipFilteringProvenanceProperty(MutableRequest request, MutableResponse response) {
-        return response.getStatus() != 200 || !jsonConverter.isJson(response) || request.policyIs(includeProvenance);
+        return response.getStatus() != 200 || !jsonConverter.isJson(response) || request.policyIs(policy);
     }
 
     private boolean typeCheckFails(Map<String, Object> content) {

@@ -195,7 +195,9 @@ public class ApiPolicyComponentHappyPathsTest {
     private static final String NOTIFICATIONS = "{ \"type\": \"http://www.ft.com/thing/ThingChangeType/UPDATE\", " +
             "\"id\": \"http://www.ft.com/thing/a1d6ca52-f9aa-407e-b682-03052dea7e25\", " +
             "\"apiUrl\": \"http://int.api.ft.com/content/a1d6ca52-f9aa-407e-b682-03052dea7e25\", " +
-            "\"publishReference\": \"tid_AbCd1203\" } ";
+            "\"publishReference\": \"tid_AbCd1203\", " +
+            "\"lastModified\": \"2015-12-13T17:04:54.636Z\"" +
+            " } ";
 
     private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", NOTIFICATIONS);
     private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND, "");
@@ -999,7 +1001,7 @@ public class ApiPolicyComponentHappyPathsTest {
     }
 
     @Test
-    public void shouldRemovePublishReferenceAndLeaveAllOthersInJSONForNotifications() {
+    public void shouldRemovePublishReferenceAndLastModifiedAndLeaveAllOthersInJSONForNotifications() {
         final URI uri = fromFacade("/content/notifications")
                 .queryParam("since", "2014-10-15")
                 .build();
@@ -1015,6 +1017,36 @@ public class ApiPolicyComponentHappyPathsTest {
             verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH)));
             assertThat(response.getStatus(), is(200));
             String jsonPayload = response.getEntity(String.class);
+            assertThat(jsonPayload, not(containsNestedJsonProperty("notifications", "publishReference")));
+            assertThat(jsonPayload, not(containsNestedJsonProperty("notifications", "lastModified")));
+            assertThat(jsonPayload, containsNestedJsonProperty("notifications", "type"));
+            assertThat(jsonPayload, containsNestedJsonProperty("notifications", "id"));
+            assertThat(jsonPayload, containsNestedJsonProperty("notifications", "apiUrl"));
+            assertThat(jsonPayload, containsJsonProperty("requestUrl"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveLastModifiedAndLeaveAllOthersInJSONForNotifications() {
+        final URI uri = fromFacade("/content/notifications")
+                .queryParam("since", "2014-10-15")
+                .build();
+        stubFor(WireMock.get(urlEqualTo(BASE_NOTIFICATION_PATH))
+                .willReturn(aResponse()
+                        .withBody(ALL_NOTIFICATIONS_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200))
+        );
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH)));
+            assertThat(response.getStatus(), is(200));
+            String jsonPayload = response.getEntity(String.class);
+            assertThat(jsonPayload, containsNestedJsonProperty("notifications", "lastModified"));
             assertThat(jsonPayload, not(containsNestedJsonProperty("notifications", "publishReference")));
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "type"));
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "id"));
