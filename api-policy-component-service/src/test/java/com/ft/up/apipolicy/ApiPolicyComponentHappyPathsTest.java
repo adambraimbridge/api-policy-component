@@ -94,7 +94,8 @@ public class ApiPolicyComponentHappyPathsTest {
     private static final String CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
+                "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
+                "\"openingXML\" : \"<body>a video</body>\",\n" +
                 "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"identifiers\": [{\n" +
                 "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
@@ -106,6 +107,7 @@ public class ApiPolicyComponentHappyPathsTest {
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
                 "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
+                "\"openingXML\" : \"<body>a video</body>\",\n" +
                 "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"identifiers\": [{\n" +
                 "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
@@ -1052,6 +1054,76 @@ public class ApiPolicyComponentHappyPathsTest {
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "id"));
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "apiUrl"));
             assertThat(jsonPayload, containsJsonProperty("requestUrl"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveOpeningXMLFromJsonForContent() throws Exception {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("openingXML")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveOpeningXMLFromJsonForContentWhenPolicyIsInternalUnstable() throws Exception {
+        final URI uri = fromFacade(CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveOpeningXMLFromJsonForEnrichedContent() throws Exception {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("openingXML")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveOpeningXMLFromJsonForEnrichedContentWhenPolicyIsInternalUnstable() throws Exception {
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
         } finally {
             response.close();
         }
