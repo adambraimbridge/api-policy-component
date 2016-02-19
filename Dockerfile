@@ -19,4 +19,7 @@ CMD java -Ddw.server.applicationConnectors[0].port=8080 \
          -Ddw.server.adminConnectors[0].port=8081 \
          -Ddw.varnish.primaryNodes=$READ_ENDPOINT \
          -Ddw.checkingVulcanHealth=true \
+         -Ddw.metrics.reporters[0].host=$GRAPHITE_HOST \
+         -Ddw.metrics.reporters[0].port=$GRAPHITE_PORT \
+         -Ddw.metrics.reporters[0].prefix=$GRAPHITE_PREFIX \
          -jar app.jar server config.yml
