@@ -16,10 +16,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
-import io.dropwizard.testing.junit.DropwizardAppRule;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,21 +30,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
-
-import org.apache.commons.io.IOUtils;
-import org.fest.util.Strings;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,6 +45,18 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
+import io.dropwizard.testing.junit.DropwizardAppRule;
+import org.apache.commons.io.IOUtils;
+import org.fest.util.Strings;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ApiPolicyComponentTest
@@ -76,6 +74,8 @@ public class ApiPolicyComponentHappyPathsTest {
     public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
 
     public static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
+
+    public static final String CONTENT_PREVIEW_PATH = "/content-preview/bcafca32-5bc7-343f-851f-fd6d3514e694";
 
     public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15";
     public static final String FOR_BRAND = "&forBrand=";
@@ -711,6 +711,25 @@ public class ApiPolicyComponentHappyPathsTest {
     }
 
     @Test
+    public void shouldLeaveMainImageInJsonWhenPolicyIncludeRichContentForPreview() {
+        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("mainImage"));
+        } finally {
+            response.close();
+        }
+    }
+
+
+    @Test
     public void shouldRemoveCommentsFromJsonForEnrichedContentEndpoint() {
         final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
         stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
@@ -826,6 +845,24 @@ public class ApiPolicyComponentHappyPathsTest {
                 .get(ClientResponse.class);
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
+        } finally {
+            response.close();
+        }
+    }
+
+
+    @Test
+    public void shouldRemoveLastModifiedFromJsonForContentForPreview() throws Exception {
+        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
         } finally {
@@ -1087,6 +1124,24 @@ public class ApiPolicyComponentHappyPathsTest {
                 .get(ClientResponse.class);
         try {
             verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldLeaveOpeningXMLFromJsonForContentPreviewWhenPolicyIsInternalUnstable() throws Exception {
+        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
         } finally {
