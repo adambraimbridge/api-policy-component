@@ -728,6 +728,41 @@ public class ApiPolicyComponentHappyPathsTest {
         }
     }
 
+    @Test
+    public void shouldKeepCommentsFromJsonForPreviewContentEndpoint() {
+        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), containsJsonProperty(COMMENTS_JSON_PROPERTY));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldRemoveCommentsFromJsonForPreviewContentEndpointForPolicy() {
+        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
+        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
+        } finally {
+            response.close();
+        }
+    }
+
 
     @Test
     public void shouldRemoveCommentsFromJsonForEnrichedContentEndpoint() {
