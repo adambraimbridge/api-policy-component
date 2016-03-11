@@ -1,5 +1,23 @@
 package com.ft.up.apipolicy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.io.Resources;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import io.dropwizard.testing.junit.DropwizardAppRule;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+import java.io.File;
+import java.net.URI;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
@@ -9,26 +27,6 @@ import static io.dropwizard.testing.junit.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import io.dropwizard.testing.junit.DropwizardAppRule;
-
-import java.io.File;
-import java.net.URI;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.google.common.io.Resources;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 
 /**
  * ApiPolicyComponentUnhappyPathsTest
@@ -202,7 +200,7 @@ public class ApiPolicyComponentUnhappyPathsTest {
             wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
             wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
-            assertThat(response.getStatus(), is(503));
+            assertThat(response.getStatus(), is(504));
             assertThat(response.getEntity(String.class), is(SOCKET_TIMEOUT_JSON));
 
         } finally {

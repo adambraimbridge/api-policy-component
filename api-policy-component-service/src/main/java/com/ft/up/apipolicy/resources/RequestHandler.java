@@ -1,17 +1,5 @@
 package com.ft.up.apipolicy.resources;
 
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.ft.api.jaxrs.errors.ClientError;
 import com.ft.api.jaxrs.errors.ServerError;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -21,6 +9,17 @@ import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.google.common.base.Joiner;
 import com.sun.jersey.api.client.ClientHandlerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.net.SocketTimeoutException;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RequestHandler {
     
@@ -47,7 +46,11 @@ public class RequestHandler {
         }
         catch(Exception e){
             if(e instanceof ClientHandlerException){
-                throw ServerError.status(503).error(e.getMessage()).exception(e);
+                if(e.getCause() instanceof SocketTimeoutException){
+                    throw ServerError.status(504).error(e.getMessage()).exception(e);
+                } else {
+                    throw ServerError.status(503).error(e.getMessage()).exception(e);
+                }
             } else if (e instanceof UnsupportedRequestException) {
                 throw ClientError.status(405).error(e.getMessage()).exception(e);
             }
