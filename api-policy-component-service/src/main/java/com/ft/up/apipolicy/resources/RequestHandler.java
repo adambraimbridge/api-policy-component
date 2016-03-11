@@ -47,12 +47,10 @@ public class RequestHandler {
         try {
             response = handleRequest(mutableRequest, pathPart);
         } catch (ClientHandlerException che) {
-            if (che instanceof ClientHandlerException) {
-                if (che.getCause() instanceof SocketTimeoutException) {
-                    throw ServerError.status(504).error(che.getMessage()).exception(che);
-                } else {
-                    throw ServerError.status(503).error(che.getMessage()).exception(che);
-                }
+            if (che.getCause() instanceof SocketTimeoutException) {
+                throw ServerError.status(504).error(che.getMessage()).exception(che);
+            } else {
+                throw ServerError.status(503).error(che.getMessage()).exception(che);
             }
         } catch (UnsupportedRequestException ure) {
             throw ClientError.status(405).error(ure.getMessage()).exception(ure);
