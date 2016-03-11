@@ -27,9 +27,8 @@ import javax.ws.rs.core.UriInfo;
 
 public class RequestHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
     public static final Joiner COMMA_DELIMITED = Joiner.on(", ");
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
     private MutableHttpTranslator translator;
     private SortedSet<KnownEndpoint> knownEndpoints;
 
@@ -47,18 +46,16 @@ public class RequestHandler {
         MutableResponse response = null;
         try {
             response = handleRequest(mutableRequest, pathPart);
-        } catch (Exception e) {
-            if (e instanceof ClientHandlerException) {
-                if (e.getCause() instanceof SocketTimeoutException) {
-                    throw ServerError.status(504).error(e.getMessage()).exception(e);
+        } catch (ClientHandlerException che) {
+            if (che instanceof ClientHandlerException) {
+                if (che.getCause() instanceof SocketTimeoutException) {
+                    throw ServerError.status(504).error(che.getMessage()).exception(che);
                 } else {
-                    throw ServerError.status(503).error(e.getMessage()).exception(e);
+                    throw ServerError.status(503).error(che.getMessage()).exception(che);
                 }
-            } else if (e instanceof UnsupportedRequestException) {
-                throw ClientError.status(405).error(e.getMessage()).exception(e);
-            } else {
-                throw e;
             }
+        } catch (UnsupportedRequestException ure) {
+            throw ClientError.status(405).error(ure.getMessage()).exception(ure);
         }
         if (response == null) {
             return Response.serverError().build();
