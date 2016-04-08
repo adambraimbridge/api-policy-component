@@ -1,11 +1,5 @@
 package com.ft.apipolicycomponent.acceptance;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -27,6 +21,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 public class ApiValidationAgainstSchemaIT {
 
     private static final String SINCE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -42,7 +42,7 @@ public class ApiValidationAgainstSchemaIT {
 
     @Before
     public void setUp() throws Exception{
-        final String configFileName = System.getProperty("test.schemaValidation.configFile", "int-schema-validation.yaml");
+        final String configFileName = System.getProperty("test.schemaValidation.configFile", "test-schema-validation.yaml");
         
         Preconditions.checkNotNull(Strings.emptyToNull(configFileName), "System property test.schemaValidation.configFile is null");
 
