@@ -1,10 +1,10 @@
 apiPolicyComponent:
-  host: api-policy-component-pr-uk-int.svc.ft.com
+  host: api-policy-component-pr-uk-t.svc.ft.com
   port: 8080
   adminPort: 8081
 
 readApi:
-  host: semantic-reader-app-01-pr-uk-int.svc.ft.com
+  host: semantic-reader-app-01-pr-uk-t.svc.ft.com
   port: 8080
   adminPort: 8081
 
