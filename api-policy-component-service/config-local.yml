@@ -16,6 +16,7 @@ pipeline:
     "http://api.ft.com/system/FTCOM-METHODE" : "http://www.ft.com/cms/s/{{identifierValue}}.html"
     "http://api.ft.com/system/FT-CLAMO"  : "http://www.ft.com/fastft?post={{identifierValue}}"
     "http://api.ft.com/system/FT-LABS-WP-1-[0-9]+" : "{{identifierValue}}"
+    "http://api.ft.com/system/BRIGHTCOVE" : "http://video.ft.com/{{identifierValue}}"
 
 
 policyBrandsMapper:
