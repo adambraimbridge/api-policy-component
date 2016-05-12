@@ -42,6 +42,11 @@ public class WebUrlCalculatorTest {
             "}],\n" +
             "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
             "\"realtime\": true }").getBytes(UTF8);
+    private final static byte[] WEB_URL_ELIGIBLE_VIDEO_RESPONSE = ("{ \"identifiers\": [{\n" +
+            "\"authority\": \"http://api.ft.com/system/BRIGHTCOVE\",\n" +
+            "\"identifierValue\": \"219512\"\n" +
+            "}],\n" +
+            "\"type\": \"http://www.ft.com/ontology/content/MediaResource\" }").getBytes(UTF8);
     private final static byte[] WEB_URL_ELIGIBLE_LIVE_BLOG_MULTI_TYPES_RESPONSE = ("{ \"identifiers\": [{\n" +
             "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
             "\"identifierValue\": \"219512\"\n" +
@@ -72,6 +77,7 @@ public class WebUrlCalculatorTest {
     public void setUpExamples() {
         WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{identifierValue}}");
         WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{identifierValue}}");
+        WEB_URL_TEMPLATES.put("http://api.ft.com/system/BRIGHTCOVE", "{{identifierValue}}");
 
         exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(), ERROR_RESPONSE.getBytes());
         exampleErrorResponse.setStatus(500);
@@ -142,6 +148,19 @@ public class WebUrlCalculatorTest {
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
         assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"TEST219512\""));
+    }
+
+    @Test
+    public void shouldAddWebUrlToSuccessResponseForBrightcoveVideo() {
+        MutableResponse videoResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_VIDEO_RESPONSE);
+        videoResponse.setStatus(200);
+        videoResponse.getHeaders().putSingle("Content-Type", "application/json");
+
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(videoResponse);
+
+        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
+
+        assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"219512\""));
     }
 
     @Test
