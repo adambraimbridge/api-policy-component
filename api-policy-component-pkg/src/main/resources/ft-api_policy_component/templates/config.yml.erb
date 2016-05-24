@@ -3,9 +3,9 @@ varnish:
   shortName: "semanticReaderVarnish"
   path: content/
   jerseyClient:
-      timeout: <%=scope.function_hiera('jerseyClientTimeout', '4000ms')%>
-  primaryNodes:  <%=scope.function_hiera('semanticReaderVarnishPrimaryNodes')%>
-  secondaryNodes: <%=scope.function_hiera('semanticReaderVarnishSecondaryNodes','null')%>
+      timeout: <%=scope.function_hiera(['jerseyClientTimeout', '4000ms'])%>
+  primaryNodes:  <%=scope.function_hiera(['semanticReaderVarnishPrimaryNodes'])%>
+  secondaryNodes: <%=scope.function_hiera(['semanticReaderVarnishSecondaryNodes','null'])%>
 
 pipeline:
   webUrlTemplates:
@@ -54,7 +54,7 @@ server:
 
 logging:
 
-  level: <%=scope.function_hiera('logLevel','INFO') %>
+  level: <%=scope.function_hiera(['logLevel','INFO']) %>
 
   loggers:
     io.dropwizard: DEBUG
