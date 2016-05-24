@@ -34,6 +34,7 @@ class api_policy_component {
         jar_name            => "${jar_name}",
         artifact_location   => "${module_name}/${jar_name}",
         config_file_content => template("${module_name}/config.yml.erb"),
+        java_package_name   => 'java-1.7.0-oracle-devel',
         status_check_url    => "http://localhost:8081/ping";
     }
 
