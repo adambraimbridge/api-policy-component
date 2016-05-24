@@ -1,0 +1,24 @@
+begin: 'stop_puppet_agent'
+steps:
+  'stop_puppet_agent':
+    node_identifier:
+      method: nodegroup
+      qualifier: ___NODEGROUP___
+    action: stop_puppet_service
+    parallel: true
+    next: 'kick_puppet_agent'
+
+  'kick_puppet_agent':
+    node_identifier:
+      method: nodegroup
+      qualifier: ___NODEGROUP___
+    action: run_puppet_agent
+    parallel: true
+    next: 'start_puppet_agent'
+
+  'start_puppet_agent':
+    node_identifier:
+      method: nodegroup
+      qualifier: ___NODEGROUP___
+    action: start_puppet_service
+    parallel: true
