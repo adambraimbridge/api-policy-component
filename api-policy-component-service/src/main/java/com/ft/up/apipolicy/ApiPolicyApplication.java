@@ -13,6 +13,7 @@ import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
+import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
@@ -55,6 +56,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter stripLastModifiedDate;
     private ApiFilter stripNestedLastModifiedDate;
     private ApiFilter _unstable_stripOpeningXml;
+    private ApiFilter linkValidationFilter;
     
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -76,7 +78,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
-                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, linkValidationFilter, suppressMarkup, mainImageFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
                 identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
@@ -84,7 +86,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", brandFilter, stripNestedProvenance, stripNestedLastModifiedDate));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
-                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, linkValidationFilter, suppressMarkup, mainImageFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/.*", "lists", stripProvenance, stripLastModifiedDate));
 
@@ -132,6 +134,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(),
                 jsonTweaker);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
+        linkValidationFilter = new LinkedContentValidationFilter();
     }
 
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
