@@ -9,7 +9,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -65,27 +65,27 @@ import org.slf4j.LoggerFactory;
  */
 public class ApiPolicyComponentHappyPathsTest {
 
-    public static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
+    private static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
 
-    public static final String EXAMPLE_PATH = "/example";
+    private static final String EXAMPLE_PATH = "/example";
     private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
 
-    public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
-    public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
+    private static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
+    private static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
 
-    public static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
+    private static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
 
-    public static final String CONTENT_PREVIEW_PATH = "/content-preview/bcafca32-5bc7-343f-851f-fd6d3514e694";
+    private static final String CONTENT_PREVIEW_PATH = "/content-preview/bcafca32-5bc7-343f-851f-fd6d3514e694";
 
-    public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15";
-    public static final String FOR_BRAND = "&forBrand=";
-    public static final String NOT_FOR_BRAND = "&notForBrand=";
+    private static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15";
+    private static final String FOR_BRAND = "&forBrand=";
+    private static final String NOT_FOR_BRAND = "&notForBrand=";
+    private static final String PARAM_VALIDATE_LINKS = "validateLinkedResources";
+    private static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
 
-    public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
+    private static final String SUGGEST_PATH = "/suggest";
 
-    public static final String SUGGEST_PATH = "/suggest";
-
-    public static final String LISTS_PATH = "/lists/9125b25e-8305-11e5-8317-6f9588949b85";
+    private static final String LISTS_PATH = "/lists/9125b25e-8305-11e5-8317-6f9588949b85";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentHappyPathsTest.class);
 
@@ -219,7 +219,7 @@ public class ApiPolicyComponentHappyPathsTest {
     public void setup() {
         stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(WireMock.post(urlEqualTo(SUGGEST_PATH)).willReturn(aResponse().withBody(SUGGEST_RESPONSE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        stubFor(WireMock.get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
         this.client = Client.create();
         objectMapper = new ObjectMapper();
@@ -324,7 +324,7 @@ public class ApiPolicyComponentHappyPathsTest {
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
 
             Map<String, Object> result = expectOKResponseWithJSON(response);
 
@@ -338,14 +338,14 @@ public class ApiPolicyComponentHappyPathsTest {
     @Test
     public void shouldGetEnrichedContentWithExtraWebUrlField() throws IOException {
 
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        stubFor(WireMock.get(urlPathEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
         URI uri  = fromFacade(ENRICHED_CONTENT_PATH).build();
 
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH)));
 
             Map<String, Object> result = expectOKResponseWithJSON(response);
 
@@ -522,7 +522,7 @@ public class ApiPolicyComponentHappyPathsTest {
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH_2)));
 
             assertThat(response.getStatus(), is(200));
             assertThat(response.getHeaders().get("Vary").size(), is(1));
@@ -566,7 +566,7 @@ public class ApiPolicyComponentHappyPathsTest {
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH_2)));
 
             assertThat(response.getStatus(), is(200));
 
@@ -597,7 +597,7 @@ public class ApiPolicyComponentHappyPathsTest {
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH_2)));
 
             assertThat(response.getStatus(), is(200));
 
@@ -620,7 +620,9 @@ public class ApiPolicyComponentHappyPathsTest {
 			.get(ClientResponse.class);
 
 		try {
-			verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+			verify(
+			    getRequestedFor(urlPathEqualTo(CONTENT_PATH_2))
+			      .withQueryParam(PARAM_VALIDATE_LINKS, equalTo("true")));
 
 			assertThat(response.getStatus(), is(200));
 
@@ -644,7 +646,7 @@ public class ApiPolicyComponentHappyPathsTest {
 		ClientResponse response = client.resource(uri).get(ClientResponse.class);
 
 		try {
-			verify(getRequestedFor(urlMatching(CONTENT_PATH_2)));
+			verify(getRequestedFor(urlEqualTo(CONTENT_PATH_2)));
 
 			assertThat(response.getStatus(), is(200));
 
@@ -667,7 +669,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("mainImage")));
         } finally {
@@ -678,14 +680,14 @@ public class ApiPolicyComponentHappyPathsTest {
     @Test
     public void shouldLeaveMainImageInJsonWhenPolicyIncludeRichContent() {
         final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
+        stubFor(WireMock.get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
         final ClientResponse response = client.resource(uri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlPathEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("mainImage"));
         } finally {
@@ -702,7 +704,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
         } finally {
@@ -720,7 +722,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("mainImage"));
         } finally {
@@ -738,7 +740,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty(COMMENTS_JSON_PROPERTY));
         } finally {
@@ -755,7 +757,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
         } finally {
@@ -773,7 +775,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
         } finally {
@@ -791,7 +793,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
         } finally {
@@ -809,7 +811,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty(COMMENTS_JSON_PROPERTY));
         } finally {
@@ -826,7 +828,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("identifiers")));
         } finally {
@@ -844,7 +846,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_IDENTIFIERS.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("identifiers"));
         } finally {
@@ -862,7 +864,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
         } finally {
@@ -879,7 +881,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
         } finally {
@@ -897,7 +899,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
         } finally {
@@ -915,7 +917,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(LISTS_PATH)));
+            verify(getRequestedFor(urlEqualTo(LISTS_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
         } finally {
@@ -932,7 +934,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(LISTS_PATH)));
+            verify(getRequestedFor(urlEqualTo(LISTS_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
         } finally {
@@ -950,7 +952,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
         } finally {
@@ -967,7 +969,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
         } finally {
@@ -986,7 +988,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             String jsonPayload = response.getEntity(String.class);
             assertThat(jsonPayload, not(containsJsonProperty("identifiers")));
@@ -1005,7 +1007,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("identifiers")));
         } finally {
@@ -1023,7 +1025,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_IDENTIFIERS.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("identifiers"));
         } finally {
@@ -1040,7 +1042,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             String jsonPayload = response.getEntity(String.class);
             assertThat(jsonPayload, not(containsJsonProperty("identifiers")));
@@ -1060,7 +1062,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .get(ClientResponse.class);
 
         try {
-            verify(getRequestedFor(urlMatching(LISTS_PATH)));
+            verify(getRequestedFor(urlEqualTo(LISTS_PATH)));
             assertThat(response.getStatus(), is(200));
             String jsonPayload = response.getEntity(String.class);
             assertThat(jsonPayload, not(containsJsonProperty("publishReference")));
@@ -1140,7 +1142,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("openingXML")));
         } finally {
@@ -1158,7 +1160,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
         } finally {
@@ -1176,7 +1178,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(CONTENT_PREVIEW_PATH)));
+            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
         } finally {
@@ -1193,7 +1195,7 @@ public class ApiPolicyComponentHappyPathsTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("openingXML")));
         } finally {
@@ -1211,7 +1213,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlMatching(ENRICHED_CONTENT_PATH)));
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
         } finally {
@@ -1248,7 +1250,7 @@ public class ApiPolicyComponentHappyPathsTest {
     }
 
     private void stubForRichContentWithYouTubeVideo() {
-		stubFor(WireMock.get(urlEqualTo(CONTENT_PATH_2)).willReturn(
+		stubFor(WireMock.get(urlPathEqualTo(CONTENT_PATH_2)).willReturn(
 				aResponse()
 						.withBody(RICH_CONTENT_JSON)
 						.withHeader("Content-Type", MediaType.APPLICATION_JSON)
