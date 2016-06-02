@@ -96,6 +96,14 @@ public class BodyProcessingFieldTransformerFactoryTest {
     }
 
     @Test
+    public void shouldRemoveInlineVideosAndStripOutSurroundingTag(){
+        String original = "<body><p>He sheltered there.</p>\n<p><ft-content data-embedded=\"true\" type=\"http://www.ft.com/ontology/content/MediaResource\" url=\"http://api.ft.com/content/807a95c5-87c3-3aee-9239-387f6dc32a60\"></ft-content></p>\n<p>“I saw bodies everywhere.”</p>\n\n\n\n</body>";
+        String expected = "<body><p>He sheltered there.</p>\n<p>“I saw bodies everywhere.”</p>\n\n\n\n</body>" ;
+
+        checkTransformation(original, expected);
+    }
+
+    @Test
     public void shouldRetainInlineArticleReferences(){
         String original = "<body><p>He sheltered there.</p>\n<p><ft-content type=\"http://www.ft.com/ontology/content/Article\" url=\"https://api.ft.com/content/b4456c3a-6a6a-11e4-8fca-00144feabdc1\">article title</ft-content></p>\n<p>“I saw bodies everywhere.”</p>\n\n\n\n</body>";
 
