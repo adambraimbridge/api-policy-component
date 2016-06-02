@@ -13,13 +13,13 @@ import com.ft.bodyprocessing.xml.eventhandlers.XMLEventHandlerRegistry;
 import com.ft.up.apipolicy.transformer.xmlhandler.AttributeValue;
 import com.ft.up.apipolicy.transformer.xmlhandler.StripIfSpecificAttributes;
 
-class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry {
+public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry {
 
     private static final String IMAGE_SET_CLASS_URI = "http://www.ft.com/ontology/content/ImageSet";
     private static final String MEDIA_RESOURCE_CLASS_URI = "http://www.ft.com/ontology/content/MediaResource";
     private static final String FT_CONTENT = "ft-content";
 
-    BodyTransformationXMLEventRegistry() {
+    public BodyTransformationXMLEventRegistry() {
 
         /* default is to keep events but leave content, including "body" tags - anything not configured below will be handled via this */
         registerDefaultEventHandler(new RetainXMLEventHandler());
