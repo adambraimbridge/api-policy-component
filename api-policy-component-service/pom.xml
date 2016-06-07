@@ -126,7 +126,7 @@
         <dependency>
           <groupId>com.github.tomakehurst</groupId>
           <artifactId>wiremock</artifactId>
-          <version>1.53</version>
+          <version>1.48</version>
           <scope>test</scope>
           <exclusions>
             <exclusion>
