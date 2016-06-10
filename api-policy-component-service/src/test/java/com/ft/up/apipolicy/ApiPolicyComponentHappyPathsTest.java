@@ -1,51 +1,20 @@
 package com.ft.up.apipolicy;
 
-import static com.ft.up.apipolicy.JsonConverter.JSON_MAP_TYPE;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static io.dropwizard.testing.junit.ConfigOverride.config;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import io.dropwizard.testing.junit.DropwizardAppRule;
+
 import org.apache.commons.io.IOUtils;
 import org.fest.util.Strings;
 import org.hamcrest.Description;
@@ -58,6 +27,44 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
+import io.dropwizard.testing.junit.DropwizardAppRule;
+
+import static com.ft.up.apipolicy.JsonConverter.JSON_MAP_TYPE;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+
 /**
  * ApiPolicyComponentTest
  *
@@ -68,29 +75,25 @@ public class ApiPolicyComponentHappyPathsTest {
     public static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
 
     public static final String EXAMPLE_PATH = "/example";
-    private static final int SOME_PORT = (int)(Math.random() * 10000) + 40000;
-
     public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
-
     public static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
-
     public static final String CONTENT_PREVIEW_PATH = "/content-preview/bcafca32-5bc7-343f-851f-fd6d3514e694";
-
     public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15";
     public static final String FOR_BRAND = "&forBrand=";
     public static final String NOT_FOR_BRAND = "&notForBrand=";
-
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
-
     public static final String SUGGEST_PATH = "/suggest";
-
-    public static final String LISTS_PATH = "/lists/9125b25e-8305-11e5-8317-6f9588949b85";
-
+    public static final String QUERY_PARAM_NAME = "curatedTopStoriesFor";
+    public static final String QUERY_PARAM_VALUE = "f9c5eaed-d7e1-47f1-b6a0-470c9e26ab0e";
+    public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
+    public static final String EXAMPLE_TRANSACTION_ID = "010101";
+    private static final int SOME_PORT = (int) (Math.random() * 10000) + 40000;
+    private static final String LIST_UUID = "9125b25e-8305-11e5-8317-6f9588949b85";
+    private static final String LISTS_BASE_PATH = "/lists";
+    public static final String LISTS_PATH = LISTS_BASE_PATH + "/" + LIST_UUID;
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentHappyPathsTest.class);
-
     private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
-
     private static final String CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
@@ -102,7 +105,6 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"identifierValue\": \"220322\"\n" +
                 "}]" +
             "}";
-
     private static final String ENRICHED_CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
@@ -116,7 +118,6 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"brands\": [ ],\n" +
                 "\"annotations\": [ ]" +
             "}";
-
 	private static final String RICH_CONTENT_JSON = "{" +
 				"\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
 				"\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
@@ -125,7 +126,6 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"identifierValue\": \"220322\"\n" +
                 "}]" +
 			"}";
-
     private static final String CONTENT_WITH_IMAGE_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
@@ -137,7 +137,6 @@ public class ApiPolicyComponentHappyPathsTest {
                     "\"id\": \"http://www.ft.com/content/273563f3-95a0-4f00-8966-6973c0111923\"" +
                 "}" +
             "}";
-
     private static final String CONTENT_WITH_COMMENTS_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
@@ -149,17 +148,14 @@ public class ApiPolicyComponentHappyPathsTest {
                     "\"enabled\": true" +
                 "}" +
             "}";
-
 	private static final String SUGGEST_REQUEST_JSON =
 	        "{"
 	        + "\"body\": \"Test content\""
 	        + "}";
-
     private static final String SUGGEST_RESPONSE_JSON =
             "{"
             + "\"suggestions\": [ ]"
             + "}";
-
     private static final String LISTS_JSON =
             "{" +
                 "\"id\": \"http://api.ft.com/things/9125b25e-8305-11e5-8317-6f9588949b85\", " +
@@ -169,51 +165,58 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"publishReference\": \"tid_vcxz08642\" " +
             "}";
-    public static final String RICH_CONTENT_KEY = "INCLUDE_RICH_CONTENT";
-    public static final String EXAMPLE_TRANSACTION_ID = "010101";
     private static final String COMMENTS_JSON_PROPERTY = "comments";
     private static final String INCLUDE_COMMENTS_X_POLICY_VALUE = "INCLUDE_COMMENTS";
-
-    @Rule
-    public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
-
-    @Rule
-    public DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
-            ApiPolicyApplication.class,
-            resourceFilePath("config-junit.yml"),
-            config("varnish.primaryNodes",
-                    String.format("localhost:%d:%d, localhost:%d:%d",
-                            SOME_PORT, SOME_PORT +1,
-                            SOME_PORT + 2, SOME_PORT + 3 )
-            )
-    );
-
-
     private static final String NOTIFICATIONS_RESPONSE_TEMPLATE = "{" +
             "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\", " +
             "\"notifications\": [ %s ] " +
             "}";
-
     private static final String NOTIFICATIONS = "{ \"type\": \"http://www.ft.com/thing/ThingChangeType/UPDATE\", " +
             "\"id\": \"http://www.ft.com/thing/a1d6ca52-f9aa-407e-b682-03052dea7e25\", " +
             "\"apiUrl\": \"http://int.api.ft.com/content/a1d6ca52-f9aa-407e-b682-03052dea7e25\", " +
             "\"publishReference\": \"tid_AbCd1203\", " +
             "\"lastModified\": \"2015-12-13T17:04:54.636Z\"" +
             " } ";
-
     private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", NOTIFICATIONS);
     private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND, "");
     private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND, "");
     private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
             FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND, "");
-
-    private Client client;
-    private ObjectMapper objectMapper;
-
+    @Rule
+    public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
+    @Rule
+    public DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
+            ApiPolicyApplication.class,
+            resourceFilePath("config-junit.yml"),
+            config("varnish.primaryNodes",
+                    String.format("localhost:%d:%d, localhost:%d:%d",
+                            SOME_PORT, SOME_PORT + 1,
+                            SOME_PORT + 2, SOME_PORT + 3)
+            )
+    );
     int leasedConnectionsBeforeForContent = 0;
     int leasedConnectionsBeforeForNotifications = 0;
     int leasedConnectionsBeforeForEnrichedContent = 0;
     int leasedConnectionsBeforeForOther = 0;
+    private Client client;
+    private ObjectMapper objectMapper;
+
+    public static String resourceFilePath(String resourceClassPathLocation) {
+
+        File file = null;
+
+        try {
+
+            file = new File(Resources.getResource(resourceClassPathLocation).toURI());
+            return file.getAbsolutePath();
+
+        } catch (Exception e) {
+            if (file != null) {
+                throw new RuntimeException(file.toString(), e);
+            }
+            throw new RuntimeException(e);
+        }
+    }
 
     @Before
     public void setup() {
@@ -238,8 +241,6 @@ public class ApiPolicyComponentHappyPathsTest {
         assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
         WireMock.reset();
     }
-
-
 
     @Test
     public void shouldAllowUnknownRequestsThrough() {
@@ -315,7 +316,6 @@ public class ApiPolicyComponentHappyPathsTest {
             response.close();
         }
     }
-
 
     @Test
     public void shouldGetTheContentWithExtraWebUrlField() throws IOException {
@@ -485,7 +485,6 @@ public class ApiPolicyComponentHappyPathsTest {
 
     }
 
-
     @Test
     public void givenListedPoliciesFASTFT_CONTENT_ONLYCommaEXCLUDE_FASTFT_CONTENTShouldProcessBothAsNormal() throws IOException {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
@@ -608,7 +607,6 @@ public class ApiPolicyComponentHappyPathsTest {
         }
     }
 
-
 	@Test
 	public void givenRICH_CONTENTIsOnIShouldReceiveRichContent() {
 		URI uri = fromFacade(CONTENT_PATH_2).build();
@@ -633,7 +631,6 @@ public class ApiPolicyComponentHappyPathsTest {
 			response.close();
 		}
 	}
-
 
 	@Test
 	public void givenRICH_CONTENTIsOffIShouldNotReceiveRichContent() {
@@ -763,7 +760,6 @@ public class ApiPolicyComponentHappyPathsTest {
         }
     }
 
-
     @Test
     public void shouldRemoveCommentsFromJsonForEnrichedContentEndpoint() {
         final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
@@ -887,7 +883,6 @@ public class ApiPolicyComponentHappyPathsTest {
         }
     }
 
-
     @Test
     public void shouldRemoveLastModifiedFromJsonForContentForPreview() throws Exception {
         final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
@@ -918,6 +913,26 @@ public class ApiPolicyComponentHappyPathsTest {
             verify(getRequestedFor(urlMatching(LISTS_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldForwardListsCallWithQueryParameters() throws Exception {
+
+        final URI uri = fromFacade(LISTS_BASE_PATH, ImmutableMap.of(QUERY_PARAM_NAME, (Object) QUERY_PARAM_VALUE)).build();
+        stubFor(WireMock.get(urlPathEqualTo(LISTS_BASE_PATH))
+                .withQueryParam(QUERY_PARAM_NAME, equalTo(QUERY_PARAM_VALUE))
+                .willReturn(aResponse().withBody(LISTS_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlPathMatching(LISTS_BASE_PATH)));
+            assertThat(response.getStatus(), is(200));
+            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
         } finally {
             response.close();
         }
@@ -974,8 +989,6 @@ public class ApiPolicyComponentHappyPathsTest {
             response.close();
         }
     }
-
-
 
     @Test
     public void shouldRemoveIdentifiersFromJsonAndAddWebUrlForContent() {
@@ -1266,21 +1279,13 @@ public class ApiPolicyComponentHappyPathsTest {
         return UriBuilder.fromPath(path).host("localhost").port(policyComponent.getLocalPort()).scheme("http");
     }
 
-    public static String resourceFilePath(String resourceClassPathLocation) {
-
-        File file = null;
-
-        try {
-
-            file = new File(Resources.getResource(resourceClassPathLocation).toURI());
-            return file.getAbsolutePath();
-
-        } catch (Exception e) {
-            if(file!=null) {
-                throw new RuntimeException(file.toString(), e);
-            }
-            throw new RuntimeException(e);
+    private UriBuilder fromFacade(String path, final Map<String, Object> queryParams) {
+        final UriBuilder uriBuilder = UriBuilder.fromPath(path).host("localhost").port(policyComponent.getLocalPort()).scheme("http");
+        for (String parameterName : queryParams.keySet()) {
+            uriBuilder.queryParam(parameterName, queryParams.get(parameterName));
         }
+        return uriBuilder;
+
     }
 
     private void assertWebUrl(Map<String, Object> result, String webUrl) {
