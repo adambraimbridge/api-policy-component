@@ -4,7 +4,7 @@ apiPolicyComponent:
   adminPort: 8081
 
 readApi:
-  host: semantic-reader-app-01-pr-uk-t.svc.ft.com
+  host: ftapp07722-lvpr-uk-t.osb.ft.com
   port: 8080
   adminPort: 8081
 
