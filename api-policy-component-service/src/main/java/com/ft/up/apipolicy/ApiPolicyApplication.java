@@ -14,6 +14,7 @@ import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
+import com.ft.up.apipolicy.filters.MediaResourceNotificationsFilter;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
@@ -57,6 +58,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter stripNestedLastModifiedDate;
     private ApiFilter _unstable_stripOpeningXml;
     private ApiFilter linkValidationFilter;
+    private ApiFilter mediaResourceNotificationsFilter;
     
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -83,7 +85,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
                 identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", brandFilter, stripNestedProvenance, stripNestedLastModifiedDate));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", mediaResourceNotificationsFilter, brandFilter, stripNestedProvenance, stripNestedLastModifiedDate));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
                 identifiersFilter, webUrlAdder, linkValidationFilter, suppressMarkup, mainImageFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
@@ -135,6 +137,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 jsonTweaker);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
         linkValidationFilter = new LinkedContentValidationFilter();
+        mediaResourceNotificationsFilter = new MediaResourceNotificationsFilter();
     }
 
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
