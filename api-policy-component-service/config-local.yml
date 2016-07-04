@@ -1,9 +1,10 @@
+
 varnish:
   shortName: "semanticReaderVarnish"
   path: content/
   jerseyClient:
       timeout: 4000ms
-  primaryNodes: ["localhost:12030:12031"]
+  primaryNodes: ["localhost:9090:9091", "localhost:9090:9091"]
   secondaryNodes: null
 
 pipeline:
