@@ -78,7 +78,7 @@ public class ApiPolicyComponentHappyPathsTest {
     public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
     public static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String CONTENT_PREVIEW_PATH = "/content-preview/bcafca32-5bc7-343f-851f-fd6d3514e694";
-    public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15";
+    public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
     public static final String FOR_BRAND = "&forBrand=";
     public static final String NOT_FOR_BRAND = "&notForBrand=";
     public static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";

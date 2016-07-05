@@ -38,12 +38,10 @@ public class RequestHandler {
     }
 
     public Response handleRequest(HttpServletRequest request, UriInfo uriInfo) {
-
-
         MutableRequest mutableRequest = translator.translateFrom(request);
 
         String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath();
-        MutableResponse response = null;
+        MutableResponse response;
         try {
             response = handleRequest(mutableRequest, pathPart);
         } catch (ClientHandlerException che) {
