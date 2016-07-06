@@ -18,6 +18,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.inOrder;
@@ -114,7 +115,7 @@ public class MediaResourceNotificationsFilterTest {
     }
 
     @Test
-    public void testThatForEmptyLinksArrayReturnedBodySameAsStrippedResponseBody() {
+    public void testThatForResponseWithEmptyLinksArrayTypeParamsInURLsAreStripped() {
         MultivaluedMap<String, String> params = mock(MultivaluedMap.class);
         when(request.getQueryParameters()).thenReturn(params);
 
@@ -130,7 +131,7 @@ public class MediaResourceNotificationsFilterTest {
     }
 
     @Test
-    public void testThatForHappyResponseReturnedBodySameAsStrippedResponseBody() {
+    public void testThatForHappyResponseTypeParamsInURLsAreStripped() {
         MultivaluedMap<String, String> params = mock(MultivaluedMap.class);
         when(request.getQueryParameters()).thenReturn(params);
 
@@ -141,5 +142,19 @@ public class MediaResourceNotificationsFilterTest {
         MutableResponse returned = filter.processRequest(request, chain);
 
         assertThat("", returned.getEntityAsString(), is(STRIPPED_SUCCESS_RESPONSE));
+    }
+
+    @Test
+    public void testThatMediaResourceTypeQueryParamIsDisallowedWhenNoIncludeMediaResourcePolicyIsPresent() throws Exception {
+        when(request.policyIs(Policy.INCLUDE_MEDIARESOURCE)).thenReturn(false);
+        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+        params.putSingle("type", "mediaResource");
+        when(request.getQueryParameters()).thenReturn(params);
+        when(chain.callNextFilter(request)).thenReturn(successResponse);
+
+        filter.processRequest(request, chain);
+
+        verify(chain).callNextFilter(request);
+        assertThat(params.get("type"), equalTo(Collections.singletonList("article")));
     }
 }
