@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -362,8 +363,8 @@ public class ApiPolicyComponentHappyPathsTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND
-                + NOT_FOR_BRAND + FASTFT_BRAND;
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8")
+                + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
 
         stubForNotifications(url, FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
 
@@ -444,7 +445,7 @@ public class ApiPolicyComponentHappyPathsTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND;
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
 
         stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
 
@@ -467,7 +468,7 @@ public class ApiPolicyComponentHappyPathsTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
 
-        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + FASTFT_BRAND;
+        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
 
         stubForNotifications(url, NOT_FASTFT_NOTIFICATIONS_JSON);
 
@@ -491,8 +492,8 @@ public class ApiPolicyComponentHappyPathsTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri  = sinceSomeDateFromFacade();
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + FASTFT_BRAND
-                + NOT_FOR_BRAND + FASTFT_BRAND;
+        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8")
+                + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
 
         stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
 

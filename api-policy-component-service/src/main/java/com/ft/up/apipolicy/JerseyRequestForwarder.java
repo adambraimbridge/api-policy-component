@@ -3,6 +3,8 @@ package com.ft.up.apipolicy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
@@ -46,7 +48,11 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
         for(String parameterName : request.getQueryParameters().keySet()) {
             for(String value : request.getQueryParameters().get(parameterName)) {
-                builder.queryParam(parameterName, value);
+                try {
+                    builder.queryParam(parameterName, URLEncoder.encode(value, "UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    throw new ForwarderException(e);
+                }
                 LOGGER.debug("Sending Parameter: {}={}",parameterName,value);
             }
         }
