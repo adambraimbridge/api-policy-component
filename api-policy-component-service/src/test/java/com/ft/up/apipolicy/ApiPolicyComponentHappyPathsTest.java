@@ -170,7 +170,8 @@ public class ApiPolicyComponentHappyPathsTest {
     private static final String INCLUDE_COMMENTS_X_POLICY_VALUE = "INCLUDE_COMMENTS";
     private static final String NOTIFICATIONS_RESPONSE_TEMPLATE = "{" +
             "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\", " +
-            "\"notifications\": [ %s ] " +
+            "\"notifications\": [ %s ], " +
+            "\"links\": [] " +
             "}";
     private static final String NOTIFICATIONS = "{ \"type\": \"http://www.ft.com/thing/ThingChangeType/UPDATE\", " +
             "\"id\": \"http://www.ft.com/thing/a1d6ca52-f9aa-407e-b682-03052dea7e25\", " +
