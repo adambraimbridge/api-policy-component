@@ -59,7 +59,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter _unstable_stripOpeningXml;
     private ApiFilter linkValidationFilter;
     private ApiFilter mediaResourceNotificationsFilter;
-    
+
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
     }
@@ -137,7 +137,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 jsonTweaker);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
         linkValidationFilter = new LinkedContentValidationFilter();
-        mediaResourceNotificationsFilter = new MediaResourceNotificationsFilter();
+        mediaResourceNotificationsFilter = new MediaResourceNotificationsFilter(jsonTweaker);
     }
 
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
