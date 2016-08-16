@@ -40,6 +40,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
     private static final String MAIN_IMAGE_JSON_PROPERTY = "mainImage";
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
+    private static final String ALT_TITLES_JSON_PROPERTY = "alternativeTitles";
     private static final String COMMENTS_JSON_PROPERTY = "comments";
     private static final String PROVENANCE_JSON_PROPERTY = "publishReference";
     private static final String LAST_MODIFIED_JSON_PROPERTY = "lastModified";
@@ -47,6 +48,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     
     private ApiFilter mainImageFilter;
     private ApiFilter identifiersFilter;
+    private ApiFilter alternativeTitlesFilter;
     private ApiFilter stripCommentsFields;
     private ApiFilter removeCommentsFieldRegardlessOfPolicy;
     private ApiFilter stripProvenance;
@@ -80,15 +82,15 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
-                identifiersFilter, webUrlAdder, linkValidationFilter, suppressMarkup, mainImageFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
-                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, suppressMarkup, mainImageFilter, alternativeTitlesFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", mediaResourceNotificationsFilter, brandFilter, stripNestedProvenance, stripNestedLastModifiedDate));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
-                identifiersFilter, webUrlAdder, linkValidationFilter, suppressMarkup, mainImageFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists", stripProvenance, stripLastModifiedDate));
 
@@ -125,6 +127,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         mainImageFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, MAIN_IMAGE_JSON_PROPERTY, Policy.INCLUDE_RICH_CONTENT);
         identifiersFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, IDENTIFIERS_JSON_PROPERTY, Policy.INCLUDE_IDENTIFIERS);
+        alternativeTitlesFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ALT_TITLES_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
         stripCommentsFields = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
         removeCommentsFieldRegardlessOfPolicy = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
         stripProvenance = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
