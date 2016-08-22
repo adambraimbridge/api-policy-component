@@ -78,7 +78,6 @@ public class ApiPolicyComponentHappyPathsTest {
     public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
     public static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
-    public static final String CONTENT_PREVIEW_PATH = "/content-preview/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
     public static final String FOR_BRAND = "&forBrand=";
     public static final String NOT_FOR_BRAND = "&notForBrand=";
@@ -101,6 +100,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
                 "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
                 "\"openingXML\" : \"<body>a video</body>\",\n" +
+                "\"alternativeTitles\" : {},\n" +
                 "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"identifiers\": [{\n" +
                 "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
@@ -112,6 +112,7 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
                 "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
                 "\"openingXML\" : \"<body>a video</body>\",\n" +
+                "\"alternativeTitles\" : {},\n" +
                 "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"identifiers\": [{\n" +
                 "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
@@ -128,28 +129,6 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"identifierValue\": \"220322\"\n" +
                 "}]" +
 			"}";
-    private static final String CONTENT_WITH_IMAGE_JSON =
-            "{" +
-                "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"identifiers\": [{\n" +
-                    "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-                    "\"identifierValue\": \"220322\"\n" +
-                "}]," +
-                "\"mainImage\": {" +
-                    "\"id\": \"http://www.ft.com/content/273563f3-95a0-4f00-8966-6973c0111923\"" +
-                "}" +
-            "}";
-    private static final String CONTENT_WITH_COMMENTS_JSON =
-            "{" +
-                "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
-                "\"identifiers\": [{\n" +
-                    "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
-                    "\"identifierValue\": \"220322\"\n" +
-                "}]," +
-                "\"comments\": {" +
-                    "\"enabled\": true" +
-                "}" +
-            "}";
 	private static final String SUGGEST_REQUEST_JSON =
 	        "{"
 	        + "\"body\": \"Test content\""
@@ -167,8 +146,6 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"publishReference\": \"tid_vcxz08642\" " +
             "}";
-    private static final String COMMENTS_JSON_PROPERTY = "comments";
-    private static final String INCLUDE_COMMENTS_X_POLICY_VALUE = "INCLUDE_COMMENTS";
     private static final String NOTIFICATIONS_RESPONSE_TEMPLATE = "{" +
             "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\", " +
             "\"notifications\": [ %s ], " +
@@ -661,251 +638,6 @@ public class ApiPolicyComponentHappyPathsTest {
 	}
 
     @Test
-    public void shouldRemoveMainImageFromJson() {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("mainImage")));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveMainImageInJsonWhenPolicyIncludeRichContent() {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlPathEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("mainImage"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveCommentsFromJsonForContentEndpoint() {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveMainImageInJsonWhenPolicyIncludeRichContentForPreview() {
-        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_IMAGE_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("mainImage"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldKeepCommentsFromJsonForPreviewContentEndpoint() {
-        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty(COMMENTS_JSON_PROPERTY));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveCommentsFromJsonForPreviewContentEndpointForPolicy() {
-        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveCommentsFromJsonForEnrichedContentEndpoint() {
-        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveCommentsInJsonForContentEndpointWhenPolicyIncludeRichContent() {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty(COMMENTS_JSON_PROPERTY)));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveCommentsInJsonForEnrichedContentEndpointWhenPolicyIncludeRichContent() {
-        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_WITH_COMMENTS_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, INCLUDE_COMMENTS_X_POLICY_VALUE)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty(COMMENTS_JSON_PROPERTY));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveIdentifiersFromJsonForContent() {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
-                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("identifiers")));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveIdentifiersInJsonWhenPolicyIncludeIdentifiersForContent() throws Exception {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_IDENTIFIERS.getHeaderValue())
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("identifiers"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveLastModifiedInJsonWhenPolicyIncludeIsPresentForContent() throws Exception {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveLastModifiedFromJsonForContent() throws Exception {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveLastModifiedFromJsonForContentForPreview() throws Exception {
-        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
     public void shouldLeaveLastModifiedInJsonWhenPolicyIncludeIsPresentForLists() throws Exception {
         final URI uri = fromFacade(LISTS_PATH).build();
         stubFor(WireMock.get(urlEqualTo(LISTS_PATH)).willReturn(aResponse().withBody(LISTS_JSON)
@@ -961,42 +693,7 @@ public class ApiPolicyComponentHappyPathsTest {
     }
 
     @Test
-    public void shouldLeaveLastModifiedInJsonWhenPolicyIncludeIsPresentForEnrichedContent() throws Exception {
-        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveLastModifiedFromJsonForEnrichedContent() throws Exception {
-        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveIdentifiersFromJsonAndAddWebUrlForContent() {
+    public void shouldAddWebUrlForContent() {
         final URI uri = fromFacade(CONTENT_PATH).build();
         stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -1007,7 +704,6 @@ public class ApiPolicyComponentHappyPathsTest {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             String jsonPayload = response.getEntity(String.class);
-            assertThat(jsonPayload, not(containsJsonProperty("identifiers")));
             assertThat(jsonPayload, containsJsonProperty("webUrl"));
         } finally {
             response.close();
@@ -1015,42 +711,7 @@ public class ApiPolicyComponentHappyPathsTest {
     }
 
     @Test
-    public void shouldRemoveIdentifiersFromJsonForEnrichedContent() {
-        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("identifiers")));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveIdentifiersInJsonWhenPolicyIncludeIdentifiersForEnrichedContent() throws Exception {
-        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_IDENTIFIERS.getHeaderValue())
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("identifiers"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveIdentifiersFromJsonAndAddWebUrlForEnrichedContent() {
+    public void shouldAddWebUrlForEnrichedContent() {
         final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
         stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -1061,7 +722,6 @@ public class ApiPolicyComponentHappyPathsTest {
             verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
             String jsonPayload = response.getEntity(String.class);
-            assertThat(jsonPayload, not(containsJsonProperty("identifiers")));
             assertThat(jsonPayload, containsJsonProperty("webUrl"));
         } finally {
             response.close();
@@ -1144,94 +804,6 @@ public class ApiPolicyComponentHappyPathsTest {
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "id"));
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "apiUrl"));
             assertThat(jsonPayload, containsJsonProperty("requestUrl"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveOpeningXMLFromJsonForContent() throws Exception {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("openingXML")));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveOpeningXMLFromJsonForContentWhenPolicyIsInternalUnstable() throws Exception {
-        final URI uri = fromFacade(CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveOpeningXMLFromJsonForContentPreviewWhenPolicyIsInternalUnstable() throws Exception {
-        final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(CONTENT_PREVIEW_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldRemoveOpeningXMLFromJsonForEnrichedContent() throws Exception {
-        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("openingXML")));
-        } finally {
-            response.close();
-        }
-    }
-
-    @Test
-    public void shouldLeaveOpeningXMLFromJsonForEnrichedContentWhenPolicyIsInternalUnstable() throws Exception {
-        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        stubFor(WireMock.get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
-                .get(ClientResponse.class);
-        try {
-            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("openingXML"));
         } finally {
             response.close();
         }
