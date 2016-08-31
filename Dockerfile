@@ -17,7 +17,8 @@ EXPOSE 8080 8081
 
 CMD exec java -Ddw.server.applicationConnectors[0].port=8080 \
          -Ddw.server.adminConnectors[0].port=8081 \
-         -Ddw.varnish.primaryNodes=$READ_ENDPOINT \
+         -Ddw.varnish.primaryNodes=$READ_ENDPOINT \      
+         -Ddw.varnish.jerseyClient.timeout=$JERSEY_TIMEOUT_MS \
          -Ddw.checkingVulcanHealth=true \
          -Ddw.metrics.reporters[0].host=$GRAPHITE_HOST \
          -Ddw.metrics.reporters[0].port=$GRAPHITE_PORT \
