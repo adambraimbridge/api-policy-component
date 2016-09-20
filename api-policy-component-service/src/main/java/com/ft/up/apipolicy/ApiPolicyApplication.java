@@ -94,6 +94,10 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists", stripProvenance, stripLastModifiedDate));
 
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/concordances.*", "concordances", new ApiFilter[]{}));
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/things.*", "things", new ApiFilter[]{}));
+
         // DEFAULT CASE: Just forward it
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/.*", "other", new ApiFilter[]{}));
 
