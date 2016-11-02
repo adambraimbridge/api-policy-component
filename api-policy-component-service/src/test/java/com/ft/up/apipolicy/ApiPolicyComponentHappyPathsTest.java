@@ -63,6 +63,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -77,6 +78,7 @@ public class ApiPolicyComponentHappyPathsTest {
     public static final String EXAMPLE_PATH = "/example";
     public static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
+    public static final String CONTENT_PATH_3 = "/content/e3b60ad0-acda-11e2-a7c4-002128161462";
     public static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
     public static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
     public static final String FOR_BRAND = "&forBrand=";
@@ -107,6 +109,19 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"identifierValue\": \"220322\"\n" +
                 "}]" +
             "}";
+    private static final String CONTENT_JSON_3 =
+            "{" +
+                    "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+                    "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
+                    "\"openingXML\" : \"<body>a video</body>\",\n" +
+                    "\"alternativeTitles\" : {},\n" +
+                    "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
+                    "\"identifiers\": [{\n" +
+                    "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                    "\"identifierValue\": \"220322\"\n" +
+                    "}],\n" +
+                    "\"canBeSyndicated\": \"no\"" +
+                    "}";
     private static final String ENRICHED_CONTENT_JSON =
             "{" +
                 "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
@@ -203,6 +218,7 @@ public class ApiPolicyComponentHappyPathsTest {
         stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(WireMock.post(urlEqualTo(SUGGEST_PATH)).willReturn(aResponse().withBody(SUGGEST_RESPONSE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(WireMock.get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        stubFor(WireMock.get(urlPathEqualTo(CONTENT_PATH_3)).willReturn(aResponse().withBody(CONTENT_JSON_3).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
         this.client = Client.create();
         objectMapper = new ObjectMapper();
@@ -310,6 +326,35 @@ public class ApiPolicyComponentHappyPathsTest {
 
             assertWebUrl(result, "http://www.ft.com/fastft/220322");
 
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldGetTheContentWithExtraSyndicationField() throws IOException {
+        URI uri  = fromFacade(CONTENT_PATH).build();
+        ClientResponse response = client
+                .resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertThat((String)result.get("canBeSyndicated"),is("verify"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldGetTheContentWithoutSyndicationField() throws IOException {
+        URI uri  = fromFacade(CONTENT_PATH_3).build();
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertFalse(result.containsKey("canBeSyndicated"));
         } finally {
             response.close();
         }
