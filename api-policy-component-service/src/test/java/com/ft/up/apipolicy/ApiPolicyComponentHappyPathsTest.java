@@ -146,6 +146,16 @@ public class ApiPolicyComponentHappyPathsTest {
                 "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                 "\"publishReference\": \"tid_vcxz08642\" " +
             "}";
+
+    private static final String LIST_NOTIFICATION_JSON =
+            "{" +
+                "\"id\": \"http://api.ft.com/things/9125b25e-8305-11e5-8317-6f9588949b85\", " +
+                "\"title\": \"Technology\", " +
+                "\"apiUrl\": \"http://test.api.ft.com/lists/a2f9e77a-62cb-11e5-9846-de406ccb37f2\", " +
+                "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
+                "\"publishReference\": \"tid_vcxz08642\" " +
+            "}";
+
     private static final String NOTIFICATIONS_RESPONSE_TEMPLATE = "{" +
             "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\", " +
             "\"notifications\": [ %s ], " +
@@ -162,6 +172,9 @@ public class ApiPolicyComponentHappyPathsTest {
     private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND, "");
     private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
             FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND, "");
+
+    private static final String LIST_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", LIST_NOTIFICATION_JSON);
+
     @Rule
     public WireMockRule wireMockForVarnish = new WireMockRule(SOME_PORT);
     @Rule
@@ -670,6 +683,28 @@ public class ApiPolicyComponentHappyPathsTest {
             verify(getRequestedFor(urlPathMatching(LISTS_BASE_PATH)));
             assertThat(response.getStatus(), is(200));
             assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldForwardListsNotificationsCall() throws Exception {
+
+        final URI uri = fromFacade(LISTS_BASE_PATH + "/notifications").build();
+        stubFor(WireMock.get(urlPathEqualTo(LISTS_BASE_PATH + "/notifications"))
+                .willReturn(aResponse().withBody(LIST_NOTIFICATIONS_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+        final ClientResponse response = client.resource(uri)
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlPathMatching(LISTS_BASE_PATH + "/notifications")));
+            String entity = response.getEntity(String.class);
+
+            assertThat(response.getStatus(), is(200));
+            assertThat(entity, not(containsJsonProperty("lastModified")));
+            assertThat(entity, not(containsJsonProperty("publishReference")));
         } finally {
             response.close();
         }

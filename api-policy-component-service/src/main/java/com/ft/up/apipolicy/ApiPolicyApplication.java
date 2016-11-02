@@ -92,7 +92,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
                 identifiersFilter, webUrlAdder, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/.*", "lists", stripProvenance, stripLastModifiedDate));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists", stripProvenance, stripLastModifiedDate));
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", stripNestedProvenance, stripNestedLastModifiedDate));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/concordances.*", "concordances", new ApiFilter[]{}));
