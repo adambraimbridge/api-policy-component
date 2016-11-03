@@ -7,9 +7,6 @@ import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.nio.charset.Charset;
 import java.util.HashSet;
@@ -17,20 +14,19 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class AddSyndicationTest {
 
     private AddSyndication filter = new AddSyndication(JsonConverter.testConverter(), Policy.INTERNAL_UNSTABLE);
-    private MutableRequest request;
-    @Mock private HttpPipelineChain mockChain;
+    private final HttpPipelineChain mockChain = mock(HttpPipelineChain.class);
 
     @Test
     public void shouldNotProcessErrorResponse() {
         final Set<String> policies = new HashSet<>();
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
-        request = new MutableRequest(policies, getClass().getSimpleName());
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final String responseBody = "{ \"message\" : \"TestError\" }";
         MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes());
         response.setStatus(500);
@@ -45,7 +41,7 @@ public class AddSyndicationTest {
     public void shouldNotProcessNotJSON() {
         final Set<String> policies = new HashSet<>();
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
-        request = new MutableRequest(policies, getClass().getSimpleName());
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final String responseBody = "{ \"bodyXML\": \"<body>Testing.</body>\" }";
         final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
         response.setStatus(200);
@@ -61,7 +57,7 @@ public class AddSyndicationTest {
     public void shouldHaveOriginalFieldIfPresentAndPolicy() {
         final Set<String> policies = new HashSet<>();
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
-        request = new MutableRequest(policies, getClass().getSimpleName());
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final String responseBody = "{ \"bodyXML\": \"<body>Testing.</body>\", \"canBeSyndicated\": \"yes\" }";
         final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
         response.setStatus(200);
@@ -75,7 +71,7 @@ public class AddSyndicationTest {
 
     @Test
     public void shouldHideOriginalFieldIfPresentButNotPolicy() {
-        request = new MutableRequest(new HashSet<String>(), getClass().getSimpleName());
+        final MutableRequest request = new MutableRequest(new HashSet<String>(), getClass().getSimpleName());
         final String responseBody = "{ \"bodyXML\": \"<body>Testing.</body>\", \"canBeSyndicated\": \"yes\" }";
         final String filteredResponseBody = "{\"bodyXML\":\"<body>Testing.</body>\"}";
         final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
@@ -92,7 +88,7 @@ public class AddSyndicationTest {
     public void shouldHaveFieldAddedIfMissingAndPolicy() {
         final Set<String> policies = new HashSet<>();
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
-        request = new MutableRequest(policies, getClass().getSimpleName());
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final String responseBody = "{ \"bodyXML\": \"<body>Testing.</body>\" }";
         final String filteredResponseBody = "{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"verify\"}";
         final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
@@ -107,7 +103,7 @@ public class AddSyndicationTest {
 
     @Test
     public void shouldNotIncludeIfMissingAndNotPolicy() {
-        request = new MutableRequest(new HashSet<String>(), getClass().getSimpleName());
+        final MutableRequest request = new MutableRequest(new HashSet<String>(), getClass().getSimpleName());
         final String responseBody = "{\"bodyXML\":\"<body>Testing.</body>\"}";
         final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
         response.setStatus(200);

@@ -13,6 +13,7 @@ import java.util.Map;
 public class AddSyndication implements ApiFilter {
 
     private static final String CAN_BE_SYNDICATED_KEY = "canBeSyndicated";
+    private static final String CAN_BE_SYNDICATED_VERIFY = "verify";
 
     private JsonConverter jsonConverter;
     private Policy policy;
@@ -31,7 +32,7 @@ public class AddSyndication implements ApiFilter {
             }
             final Map<String, Object> content = jsonConverter.readEntity(originalResponse);
             if (!content.containsKey(CAN_BE_SYNDICATED_KEY)) {
-                content.put(CAN_BE_SYNDICATED_KEY, "verify");
+                content.put(CAN_BE_SYNDICATED_KEY, CAN_BE_SYNDICATED_VERIFY);
                 jsonConverter.replaceEntity(originalResponse, content);
             }
             return originalResponse;
