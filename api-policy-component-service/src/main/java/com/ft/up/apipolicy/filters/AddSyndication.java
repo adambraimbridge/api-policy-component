@@ -10,6 +10,8 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
+import static javax.ws.rs.core.Response.Status.OK;
+
 public class AddSyndication implements ApiFilter {
 
     private static final String CAN_BE_SYNDICATED_KEY = "canBeSyndicated";
@@ -47,14 +49,6 @@ public class AddSyndication implements ApiFilter {
     }
 
     private boolean isEligibleForSyndicationField(final MutableResponse response) {
-        return !(isNotOKResponse(response) || isNotJson(response));
-    }
-
-    private boolean isNotOKResponse(final MutableResponse response) {
-        return Response.Status.OK.getStatusCode() != response.getStatus();
-    }
-
-    private boolean isNotJson(final MutableResponse response) {
-        return !jsonConverter.isJson(response);
+        return OK.getStatusCode() == response.getStatus() && jsonConverter.isJson(response);
     }
 }
