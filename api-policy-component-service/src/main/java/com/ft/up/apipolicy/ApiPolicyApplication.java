@@ -1,10 +1,5 @@
 package com.ft.up.apipolicy;
 
-import java.util.EnumSet;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import javax.servlet.DispatcherType;
-
 import com.ft.api.jaxrs.errors.RuntimeExceptionMapper;
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
@@ -31,7 +26,15 @@ import com.ft.up.apipolicy.resources.RequestHandler;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
+
 import com.sun.jersey.api.client.Client;
+
+import java.util.EnumSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import javax.servlet.DispatcherType;
+
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -150,9 +153,10 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
                                          String urlPattern, String instanceName, ApiFilter... filterChain) {
-        Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named(instanceName).build();
-        RequestForwarder requestForwarder = new JerseyRequestForwarder(client,configuration.getVarnish());
-        KnownEndpoint endpoint = new KnownEndpoint(urlPattern,
+        final Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named(instanceName).build();
+
+        final RequestForwarder requestForwarder = new JerseyRequestForwarder(client, configuration.getVarnish());
+        final KnownEndpoint endpoint = new KnownEndpoint(urlPattern,
                 new HttpPipeline(requestForwarder, filterChain));
         return endpoint;
     }
