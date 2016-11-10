@@ -1,27 +1,23 @@
 package com.ft.up.apipolicy;
 
-import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-
-import com.google.common.io.Resources;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.io.Resources;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-
+import io.dropwizard.testing.junit.DropwizardAppRule;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
-import java.net.URI;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
-
-import io.dropwizard.testing.junit.DropwizardAppRule;
+import java.io.File;
+import java.net.URI;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
@@ -38,10 +34,9 @@ import static org.junit.Assert.assertThat;
  *
  * @author sarah.wells
  */
-public class ApiPolicyComponentUnhappyPathsTest {
+public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest {
 
-    public static final String EXAMPLE_PATH = "/example";
-    private static final int SOME_PORT = (int) (Math.random() * 10000) + 40000;
+    private static final String EXAMPLE_PATH = "/example";
 
     private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
     private static final String ERROR_JSON = "{\"message\":\"Something went wrong\"}";
@@ -50,22 +45,20 @@ public class ApiPolicyComponentUnhappyPathsTest {
     private static final String UNSUPPORTED_REQUEST_EXCEPTION_JSON = "{\"message\":\"Unsupported request: path [/example] with method [POST].\"}";
 
     @Rule
-    public WireMockRule wireMockForVarnish1 = new WireMockRule(SOME_PORT);
-    @Rule
-    public WireMockRule wireMockForVarnish2 = new WireMockRule(SOME_PORT + 2);
+    public final WireMockClassRule wireMockForVarnish1 = WIRE_MOCK_1;
 
     @Rule
-    public DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
+    public final WireMockClassRule wireMockForVarnish2 = WIRE_MOCK_2;
+
+
+    @ClassRule
+    public static final DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
             resourceFilePath("config-junit.yml"),
-            config("varnish.primaryNodes",
-                    String.format("localhost:%d:%d, localhost:%d:%d",
-                            SOME_PORT, SOME_PORT + 1,
-                            SOME_PORT + 2, SOME_PORT + 3)
-            )
+            config("varnish.primaryNodes", primaryNodes)
     );
 
-    private Client client;
+    private final Client client = Client.create();
 
     private int leasedConnectionsBeforeForContent = 0;
     private int leasedConnectionsBeforeForNotifications = 0;
@@ -74,7 +67,6 @@ public class ApiPolicyComponentUnhappyPathsTest {
 
     @Before
     public void setup() {
-        this.client = Client.create();
         leasedConnectionsBeforeForContent = getLeasedConnections("content");
         leasedConnectionsBeforeForNotifications = getLeasedConnections("notifications");
         leasedConnectionsBeforeForEnrichedContent = getLeasedConnections("enrichedcontent");
@@ -83,14 +75,10 @@ public class ApiPolicyComponentUnhappyPathsTest {
 
     @After
     public void checkThatNumberOfLeasedConnectionsHaveNotChanged() {
-        try {
-            assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
-            assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
-            assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
-            assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
-        } finally {
-            WireMock.reset();
-        }
+        assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
+        assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
+        assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
+        assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
     }
 
 
