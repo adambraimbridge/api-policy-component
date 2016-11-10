@@ -1,4 +1,4 @@
-FROM up-registry.ft.com/coco/dropwizardbase
+FROM coco/dropwizardbase
 ADD .git/ /.git/
 ADD api-policy-component-service/ /api-policy-component-service/
 ADD pom.xml /
