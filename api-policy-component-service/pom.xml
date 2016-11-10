@@ -10,7 +10,6 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.ft.up.apipolicycomponent</groupId>
     <artifactId>api-policy-component-service</artifactId>
     <packaging>jar</packaging>
 
@@ -55,8 +54,6 @@
         <maven-resources-plugin.version>2.6</maven-resources-plugin.version>
         <maven-jar-plugin.version>2.3.2</maven-jar-plugin.version>
         <target-jdk>1.7</target-jdk>
-        <jaxrs.transaction-id-handling.version>2.4</jaxrs.transaction-id-handling.version>
-        <jaxrs.errorhandling.version>1.1.0</jaxrs.errorhandling.version>
     </properties>
 
 
@@ -98,9 +95,9 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.ft.jaxrs-error-handling</groupId>
-            <artifactId>jaxrs-error-handling-builder</artifactId>
-            <version>${jaxrs.errorhandling.version}</version>
+            <groupId>com.github.Financial-Times</groupId>
+            <artifactId>jax-rs-error-handling</artifactId>
+            <version>2.0.6</version>
         </dependency>
         <dependency>
             <groupId>com.github.Financial-Times</groupId>
@@ -118,9 +115,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.ft.bodyprocessing</groupId>
-            <artifactId>body-processing</artifactId>
-            <version>0.1.2</version>
+            <groupId>com.github.Financial-Times</groupId>
+            <artifactId>content-body-processing</artifactId>
+            <version>1.2.4</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
