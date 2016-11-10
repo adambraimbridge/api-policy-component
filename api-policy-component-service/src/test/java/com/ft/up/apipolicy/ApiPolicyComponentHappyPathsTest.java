@@ -57,6 +57,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -78,6 +79,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     private static final String EXAMPLE_PATH = "/example";
     private static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
     private static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
+    private static final String CONTENT_PATH_3 = "/content/e3b60ad0-acda-11e2-a7c4-002128161462";
     private static final String CONCEPT_PATH_REDIRECT = "/redirect/5561512e-1b45-4810-9448-961bc052a2df";
     private static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
     private static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
@@ -107,6 +109,19 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
                     "\"identifierValue\": \"220322\"\n" +
                     "}]" +
+                    "}";
+    private static final String CONTENT_JSON_3 =
+            "{" +
+                    "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+                    "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
+                    "\"openingXML\" : \"<body>a video</body>\",\n" +
+                    "\"alternativeTitles\" : {},\n" +
+                    "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
+                    "\"identifiers\": [{\n" +
+                    "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+                    "\"identifierValue\": \"220322\"\n" +
+                    "}],\n" +
+                    "\"canBeSyndicated\": \"no\"" +
                     "}";
     private static final String ENRICHED_CONTENT_JSON =
             "{" +
@@ -196,6 +211,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(post(urlEqualTo(SUGGEST_PATH)).willReturn(aResponse().withBody(SUGGEST_RESPONSE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        stubFor(get(urlPathEqualTo(CONTENT_PATH_3)).willReturn(aResponse().withBody(CONTENT_JSON_3).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
 //        leasedConnectionsBeforeForContent = getLeasedConnections("content");
 //        leasedConnectionsBeforeForNotifications = getLeasedConnections("notifications");
@@ -305,6 +321,37 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
             assertWebUrl(result, "http://www.ft.com/fastft/220322");
 
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldGetTheContentWithExtraSyndicationField() throws IOException {
+        URI uri  = fromFacade(CONTENT_PATH_3).build();
+        givenEverythingSetup();
+        ClientResponse response = client
+                .resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertThat((String)result.get("canBeSyndicated"),is("no"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void shouldGetTheContentWithoutSyndicationField() throws IOException {
+        URI uri  = fromFacade(CONTENT_PATH_3).build();
+        givenEverythingSetup();
+        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertFalse(result.containsKey("canBeSyndicated"));
         } finally {
             response.close();
         }
