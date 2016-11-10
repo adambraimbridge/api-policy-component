@@ -116,8 +116,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.Financial-Times</groupId>
-            <artifactId>content-body-processing</artifactId>
-            <version>1.2.4</version>
+            <artifactId>xml-content-transformation</artifactId>
+            <version>0.1.8</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
