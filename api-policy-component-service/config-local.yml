@@ -4,6 +4,9 @@ varnish:
   path: content/
   jerseyClient:
       timeout: 4000ms
+      connectionTimeout: 1s
+      keepAlive: 80s
+      timeToLive: 45s
   primaryNodes: ["localhost:9090:9091", "localhost:9090:9091"]
   secondaryNodes: null
 
