@@ -329,6 +329,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     @Test
     public void shouldGetTheContentWithExtraSyndicationField() throws IOException {
         URI uri  = fromFacade(CONTENT_PATH_3).build();
+        givenEverythingSetup();
         ClientResponse response = client
                 .resource(uri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
@@ -336,7 +337,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
             Map<String, Object> result = expectOKResponseWithJSON(response);
-            assertThat((String)result.get("canBeSyndicated"),is("verify"));
+            assertThat((String)result.get("canBeSyndicated"),is("no"));
         } finally {
             response.close();
         }
@@ -345,6 +346,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     @Test
     public void shouldGetTheContentWithoutSyndicationField() throws IOException {
         URI uri  = fromFacade(CONTENT_PATH_3).build();
+        givenEverythingSetup();
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
