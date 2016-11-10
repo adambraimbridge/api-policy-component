@@ -18,6 +18,43 @@
     <url>http://www.ft.com</url>
     <inceptionYear>2014</inceptionYear>
 
+    <repositories>
+        <repository>
+            <id>ft-snapshots</id>
+            <url>http://anthill.svc.ft.com:8081/nexus/content/groups/public-snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>ft-releases</id>
+            <url>http://anthill.svc.ft.com:8081/nexus/content/groups/public</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>ft-releases</id>
+            <url>http://anthill.svc.ft.com:8081/nexus/content/groups/public</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dw.version>0.7.0</dw.version>
