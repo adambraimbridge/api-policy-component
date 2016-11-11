@@ -1,4 +1,4 @@
-FROM coco/dropwizardbase:v16
+FROM coco/dropwizardbase:0.7.x-mvn333
 ADD .git/ /.git/
 ADD api-policy-component-service/ /api-policy-component-service/
 ADD pom.xml /
