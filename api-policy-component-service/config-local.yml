@@ -32,35 +32,25 @@ policyBrandsMapper:
                   - http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54
 
 server:
-
   applicationConnectors:
       - type: http
-        port: 20080
-
+        port: 8080
   adminConnectors:
       - type: http
-        port: 20082
-
+        port: 8081
   requestLog:
-
     appenders:
-
       - type: console
         logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
-
         # The timezone used to format dates. HINT: USE THE DEFAULT, UTC.
         timeZone: UTC
 
 logging:
-
   level: INFO
-
   loggers:
-    io.dropwizard: DEBUG
+    io.dropwizard: INFO
     com.ft.jerseyhttpwrapper.AttemptLogger: WARN
-
   appenders:
-
     - type: console
       logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
 
