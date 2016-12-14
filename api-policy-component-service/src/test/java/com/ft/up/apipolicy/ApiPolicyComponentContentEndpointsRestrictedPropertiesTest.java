@@ -73,7 +73,9 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                 {"publishReference", Policy.INCLUDE_PROVENANCE, true, true, true},
                 {"mainImage", Policy.INCLUDE_RICH_CONTENT, true, true, true},
                 {"openingXML", Policy.INTERNAL_UNSTABLE, true, true, true},
-                {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true}
+                {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true},
+                {"alternativeImages", Policy.INTERNAL_UNSTABLE, true, true, true},
+                {"alternativeStandfirst", Policy.INTERNAL_UNSTABLE, true, true, true}
         });
     }
 

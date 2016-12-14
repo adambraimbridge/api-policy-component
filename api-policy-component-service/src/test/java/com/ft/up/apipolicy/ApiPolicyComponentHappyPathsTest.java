@@ -104,6 +104,8 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
+                    "\"alternativeImages\": {},\n" +
+                    "\"alternativeStandfirst\": {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"identifiers\": [{\n" +
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
@@ -116,6 +118,8 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
+                    "\"alternativeImages\": {},\n" +
+                    "\"alternativeStandfirst\": {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"identifiers\": [{\n" +
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
@@ -129,6 +133,8 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\", " +
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
+                    "\"alternativeImages\": {},\n" +
+                    "\"alternativeStandfirst\": {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"identifiers\": [{\n" +
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
