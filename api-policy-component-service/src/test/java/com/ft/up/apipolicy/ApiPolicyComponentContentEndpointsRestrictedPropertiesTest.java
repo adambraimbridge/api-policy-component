@@ -86,6 +86,8 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                     "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
+                    "\"alternativeImages\" : {},\n" +
+                    "\"alternativeStandfirst\" : {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"publishReference\": \"tid_junit_publishref\",\n" +
                     "\"identifiers\": [{\n" +
