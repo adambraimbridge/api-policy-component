@@ -1,3 +1,11 @@
+machine:
+   services:
+      - docker
+
 dependencies:
    override:
       - echo "None needed."
+
+test:
+   post:
+      - docker build .
