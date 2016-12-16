@@ -73,7 +73,9 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                 {"publishReference", Policy.INCLUDE_PROVENANCE, true, true, true},
                 {"mainImage", Policy.INCLUDE_RICH_CONTENT, true, true, true},
                 {"openingXML", Policy.INTERNAL_UNSTABLE, true, true, true},
-                {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true}
+                {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true},
+                {"alternativeImages", Policy.INTERNAL_UNSTABLE, true, true, true},
+                {"alternativeStandfirst", Policy.INTERNAL_UNSTABLE, true, true, true}
         });
     }
 
@@ -84,6 +86,8 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                     "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
+                    "\"alternativeImages\" : {},\n" +
+                    "\"alternativeStandfirst\" : {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"publishReference\": \"tid_junit_publishref\",\n" +
                     "\"identifiers\": [{\n" +
