@@ -105,7 +105,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
                     "\"alternativeImages\": {},\n" +
-                    "\"alternativeStandfirst\": {},\n" +
+                    "\"alternativeStandfirsts\": {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"identifiers\": [{\n" +
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
@@ -119,7 +119,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
                     "\"alternativeImages\": {},\n" +
-                    "\"alternativeStandfirst\": {},\n" +
+                    "\"alternativeStandfirsts\": {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"identifiers\": [{\n" +
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
@@ -134,7 +134,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
                     "\"alternativeImages\": {},\n" +
-                    "\"alternativeStandfirst\": {},\n" +
+                    "\"alternativeStandfirsts\": {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"identifiers\": [{\n" +
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
