@@ -75,7 +75,7 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                 {"openingXML", Policy.INTERNAL_UNSTABLE, true, true, true},
                 {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true},
                 {"alternativeImages", Policy.INTERNAL_UNSTABLE, true, true, true},
-                {"alternativeStandfirst", Policy.INTERNAL_UNSTABLE, true, true, true}
+                {"alternativeStandfirsts", Policy.INTERNAL_UNSTABLE, true, true, true}
         });
     }
 
@@ -87,7 +87,7 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
                     "\"alternativeImages\" : {},\n" +
-                    "\"alternativeStandfirst\" : {},\n" +
+                    "\"alternativeStandfirsts\" : {},\n" +
                     "\"lastModified\": \"2015-12-13T17:04:54.636Z\",\n" +
                     "\"publishReference\": \"tid_junit_publishref\",\n" +
                     "\"identifiers\": [{\n" +
