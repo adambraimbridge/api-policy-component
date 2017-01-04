@@ -46,7 +46,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
     private static final String ALT_TITLES_JSON_PROPERTY = "alternativeTitles";
     private static final String ALT_IMAGES_JSON_PROPERTY = "alternativeImages";
-    private static final String ALT_STANDFIRST_JSON_PROPERTY = "alternativeStandfirst";
+    private static final String ALT_STANDFIRST_JSON_PROPERTY = "alternativeStandfirsts";
     private static final String COMMENTS_JSON_PROPERTY = "comments";
     private static final String PROVENANCE_JSON_PROPERTY = "publishReference";
     private static final String LAST_MODIFIED_JSON_PROPERTY = "lastModified";
@@ -56,7 +56,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter identifiersFilter;
     private ApiFilter alternativeTitlesFilter;
     private ApiFilter alternativeImagesFilter;
-    private ApiFilter alternativeStandfirstFilter;
+    private ApiFilter alternativeStandfirstsFilter;
     private ApiFilter stripCommentsFields;
     private ApiFilter removeCommentsFieldRegardlessOfPolicy;
     private ApiFilter stripProvenance;
@@ -91,15 +91,15 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
-                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
-                identifiersFilter, webUrlAdder, addSyndication, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, addSyndication, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", mediaResourceNotificationsFilter, brandFilter, stripNestedProvenance, stripNestedLastModifiedDate));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
-                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists", stripProvenance, stripLastModifiedDate));
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", stripNestedProvenance, stripNestedLastModifiedDate));
@@ -143,7 +143,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         identifiersFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, IDENTIFIERS_JSON_PROPERTY, Policy.INCLUDE_IDENTIFIERS);
         alternativeTitlesFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ALT_TITLES_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
         alternativeImagesFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ALT_IMAGES_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
-        alternativeStandfirstFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ALT_STANDFIRST_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
+        alternativeStandfirstsFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ALT_STANDFIRST_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
         stripCommentsFields = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
         removeCommentsFieldRegardlessOfPolicy = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
         stripProvenance = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
