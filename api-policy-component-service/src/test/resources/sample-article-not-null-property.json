@@ -1,0 +1,17 @@
+{
+  "id": "http://www.ft.com/thing/273563f3-95a0-4f00-8966-6973c0111923",
+  "type": "http://www.ft.com/ontology/content/Article",
+  "bodyXML": "<body><p>Some day!</p></body>",
+  "title": "Ring",
+  "byline": "Test article",
+  "publishedDate": "2015-02-03T12:58:00.000Z",
+  "identifiers": [
+    {
+      "authority": "http://www.ft.com/ontology/origin/FTComMethode",
+      "identifierValue": "273563f3-95a0-4f00-8966-6973c0111923"
+    }
+  ],
+  "requestUrl": "http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923",
+  "brands": ["http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923"],
+  "firstPublishedDate": "2016-12-11T22:50:00.000Z"
+}

@@ -36,4 +36,12 @@ public class SuppressJsonPropertyFilter implements ApiFilter {
         final Map<String, Object> content = jsonConverter.readEntity(response);
         return content.containsKey(jsonProperty);
     }
+
+    protected JsonConverter getJsonConverter() {
+        return jsonConverter;
+    }
+
+    protected String getJsonProperty() {
+        return jsonProperty;
+    }
 }
