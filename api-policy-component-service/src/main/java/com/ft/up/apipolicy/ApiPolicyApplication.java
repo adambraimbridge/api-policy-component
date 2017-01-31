@@ -51,6 +51,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private static final String PROVENANCE_JSON_PROPERTY = "publishReference";
     private static final String LAST_MODIFIED_JSON_PROPERTY = "lastModified";
     private static final String OPENING_XML_JSON_PROPERTY = "openingXML";
+    private static final String ACCESS_LEVEL_JSON_PROPERTY = "accessLevel";
 
     private ApiFilter mainImageFilter;
     private ApiFilter identifiersFilter;
@@ -70,6 +71,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter _unstable_stripOpeningXml;
     private ApiFilter linkValidationFilter;
     private ApiFilter mediaResourceNotificationsFilter;
+    private ApiFilter addAccessLevel;
+    private ApiFilter removeAccessFieldRegardlessOfPolicy;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -91,15 +94,15 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
-                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml, removeAccessFieldRegardlessOfPolicy));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
-                identifiersFilter, webUrlAdder, addSyndication, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, addSyndication, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml, removeAccessFieldRegardlessOfPolicy));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", mediaResourceNotificationsFilter, brandFilter, stripNestedProvenance, stripNestedLastModifiedDate));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
-                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
+                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml, addAccessLevel));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists", stripProvenance, stripLastModifiedDate));
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", stripNestedProvenance, stripNestedLastModifiedDate));
@@ -157,6 +160,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
         linkValidationFilter = new LinkedContentValidationFilter();
         mediaResourceNotificationsFilter = new MediaResourceNotificationsFilter(jsonTweaker);
+        addAccessLevel = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
+        removeAccessFieldRegardlessOfPolicy = new SuppressJsonPropertyFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY);
     }
 
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
