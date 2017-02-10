@@ -11,8 +11,8 @@ import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.AddSyndication;
 import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
 import com.ft.up.apipolicy.filters.MediaResourceNotificationsFilter;
+import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
-import com.ft.up.apipolicy.filters.RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.SuppressJsonPropertyFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
@@ -31,6 +31,8 @@ import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 import com.sun.jersey.api.client.Client;
 
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -64,9 +66,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter webUrlAdder;
     private ApiFilter addSyndication;
     private ApiFilter brandFilter;
-    private ApiFilter stripNestedProvenance;
     private ApiFilter stripLastModifiedDate;
-    private ApiFilter stripNestedLastModifiedDate;
     private ApiFilter _unstable_stripOpeningXml;
     private ApiFilter linkValidationFilter;
     private ApiFilter mediaResourceNotificationsFilter;
@@ -96,13 +96,13 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
                 identifiersFilter, webUrlAdder, addSyndication, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", mediaResourceNotificationsFilter, brandFilter, stripNestedProvenance, stripNestedLastModifiedDate));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", mediaResourceNotificationsFilter, brandFilter, notificationsFilter()));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
                 identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists", stripProvenance, stripLastModifiedDate));
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", stripNestedProvenance, stripNestedLastModifiedDate));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", notificationsFilter()));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/concordances.*", "concordances", new ApiFilter[]{}));
 
@@ -147,9 +147,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         stripCommentsFields = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
         removeCommentsFieldRegardlessOfPolicy = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
         stripProvenance = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
-        stripNestedProvenance = new RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
         stripLastModifiedDate =  new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, LAST_MODIFIED_JSON_PROPERTY, Policy.INCLUDE_LAST_MODIFIED_DATE);
-        stripNestedLastModifiedDate = new RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter(jsonTweaker, LAST_MODIFIED_JSON_PROPERTY, Policy.INCLUDE_LAST_MODIFIED_DATE);
         _unstable_stripOpeningXml = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, OPENING_XML_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(), jsonTweaker);
@@ -158,7 +156,23 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         linkValidationFilter = new LinkedContentValidationFilter();
         mediaResourceNotificationsFilter = new MediaResourceNotificationsFilter(jsonTweaker);
     }
+    
+    private ApiFilter notificationsFilter() {
+      Map<String,Policy> notificationsJsonFilters = new HashMap<>();
+      // whitelisted (no policy required)
+      notificationsJsonFilters.put("$.requestUrl", null);
+      notificationsJsonFilters.put("$.links[*].*", null);
+      notificationsJsonFilters.put("$.notifications[*].id", null);
+      notificationsJsonFilters.put("$.notifications[*].type", null);
+      notificationsJsonFilters.put("$.notifications[*].apiUrl", null);
+      // restricted (policy required)
+      notificationsJsonFilters.put("$.notifications[*].lastModified", Policy.INCLUDE_LAST_MODIFIED_DATE);
+      notificationsJsonFilters.put("$.notifications[*].notificationDate", Policy.INCLUDE_LAST_MODIFIED_DATE);
+      notificationsJsonFilters.put("$.notifications[*].publishReference", Policy.INCLUDE_PROVENANCE);
 
+      return new PolicyBasedJsonFilter(notificationsJsonFilters);
+    }
+    
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
                                          String urlPattern, String instanceName, ApiFilter... filterChain) {
         final Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named(instanceName).build();
