@@ -59,6 +59,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -918,11 +919,15 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     }
 
     @Test
-    public void givenPolicyINTERNAL_UNSTABLEShouldReturnAccessLevelForEnrichedContent () throws IOException {
+    public void givenPolicyINTERNAL_UNSTABLEShouldReturnAccessLevelForEnrichedContent() throws IOException {
         givenEverythingSetup();
 
         stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH))
-                .willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+                .willReturn(aResponse()
+                        .withBody(ENRICHED_CONTENT_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withHeader("X-FT-Access-Level", "subscribed")
+                        .withStatus(200)));
 
         URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
 
@@ -936,6 +941,36 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
             Map<String, Object> result = expectOKResponseWithJSON(response);
             assertEquals(result.get("accessLevel"), "subscribed");
+            assertEquals(response.getHeaders().getFirst("X-FT-Access-Level"), "subscribed");
+
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void givenNoPolicyShouldNotReturnAccessLevelForEnrichedContent() throws IOException {
+        givenEverythingSetup();
+
+        stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH))
+                .willReturn(aResponse()
+                        .withBody(ENRICHED_CONTENT_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withHeader("X-FT-Access-Level", "subscribed")
+                        .withStatus(200)));
+
+        URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+
+        ClientResponse response = client
+                .resource(uri)
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH)));
+
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertNull(result.get("accessLevel"));
+            assertNull(response.getHeaders().getFirst("X-FT-Access-Level"));
 
         } finally {
             response.close();
