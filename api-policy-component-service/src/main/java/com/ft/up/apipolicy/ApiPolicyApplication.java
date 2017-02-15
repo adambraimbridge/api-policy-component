@@ -120,15 +120,11 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-        Client healthcheckClient;
-        if (configuration.isCheckingVulcanHealth()) {
-            healthcheckClient = ResilientClientBuilder.in(environment).usingDNS().named("healthcheck-client").build();
-        } else {
-            healthcheckClient = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named("healthcheck-client").build();
-        }
+        Client healthcheckClient = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named("healthcheck-client").build();
+
         environment.healthChecks()
                 .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity ", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
+                        new ReaderNodesHealthCheck("Reader API Connectivity ", configuration.getVarnish(), healthcheckClient));
     }
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {

@@ -15,9 +15,6 @@ public class ApiPolicyConfiguration extends Configuration {
     @JsonProperty @Valid
     private EndpointConfiguration varnish;
 
-    @JsonProperty("checkingVulcanHealth")
-    private boolean checkingVulcanHealth = false;
-
     @NotNull
     @JsonProperty("pipeline") @Valid
     private PipelineConfiguration pipelineConfiguration;
@@ -38,7 +35,4 @@ public class ApiPolicyConfiguration extends Configuration {
         return policyBrandsResolver;
     }
 
-    public boolean isCheckingVulcanHealth() {
-        return checkingVulcanHealth;
-    }
 }

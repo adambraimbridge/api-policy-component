@@ -14,35 +14,22 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
     private final EndpointConfiguration endpoint;
     private final Client client;
-    private boolean checkVulcanHealth = false;
 
-    public ReaderNodesHealthCheck(final String name, final EndpointConfiguration endpoint, final Client client, boolean checkVulcanHealth) {
+    public ReaderNodesHealthCheck(final String name, final EndpointConfiguration endpoint, final Client client) {
         super(name);
         this.endpoint = endpoint;
         this.client = client;
-        this.checkVulcanHealth = checkVulcanHealth;
     }
 
     @Override
     protected AdvancedResult checkAdvanced() throws Exception {
 
-        URI healthcheckUri;
-
-        if (checkVulcanHealth) {
-            healthcheckUri = UriBuilder
-                    .fromPath("/v2/status")
-                    .host(endpoint.getHost())
-                    .port(endpoint.getAdminPort())
-                    .scheme("http")
-                    .build();
-        } else {
-            healthcheckUri = UriBuilder
+        URI healthcheckUri = UriBuilder
                     .fromPath("/build-info")
                     .host(endpoint.getHost())
                     .port(endpoint.getPort())
                     .scheme("http")
                     .build();
-        }
 
         ClientResponse response = null;
         try {
