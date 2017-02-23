@@ -12,17 +12,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class MediaResourceNotificationsFilter implements ApiFilter {
+public class NotificationsTypeFilter implements ApiFilter {
 
     private static final String REQUEST_URL_KEY = "requestUrl";
     private static final String LINKS_KEY = "links";
     private static final String HREF_KEY = "href";
     private static final String TYPE_KEY = "type";
 
-    private JsonConverter converter;
 
-    public MediaResourceNotificationsFilter(JsonConverter converter) {
+    private JsonConverter converter;
+    private Policy policy;
+
+    public NotificationsTypeFilter(JsonConverter converter, Policy policy) {
         this.converter = converter;
+        this.policy = policy;
     }
 
     @Override
@@ -53,9 +56,11 @@ public class MediaResourceNotificationsFilter implements ApiFilter {
 
     private void addQueryParams(MutableRequest request) {
         List<String> typeParams = new ArrayList<>();
-        typeParams.add("article");
-        if (request.policyIs(Policy.INCLUDE_MEDIARESOURCE)) {
-            typeParams.add("mediaResource");
+        if (request.policyIs(policy)) {
+            typeParams.add("all");
+        }
+        else {
+            typeParams.add("article");
         }
         request.getQueryParameters().put(TYPE_KEY, typeParams);
     }

@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MediaResourceNotificationsFilterTest {
+public class NotificationsTypeFilterTest {
 
     public final static String ERROR_RESPONSE = "{ \"message\" : \"Error\" }";
     public final static String SUCCESS_RESPONSE = "{ \"requestUrl\": \"http://example.org/content/notifications?since=2016-07-23T00:00:00.000Z&type=article&type=mediaResource\", \"links\": [ {\"href\": \"http://example.org/content/100?since=2016-07-23T00:00:00.000Z&type=article&type=mediaResource\", \"rel\" : \"next\"}] }";
@@ -36,7 +36,7 @@ public class MediaResourceNotificationsFilterTest {
 
     private final JsonConverter jsonConverter = JsonConverter.testConverter();
 
-    private MediaResourceNotificationsFilter filter = new MediaResourceNotificationsFilter(jsonConverter);
+    private NotificationsTypeFilter filter = new NotificationsTypeFilter(jsonConverter ,Policy.INTERNAL_UNSTABLE);
     private MutableRequest request = mock(MutableRequest.class);
     private HttpPipelineChain chain = mock(HttpPipelineChain.class);
     private MultivaluedMapImpl headers = new MultivaluedMapImpl();
@@ -57,7 +57,7 @@ public class MediaResourceNotificationsFilterTest {
     }
 
     @Test
-    public void testThatArticleTypeQueryParamIsAddedWhenNoIncludeMediaResourcePolicyIsPresent() throws Exception {
+    public void testThatArticleTypeQueryParamIsAddedWhenNoPolicyIsPresent() throws Exception {
         when(request.policyIs(Policy.INCLUDE_MEDIARESOURCE)).thenReturn(false);
         @SuppressWarnings("unchecked")
         MultivaluedMap<String, String> params = mock(MultivaluedMap.class);
@@ -72,8 +72,8 @@ public class MediaResourceNotificationsFilterTest {
     }
 
     @Test
-    public void testThatMediaResourceTypeQueryParamIsAddedWhenIncludeMediaResourcePolicyIsPresent() throws Exception {
-        when(request.policyIs(Policy.INCLUDE_MEDIARESOURCE)).thenReturn(true);
+    public void testThatMediaResourceTypeQueryParamIsAddedWhenPolicyIsPresent() throws Exception {
+        when(request.policyIs(Policy.INTERNAL_UNSTABLE)).thenReturn(true);
         @SuppressWarnings("unchecked")
         MultivaluedMap<String, String> params = mock(MultivaluedMap.class);
         when(request.getQueryParameters()).thenReturn(params);
@@ -82,20 +82,20 @@ public class MediaResourceNotificationsFilterTest {
         filter.processRequest(request, chain);
 
         InOrder inOrder = inOrder(chain, params);
-        inOrder.verify(params).put("type", Arrays.asList("article", "mediaResource"));
+        inOrder.verify(params).put("type", Arrays.asList("all"));
         inOrder.verify(chain).callNextFilter(request);
     }
 
     @Test
     public void testThatForNon200ResponseNoOtherInteractionHappens() {
-        when(request.policyIs(Policy.INCLUDE_MEDIARESOURCE)).thenReturn(true);
+        when(request.policyIs(Policy.INTERNAL_UNSTABLE)).thenReturn(true);
         MultivaluedMap<String, String> params = mock(MultivaluedMap.class);
         when(request.getQueryParameters()).thenReturn(params);
         when(chain.callNextFilter(request)).thenReturn(errorResponse);
 
         filter.processRequest(request, chain);
 
-        verify(request).policyIs(Policy.INCLUDE_MEDIARESOURCE);
+        verify(request).policyIs(Policy.INTERNAL_UNSTABLE);
         verify(request).getQueryParameters();
         verifyNoMoreInteractions(request);
     }
