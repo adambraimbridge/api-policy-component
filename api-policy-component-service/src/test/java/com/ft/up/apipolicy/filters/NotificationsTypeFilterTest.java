@@ -87,6 +87,21 @@ public class NotificationsTypeFilterTest {
     }
 
     @Test
+    public void testIncomingQueryParamsCannotOverwritePolicyRestriction() throws Exception {
+        when(request.policyIs(Policy.INTERNAL_UNSTABLE)).thenReturn(false);
+        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+        params.putSingle("type", "mediaResource");
+        when(request.getQueryParameters()).thenReturn(params);
+        when(chain.callNextFilter(request)).thenReturn(successResponse);
+
+        filter.processRequest(request, chain);
+
+        verify(chain).callNextFilter(request);
+        assertThat(params.get("type"), equalTo(Collections.singletonList("article")));
+    }
+
+
+    @Test
     public void testThatForNon200ResponseNoOtherInteractionHappens() {
         when(request.policyIs(Policy.INTERNAL_UNSTABLE)).thenReturn(true);
         MultivaluedMap<String, String> params = mock(MultivaluedMap.class);
@@ -144,17 +159,4 @@ public class NotificationsTypeFilterTest {
         assertThat("", returned.getEntityAsString(), is(STRIPPED_SUCCESS_RESPONSE));
     }
 
-    @Test
-    public void testThatMediaResourceTypeQueryParamIsDisallowedWhenNoIncludeMediaResourcePolicyIsPresent() throws Exception {
-        when(request.policyIs(Policy.INCLUDE_MEDIARESOURCE)).thenReturn(false);
-        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
-        params.putSingle("type", "mediaResource");
-        when(request.getQueryParameters()).thenReturn(params);
-        when(chain.callNextFilter(request)).thenReturn(successResponse);
-
-        filter.processRequest(request, chain);
-
-        verify(chain).callNextFilter(request);
-        assertThat(params.get("type"), equalTo(Collections.singletonList("article")));
-    }
 }
