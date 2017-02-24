@@ -10,7 +10,7 @@ import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.AddSyndication;
 import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
-import com.ft.up.apipolicy.filters.MediaResourceNotificationsFilter;
+import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertyFromArrayUnlessPolicyPresentFilter;
@@ -28,18 +28,15 @@ import com.ft.up.apipolicy.resources.RequestHandler;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
-
 import com.sun.jersey.api.client.Client;
-
-import java.util.EnumSet;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import javax.servlet.DispatcherType;
-
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+
+import javax.servlet.DispatcherType;
+import java.util.EnumSet;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
@@ -162,7 +159,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         addSyndication = new AddSyndication(jsonTweaker, Policy.INTERNAL_UNSTABLE);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
         linkValidationFilter = new LinkedContentValidationFilter();
-        mediaResourceNotificationsFilter = new MediaResourceNotificationsFilter(jsonTweaker);
+        mediaResourceNotificationsFilter = new NotificationsTypeFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE);
         accessLevelPropertyFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
         removeAccessFieldRegardlessOfPolicy = new SuppressJsonPropertyFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY);
         accessLevelHeaderFilter = new RemoveHeaderUnlessPolicyPresentFilter(ACCESS_LEVEL_HEADER, Policy.INTERNAL_UNSTABLE);
