@@ -25,7 +25,7 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
     protected AdvancedResult checkAdvanced() throws Exception {
 
         URI healthcheckUri = UriBuilder
-                    .fromPath("/build-info")
+                    .fromPath("/status")
                     .host(endpoint.getHost())
                     .port(endpoint.getPort())
                     .scheme("http")
