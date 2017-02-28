@@ -5,6 +5,8 @@ import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
+import com.ft.platform.dropwizard.DefaultGoodToGoChecker;
+import com.ft.platform.dropwizard.GoodToGoBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
@@ -81,6 +83,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     @Override
     public void initialize(final Bootstrap<ApiPolicyConfiguration> bootstrap) {
         bootstrap.addBundle(new AdvancedHealthCheckBundle());
+        bootstrap.addBundle(new GoodToGoBundle(new DefaultGoodToGoChecker()));
     }
 
     @Override
