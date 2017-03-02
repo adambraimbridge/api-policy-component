@@ -57,7 +57,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -125,7 +127,8 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
                     "\"identifierValue\": \"220322\"\n" +
                     "}],\n" +
-                    "\"canBeSyndicated\": \"no\"" +
+                    "\"canBeSyndicated\": \"no\",\n" +
+                    "\"accessLevel\":\"subscribed\"\n" +
                     "}";
     private static final String ENRICHED_CONTENT_JSON =
             "{" +
@@ -141,7 +144,8 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"identifierValue\": \"220322\"\n" +
                     "}]," +
                     "\"brands\": [ ],\n" +
-                    "\"annotations\": [ ]" +
+                    "\"annotations\": [ ], \n" +
+                    "\"accessLevel\": \"subscribed\"\n" +
                     "}";
     private static final String RICH_CONTENT_JSON = "{" +
             "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
@@ -909,6 +913,82 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .get(ClientResponse.class);
         try {
             assertThat(response.getStatus(), equalTo(301));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void givenPolicyINTERNAL_UNSTABLEShouldReturnAccessLevelForEnrichedContent() throws IOException {
+        givenEverythingSetup();
+
+        stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH))
+                .willReturn(aResponse()
+                        .withBody(ENRICHED_CONTENT_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withHeader("X-FT-Access-Level", "subscribed")
+                        .withStatus(200)));
+
+        URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+
+        ClientResponse response = client
+                .resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH)));
+
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertEquals(result.get("accessLevel"), "subscribed");
+            assertEquals(response.getHeaders().getFirst("X-FT-Access-Level"), "subscribed");
+
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void givenNoPolicyShouldNotReturnAccessLevelForEnrichedContent() throws IOException {
+        givenEverythingSetup();
+
+        stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH))
+                .willReturn(aResponse()
+                        .withBody(ENRICHED_CONTENT_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withHeader("X-FT-Access-Level", "subscribed")
+                        .withStatus(200)));
+
+        URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+
+        ClientResponse response = client
+                .resource(uri)
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH)));
+
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertNull(result.get("accessLevel"));
+            assertNull(response.getHeaders().getFirst("X-FT-Access-Level"));
+
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void givenAnyPolicyShouldNotGetAccessLevelFieldForContent() throws IOException {
+        givenEverythingSetup();
+        URI uri  = fromFacade(CONTENT_PATH_3).build();
+        ClientResponse response = client
+                .resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
+                .get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertFalse(result.containsKey("accessLevel"));
         } finally {
             response.close();
         }
