@@ -7,18 +7,7 @@ import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
-import com.ft.up.apipolicy.filters.AddSyndication;
-import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
-import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
-import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
-import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
-import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.SuppressJsonPropertyFilter;
-import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
-import com.ft.up.apipolicy.filters.SyndicationDistributionFilter;
-import com.ft.up.apipolicy.filters.WebUrlCalculator;
+import com.ft.up.apipolicy.filters.*;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -35,11 +24,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 import javax.servlet.DispatcherType;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
@@ -53,6 +38,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private static final String LAST_MODIFIED_JSON_PROPERTY = "lastModified";
     private static final String OPENING_XML_JSON_PROPERTY = "openingXML";
     private static final String ACCESS_LEVEL_JSON_PROPERTY = "accessLevel";
+    private static final String CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY = "contains";
+    private static final String CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY = "containedIn";
     private static final String ACCESS_LEVEL_HEADER = "X-FT-Access-Level";
 
     private ApiFilter mainImageFilter;
@@ -75,6 +62,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter removeAccessFieldRegardlessOfPolicy;
     private ApiFilter accessLevelHeaderFilter;
     private ApiFilter syndicationDistributionFilter;
+    private ApiFilter contentPackageFilter;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -96,17 +84,65 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
-                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, removeCommentsFieldRegardlessOfPolicy, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml, removeAccessFieldRegardlessOfPolicy, syndicationDistributionFilter));
+                identifiersFilter,
+                webUrlAdder,
+                addSyndication,
+                linkValidationFilter,
+                suppressMarkup,
+                mainImageFilter,
+                alternativeTitlesFilter,
+                alternativeImagesFilter,
+                alternativeStandfirstsFilter,
+                removeCommentsFieldRegardlessOfPolicy,
+                stripProvenance,
+                stripLastModifiedDate,
+                _unstable_stripOpeningXml,
+                removeAccessFieldRegardlessOfPolicy,
+                syndicationDistributionFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
-                identifiersFilter, webUrlAdder, addSyndication, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml, removeAccessFieldRegardlessOfPolicy));
+                identifiersFilter,
+                webUrlAdder,
+                addSyndication,
+                suppressMarkup,
+                mainImageFilter,
+                alternativeTitlesFilter,
+                alternativeImagesFilter,
+                alternativeStandfirstsFilter,
+                stripCommentsFields,
+                stripProvenance,
+                stripLastModifiedDate,
+                _unstable_stripOpeningXml,
+                removeAccessFieldRegardlessOfPolicy));
 
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications", mediaResourceNotificationsFilter, brandFilter, notificationsFilter()));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
+                mediaResourceNotificationsFilter,
+                brandFilter,
+                notificationsFilter()));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
-                identifiersFilter, webUrlAdder, addSyndication, linkValidationFilter, suppressMarkup, mainImageFilter, alternativeTitlesFilter, alternativeImagesFilter, alternativeStandfirstsFilter, stripCommentsFields, stripProvenance, stripLastModifiedDate, _unstable_stripOpeningXml, accessLevelPropertyFilter, accessLevelHeaderFilter, syndicationDistributionFilter));
+                identifiersFilter,
+                webUrlAdder,
+                addSyndication,
+                linkValidationFilter,
+                suppressMarkup,
+                mainImageFilter,
+                alternativeTitlesFilter,
+                alternativeImagesFilter,
+                alternativeStandfirstsFilter,
+                stripCommentsFields,
+                stripProvenance,
+                stripLastModifiedDate,
+                _unstable_stripOpeningXml,
+                accessLevelPropertyFilter,
+                accessLevelHeaderFilter,
+                syndicationDistributionFilter,
+                contentPackageFilter));
 
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists", stripProvenance, stripLastModifiedDate));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists",
+                stripProvenance,
+                stripLastModifiedDate));
+
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", notificationsFilter()));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/concordances.*", "concordances", new ApiFilter[]{}));
@@ -164,6 +200,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         removeAccessFieldRegardlessOfPolicy = new SuppressJsonPropertyFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY);
         accessLevelHeaderFilter = new RemoveHeaderUnlessPolicyPresentFilter(ACCESS_LEVEL_HEADER, Policy.INTERNAL_UNSTABLE);
         syndicationDistributionFilter = new SyndicationDistributionFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE);
+        contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker,
+                Arrays.asList(CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY), Policy.INTERNAL_UNSTABLE);
     }
     
     private ApiFilter notificationsFilter() {
