@@ -38,29 +38,13 @@ import java.util.List;
 import java.util.Map;
 
 import static com.ft.up.apipolicy.JsonConverter.JSON_MAP_TYPE;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 /**
  * ApiPolicyComponentTest
@@ -145,7 +129,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "}]," +
                     "\"brands\": [ ],\n" +
                     "\"annotations\": [ ], \n" +
-                    "\"accessLevel\": \"subscribed\"\n" +
+                    "\"accessLevel\": \"subscribed\",\n" +
+                    "\"contains\": [\"http://api.ft.com/things/111192a7-1f0c-11e4-b0cb-b2227cce2b54\"],\n" +
+                    "\"containedIn\": \"http://api.ft.com/things/4c7592a7-1f0c-11e4-b0cb-b2227cce2b54\"\n" +
                     "}";
     private static final String RICH_CONTENT_JSON = "{" +
             "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
@@ -548,6 +534,40 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             response.close();
         }
 
+    }
+
+    @Test
+    public void givenPolicyINTERNAL_UNSTABLEShouldGetContentCollection() throws IOException {
+        givenEverythingSetup();
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        final ClientResponse response = client.resource(uri).header(HttpPipeline.POLICY_HEADER_NAME,  Policy.INTERNAL_UNSTABLE.getHeaderValue()).get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            String jsonPayload = response.getEntity(String.class);
+            assertThat(jsonPayload, containsJsonProperty("containedIn"));
+            assertThat(jsonPayload, containsJsonProperty("contains"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void givenNoINTERNAL_UNSTABLEPolicyShouldNotGetContentCollection() throws IOException {
+        givenEverythingSetup();
+        final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
+        stubFor(get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        final ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        try {
+            verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
+            assertThat(response.getStatus(), is(200));
+            String jsonPayload = response.getEntity(String.class);
+            assertThat(jsonPayload, not(containsJsonProperty("containedIn")));
+            assertThat(jsonPayload, not(containsJsonProperty("contains")));
+        } finally {
+            response.close();
+        }
     }
 
     @Test
