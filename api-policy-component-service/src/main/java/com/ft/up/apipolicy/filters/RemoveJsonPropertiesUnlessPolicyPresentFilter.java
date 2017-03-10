@@ -5,13 +5,11 @@ import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
-import java.util.List;
-
 public class RemoveJsonPropertiesUnlessPolicyPresentFilter extends SuppressJsonPropertiesFilter {
 
     private final Policy policy;
 
-    public RemoveJsonPropertiesUnlessPolicyPresentFilter(final JsonConverter jsonConverter, final List<String> jsonProperties, final Policy policy) {
+    public RemoveJsonPropertiesUnlessPolicyPresentFilter(final JsonConverter jsonConverter, final Policy policy, final String... jsonProperties) {
         super(jsonConverter, jsonProperties);
         this.policy = policy;
     }

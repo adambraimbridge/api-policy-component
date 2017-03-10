@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.anyInt;
@@ -30,7 +29,7 @@ public class SuppressJsonPropertiesFilterTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonConverter jsonConverter = new JsonConverter(objectMapper);
-    private final SuppressJsonPropertiesFilter removeJsonPropertiesUnlessPolicyPresentFilter = new SuppressJsonPropertiesFilter(jsonConverter, Arrays.asList("comments", "mainImage"));
+    private final SuppressJsonPropertiesFilter removeJsonPropertiesUnlessPolicyPresentFilter = new SuppressJsonPropertiesFilter(jsonConverter, "comments", "mainImage");
 
     @Test
     public void testFiltersJsonProperties() throws Exception {

@@ -6,6 +6,7 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +15,10 @@ public class SuppressJsonPropertiesFilter implements ApiFilter {
     private final JsonConverter jsonConverter;
     private final List<String> jsonProperties;
 
-    public SuppressJsonPropertiesFilter(final JsonConverter jsonConverter, final List<String> jsonProperties) {
+    public SuppressJsonPropertiesFilter(final JsonConverter jsonConverter, final String... jsonProperties) {
         this.jsonConverter = jsonConverter;
-        this.jsonProperties = jsonProperties;
+        this.jsonProperties = Arrays.asList(jsonProperties);
     }
-
     @Override
     public MutableResponse processRequest(final MutableRequest request, final HttpPipelineChain chain) {
         final MutableResponse response = chain.callNextFilter(request);

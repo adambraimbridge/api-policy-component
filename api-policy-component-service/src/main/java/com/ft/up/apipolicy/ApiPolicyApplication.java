@@ -15,8 +15,7 @@ import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.SuppressJsonPropertyFilter;
+import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.SyndicationDistributionFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
@@ -36,7 +35,6 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 import javax.servlet.DispatcherType;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -197,28 +195,27 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         JsonConverter jsonTweaker = new JsonConverter(environment.getObjectMapper());
         PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
 
-        mainImageFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, MAIN_IMAGE_JSON_PROPERTY, Policy.INCLUDE_RICH_CONTENT);
-        identifiersFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, IDENTIFIERS_JSON_PROPERTY, Policy.INCLUDE_IDENTIFIERS);
-        alternativeTitlesFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ALT_TITLES_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
-        alternativeImagesFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ALT_IMAGES_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
-        alternativeStandfirstsFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ALT_STANDFIRST_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
-        stripCommentsFields = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, COMMENTS_JSON_PROPERTY, Policy.INCLUDE_COMMENTS);
-        removeCommentsFieldRegardlessOfPolicy = new SuppressJsonPropertyFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
-        stripProvenance = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, PROVENANCE_JSON_PROPERTY, Policy.INCLUDE_PROVENANCE);
-        stripLastModifiedDate =  new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, LAST_MODIFIED_JSON_PROPERTY, Policy.INCLUDE_LAST_MODIFIED_DATE);
-        _unstable_stripOpeningXml = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, OPENING_XML_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
+        mainImageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INCLUDE_RICH_CONTENT, MAIN_IMAGE_JSON_PROPERTY);
+        identifiersFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INCLUDE_IDENTIFIERS, IDENTIFIERS_JSON_PROPERTY);
+        alternativeTitlesFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE, ALT_TITLES_JSON_PROPERTY);
+        alternativeImagesFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE, ALT_IMAGES_JSON_PROPERTY);
+        alternativeStandfirstsFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE, ALT_STANDFIRST_JSON_PROPERTY);
+        stripCommentsFields = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INCLUDE_COMMENTS, COMMENTS_JSON_PROPERTY);
+        removeCommentsFieldRegardlessOfPolicy = new SuppressJsonPropertiesFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
+        stripProvenance = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INCLUDE_PROVENANCE, PROVENANCE_JSON_PROPERTY);
+        stripLastModifiedDate =  new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INCLUDE_LAST_MODIFIED_DATE, LAST_MODIFIED_JSON_PROPERTY);
+        _unstable_stripOpeningXml = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE, OPENING_XML_JSON_PROPERTY);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(), jsonTweaker);
         addSyndication = new AddSyndication(jsonTweaker, Policy.INTERNAL_UNSTABLE);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
         linkValidationFilter = new LinkedContentValidationFilter();
         mediaResourceNotificationsFilter = new NotificationsTypeFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE);
-        accessLevelPropertyFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY, Policy.INTERNAL_UNSTABLE);
-        removeAccessFieldRegardlessOfPolicy = new SuppressJsonPropertyFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY);
+        accessLevelPropertyFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE, ACCESS_LEVEL_JSON_PROPERTY);
+        removeAccessFieldRegardlessOfPolicy = new SuppressJsonPropertiesFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY);
         accessLevelHeaderFilter = new RemoveHeaderUnlessPolicyPresentFilter(ACCESS_LEVEL_HEADER, Policy.INTERNAL_UNSTABLE);
         syndicationDistributionFilter = new SyndicationDistributionFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE);
-        contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker,
-                Arrays.asList(CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY), Policy.INTERNAL_UNSTABLE);
+        contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, Policy.INTERNAL_UNSTABLE, CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY);
     }
     
     private ApiFilter notificationsFilter() {

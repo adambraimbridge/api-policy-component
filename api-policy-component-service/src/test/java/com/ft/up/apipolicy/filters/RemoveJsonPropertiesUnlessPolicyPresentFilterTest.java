@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
 import static org.junit.Assert.assertFalse;
@@ -34,7 +33,7 @@ public class RemoveJsonPropertiesUnlessPolicyPresentFilterTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonConverter jsonConverter = new JsonConverter(objectMapper);
-    private final RemoveJsonPropertiesUnlessPolicyPresentFilter removeJsonPropertyUnlessPolicyPresentFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonConverter, Arrays.asList("mainImage", "comments"), INCLUDE_RICH_CONTENT);
+    private final RemoveJsonPropertiesUnlessPolicyPresentFilter removeJsonPropertyUnlessPolicyPresentFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonConverter, INCLUDE_RICH_CONTENT, "mainImage", "comments");
 
     @Test
     public void testFiltersJsonProperty() throws Exception {
