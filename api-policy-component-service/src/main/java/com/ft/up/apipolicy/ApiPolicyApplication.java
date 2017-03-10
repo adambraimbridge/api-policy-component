@@ -7,7 +7,19 @@ import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.filters.*;
+import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
+import com.ft.up.apipolicy.filters.AddSyndication;
+import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
+import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
+import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
+import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
+import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
+import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
+import com.ft.up.apipolicy.filters.RemoveJsonPropertyUnlessPolicyPresentFilter;
+import com.ft.up.apipolicy.filters.SuppressJsonPropertyFilter;
+import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
+import com.ft.up.apipolicy.filters.SyndicationDistributionFilter;
+import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -24,7 +36,12 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 import javax.servlet.DispatcherType;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 

@@ -22,7 +22,12 @@ import java.util.Arrays;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RemoveJsonPropertiesUnlessPolicyPresentFilterTest {
