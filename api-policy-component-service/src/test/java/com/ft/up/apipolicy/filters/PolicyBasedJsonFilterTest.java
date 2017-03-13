@@ -1,5 +1,6 @@
 package com.ft.up.apipolicy.filters;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,14 +12,20 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_CREATED;
+import static org.apache.http.HttpStatus.SC_NO_CONTENT;
+import static org.apache.http.HttpStatus.SC_OK;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class PolicyBasedJsonFilterTest {
@@ -27,6 +34,11 @@ public class PolicyBasedJsonFilterTest {
   private MutableRequest request = mock(MutableRequest.class);
   private HttpPipelineChain chain = mock(HttpPipelineChain.class);
   private MutableResponse response = new MutableResponse();
+  
+  @Before
+  public void setUp() {
+    response.setStatus(SC_OK);
+  }
   
   @Test
   public void thatPathMappedToNullPolicyIsWhitelisted() throws Exception {
@@ -70,6 +82,7 @@ public class PolicyBasedJsonFilterTest {
     
     byte[] entity = MAPPER.writer().writeValueAsBytes(object);
     response.setEntity(entity);
+    int expectedStatus = response.getStatus();
     
     when(chain.callNextFilter(request)).thenReturn(response);
     
@@ -80,9 +93,34 @@ public class PolicyBasedJsonFilterTest {
     
     MutableResponse actualResponse = f.processRequest(request, chain);
     
+    assertThat(actualResponse.getStatus(), equalTo(expectedStatus));
+    
     Map<String,Object> actual = MAPPER.readValue(actualResponse.getEntity(), JsonConverter.JSON_MAP_TYPE);
     Map<String,Object> expected = Collections.singletonMap("foo", "bar");
     assertThat(actual, equalTo(expected));
+  }
+  
+  @Test
+  public void that2XXStatusIsMapped() throws Exception {
+    response.setStatus(SC_CREATED);
+    thatPathMappedToAbsentPolicyIsRemoved();
+  }
+  
+  @Test
+  public void that204StatusIsHandled() throws Exception {
+    response.setStatus(SC_NO_CONTENT);
+    
+    when(chain.callNextFilter(request)).thenReturn(response);
+    
+    PolicyBasedJsonFilter f = new PolicyBasedJsonFilter(Collections.singletonMap("$.foo", null));
+    
+    MutableResponse actualResponse = f.processRequest(request, chain);
+    
+    assertThat(actualResponse.getStatus(), equalTo(SC_NO_CONTENT));
+    // accept null or an empty array as the response entity
+    assertTrue(Arrays.equals(
+        Optional.ofNullable(actualResponse.getEntity()).orElse(new byte[0]),
+        new byte[0]));
   }
   
   @Test
@@ -243,5 +281,23 @@ public class PolicyBasedJsonFilterTest {
     Map<String,Object> actualSecond = (Map)foo.get(1);
     Map<String,Object> expectedSecond = Collections.singletonMap("bar", "red");
     assertThat(actualSecond, equalTo(expectedSecond));
+  }
+  
+  @Test
+  public void thatFilterIsTransparentForErrorResponse() throws Exception {
+    String raw = "foobar";
+    response.setEntity(raw.getBytes());
+    response.setStatus(SC_BAD_REQUEST);
+    
+    when(chain.callNextFilter(request)).thenReturn(response);
+    
+    PolicyBasedJsonFilter f = new PolicyBasedJsonFilter(Collections.singletonMap("$.foo", Policy.INTERNAL_UNSTABLE));
+    
+    MutableResponse actualResponse = f.processRequest(request, chain);
+    
+    assertThat(actualResponse.getStatus(), equalTo(SC_BAD_REQUEST));
+    
+    String actual = new String(actualResponse.getEntity());
+    assertThat(actual, equalTo(raw));
   }
 }

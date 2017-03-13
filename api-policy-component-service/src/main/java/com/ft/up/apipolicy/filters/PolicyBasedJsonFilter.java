@@ -1,5 +1,7 @@
 package com.ft.up.apipolicy.filters;
 
+import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,12 +49,18 @@ public class PolicyBasedJsonFilter implements ApiFilter {
   @Override
   public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
     final MutableResponse response = chain.callNextFilter(request);
-
-    final Map<String, Object> content = jsonConverter.readEntity(response);
-    allowValue(content, "$", request.getPolicies());
-    jsonConverter.replaceEntity(response, content);
+    int status = response.getStatus();
+    if (isSuccess(status) && (status != SC_NO_CONTENT)) {
+      final Map<String, Object> content = jsonConverter.readEntity(response);
+      allowValue(content, "$", request.getPolicies());
+      jsonConverter.replaceEntity(response, content);
+    }
     
     return response;
+  }
+  
+  private boolean isSuccess(int httpStatus) {
+    return (httpStatus / 100) == 2;
   }
   
   private boolean isAllowedPath(String path, Set<String> policies) {
