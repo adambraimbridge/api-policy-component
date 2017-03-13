@@ -134,7 +134,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"annotations\": [ ], \n" +
                     "\"accessLevel\": \"subscribed\",\n" +
                     "\"contains\": [\"http://api.ft.com/things/111192a7-1f0c-11e4-b0cb-b2227cce2b54\"],\n" +
-                    "\"containedIn\": \"http://api.ft.com/things/4c7592a7-1f0c-11e4-b0cb-b2227cce2b54\"\n" +
+                    "\"containedIn\": [\"http://api.ft.com/things/4c7592a7-1f0c-11e4-b0cb-b2227cce2b54\"]\n" +
                     "}";
     private static final String RICH_CONTENT_JSON = "{" +
             "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
