@@ -14,7 +14,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -22,14 +21,19 @@ import java.nio.file.Paths;
 
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RemoveJsonPropertyUnlessPolicyPresentFilterTest {
+public class RemoveJsonPropertiesUnlessPolicyPresentFilterTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonConverter jsonConverter = new JsonConverter(objectMapper);
-    private final RemoveJsonPropertyUnlessPolicyPresentFilter removeJsonPropertyUnlessPolicyPresentFilter = new RemoveJsonPropertyUnlessPolicyPresentFilter(jsonConverter, "mainImage", INCLUDE_RICH_CONTENT);
+    private final RemoveJsonPropertiesUnlessPolicyPresentFilter removeJsonPropertyUnlessPolicyPresentFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonConverter, INCLUDE_RICH_CONTENT, "mainImage", "comments");
 
     @Test
     public void testFiltersJsonProperty() throws Exception {
@@ -45,6 +49,7 @@ public class RemoveJsonPropertyUnlessPolicyPresentFilterTest {
 
         final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
         assertFalse(actualTree.has("mainImage"));
+        assertFalse(actualTree.has("comments"));
     }
 
     @Test
@@ -103,7 +108,7 @@ public class RemoveJsonPropertyUnlessPolicyPresentFilterTest {
 
     private static byte[] readFileBytes(final String path) {
         try {
-            return Files.readAllBytes(Paths.get(RemoveJsonPropertyUnlessPolicyPresentFilterTest.class.getClassLoader().getResource(path).toURI()));
+            return Files.readAllBytes(Paths.get(RemoveJsonPropertiesUnlessPolicyPresentFilterTest.class.getClassLoader().getResource(path).toURI()));
         } catch (IOException | URISyntaxException ex) {
             throw new RuntimeException(ex);
         }

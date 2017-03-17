@@ -8,9 +8,7 @@ import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -27,13 +25,14 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SuppressJsonPropertyFilterTest {
+public class SuppressJsonPropertiesFilterTest {
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonConverter jsonConverter = new JsonConverter(objectMapper);
-    private final SuppressJsonPropertyFilter removeJsonPropertyUnlessPolicyPresentFilter = new SuppressJsonPropertyFilter(jsonConverter, "comments");
+    private final SuppressJsonPropertiesFilter removeJsonPropertiesUnlessPolicyPresentFilter = new SuppressJsonPropertiesFilter(jsonConverter, "comments", "mainImage");
 
     @Test
-    public void testFiltersJsonProperty() throws Exception {
+    public void testFiltersJsonProperties() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
         final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
@@ -42,10 +41,11 @@ public class SuppressJsonPropertyFilterTest {
         initialResponse.setStatus(200);
         when(mockedChain.callNextFilter(mockedRequest)).thenReturn(initialResponse);
 
-        final MutableResponse processedResponse = removeJsonPropertyUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
+        final MutableResponse processedResponse = removeJsonPropertiesUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
 
         final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
         assertFalse(actualTree.has("comments"));
+        assertFalse(actualTree.has("mainImage"));
     }
 
     @Test
@@ -60,7 +60,7 @@ public class SuppressJsonPropertyFilterTest {
         final MutableResponse spiedResponse = spy(initialResponse);
         when(mockedChain.callNextFilter(mockedRequest)).thenReturn(spiedResponse);
 
-        removeJsonPropertyUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
+        removeJsonPropertiesUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
 
         verifyResponseNotMutated(spiedResponse);
     }
@@ -73,7 +73,7 @@ public class SuppressJsonPropertyFilterTest {
         when(mockedResponse.getStatus()).thenReturn(400);
         when(mockedChain.callNextFilter(mockedRequest)).thenReturn(mockedResponse);
 
-        removeJsonPropertyUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
+        removeJsonPropertiesUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
 
         verifyResponseNotMutated(mockedResponse);
     }
@@ -86,7 +86,7 @@ public class SuppressJsonPropertyFilterTest {
 
     private static byte[] readFileBytes(final String path) {
         try {
-            return Files.readAllBytes(Paths.get(SuppressJsonPropertyFilterTest.class.getClassLoader().getResource(path).toURI()));
+            return Files.readAllBytes(Paths.get(SuppressJsonPropertiesFilterTest.class.getClassLoader().getResource(path).toURI()));
         } catch (IOException | URISyntaxException ex) {
             throw new RuntimeException(ex);
         }
