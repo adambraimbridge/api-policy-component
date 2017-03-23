@@ -4,6 +4,7 @@ import com.ft.api.jaxrs.errors.RuntimeExceptionMapper;
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
+import com.ft.jerseyhttpwrapper.continuation.ExponentialBackoffContinuationPolicy;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.platform.dropwizard.DefaultGoodToGoChecker;
 import com.ft.platform.dropwizard.GoodToGoBundle;
@@ -186,7 +187,15 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-        Client healthcheckClient = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named("healthcheck-client").build();
+        Client healthcheckClient = ResilientClientBuilder.in(environment)
+                .using(configuration.getVarnish())
+                .withContinuationPolicy(
+                        new ExponentialBackoffContinuationPolicy(
+                                3,
+                                1000
+                        )
+                ).named("healthcheck-client")
+                .build();
 
         environment.healthChecks()
                 .register("Reader API Connectivity",
