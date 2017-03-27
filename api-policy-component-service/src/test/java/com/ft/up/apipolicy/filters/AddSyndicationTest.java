@@ -38,6 +38,20 @@ public class AddSyndicationTest {
     }
 
     @Test
+    public void shouldNotProcessErrorResponseWhenNoPolicy() {
+        final Set<String> policies = new HashSet<>();
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
+        final String responseBody = "";
+        MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes());
+        response.setStatus(404);
+        when(mockChain.callNextFilter(request)).thenReturn(response);
+
+        MutableResponse filteredResponse = filter.processRequest(request, mockChain);
+
+        assertThat(new String(filteredResponse.getEntity()), is(new String(responseBody.getBytes())));
+    }
+
+    @Test
     public void shouldNotProcessNotJSON() {
         final Set<String> policies = new HashSet<>();
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
