@@ -60,7 +60,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     public static final DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
             resourceFilePath("config-junit.yml"),
-            config("varnish.endpointConfiguration.primaryNodes", primaryNodes)
+            config("varnish.primaryNodes", primaryNodes)
     );
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentHappyPathsTest.class);

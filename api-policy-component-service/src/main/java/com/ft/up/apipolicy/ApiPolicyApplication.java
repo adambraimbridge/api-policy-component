@@ -4,15 +4,12 @@ import com.ft.api.jaxrs.errors.RuntimeExceptionMapper;
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
 import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
-import com.ft.jerseyhttpwrapper.config.EndpointConfiguration;
 import com.ft.jerseyhttpwrapper.continuation.ExponentialBackoffContinuationPolicy;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.platform.dropwizard.DefaultGoodToGoChecker;
 import com.ft.platform.dropwizard.GoodToGoBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-import com.ft.up.apipolicy.configuration.ConnectionConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.configuration.VarnishConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.AddSyndication;
 import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
@@ -190,25 +187,19 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-        VarnishConfiguration varnishConfiguration = configuration.getVarnishConfiguration();
-        ConnectionConfiguration connectionConfiguration = varnishConfiguration.getConnectionConfiguration();
-        Client healthcheckClient = configureResilientClient(environment, varnishConfiguration, connectionConfiguration);
+        Client healthcheckClient = ResilientClientBuilder.in(environment)
+                .using(configuration.getVarnish())
+                .withContinuationPolicy(
+                        new ExponentialBackoffContinuationPolicy(
+                                3,
+                                1000
+                        )
+                ).named("healthcheck-client")
+                .build();
 
         environment.healthChecks()
                 .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity ", varnishConfiguration.getEndpointConfiguration(), healthcheckClient));
-    }
-
-    private Client configureResilientClient(Environment environment, VarnishConfiguration varnishConfiguration, ConnectionConfiguration connectionConfiguration) {
-        return ResilientClientBuilder.in(environment)
-                    .using(varnishConfiguration.getEndpointConfiguration())
-                    .withContinuationPolicy(
-                            new ExponentialBackoffContinuationPolicy(
-                                    connectionConfiguration.getNumberOfConnectionAttempts(),
-                                    connectionConfiguration.getTimeoutMultiplier()
-                            )
-                    ).named("healthcheck-client")
-                    .build();
+                        new ReaderNodesHealthCheck("Reader API Connectivity ", configuration.getVarnish(), healthcheckClient));
     }
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
@@ -260,10 +251,9 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
                                          String urlPattern, String instanceName, ApiFilter... filterChain) {
-        EndpointConfiguration endpointConfiguration = configuration.getVarnishConfiguration().getEndpointConfiguration();
-        final Client client = ResilientClientBuilder.in(environment).using(endpointConfiguration).named(instanceName).build();
+        final Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named(instanceName).build();
 
-        final RequestForwarder requestForwarder = new JerseyRequestForwarder(client, endpointConfiguration);
+        final RequestForwarder requestForwarder = new JerseyRequestForwarder(client, configuration.getVarnish());
         return new KnownEndpoint(urlPattern, new HttpPipeline(requestForwarder, filterChain));
     }
 }
