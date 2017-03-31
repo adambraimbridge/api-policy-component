@@ -191,8 +191,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 .using(configuration.getVarnish())
                 .withContinuationPolicy(
                         new ExponentialBackoffContinuationPolicy(
-                                3,
-                                1000
+                                configuration.getConnectionConfig().getNumberOfConnectionAttempts(),
+                                configuration.getConnectionConfig().getTimeoutMultiplier()
                         )
                 ).named("healthcheck-client")
                 .build();
