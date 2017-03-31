@@ -55,7 +55,7 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
     public static final DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
             resourceFilePath("config-junit.yml"),
-            config("varnish.primaryNodes", primaryNodes)
+            config("varnish.endpointConfiguration.primaryNodes", primaryNodes)
     );
 
     private final Client client = Client.create();
