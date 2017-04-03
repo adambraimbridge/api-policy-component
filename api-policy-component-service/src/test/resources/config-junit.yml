@@ -1,15 +1,19 @@
 
 varnish:
-  shortName: "semanticReaderVarnish"
-  path: content/
-  jerseyClient:
-      timeout: 200ms
-      connectionTimeout: 200ms
-      keepAlive: 80s
-      timeToLive: 45s
-  primaryNodes: ["localhost:9090:9091"]
-  secondaryNodes: null
-  resilienceStrategy: SIMPLE_FAILOVER_STRATEGY
+  endpointConfiguration:
+    shortName: "semanticReaderVarnish"
+    path: content/
+    jerseyClient:
+        timeout: 200ms
+        connectionTimeout: 200ms
+        keepAlive: 80s
+        timeToLive: 45s
+    primaryNodes: ["localhost:9090:9091"]
+    secondaryNodes: null
+    resilienceStrategy: SIMPLE_FAILOVER_STRATEGY
+  connectionConfiguration:
+    numberOfConnectionAttempts: 3
+    timeoutMultiplier: 1000
 
 pipeline:
   webUrlTemplates:
