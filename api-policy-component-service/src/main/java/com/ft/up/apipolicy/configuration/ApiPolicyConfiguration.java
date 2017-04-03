@@ -23,15 +23,8 @@ public class ApiPolicyConfiguration extends Configuration {
     @JsonProperty("policyBrandsMapper") @Valid
     private PolicyBrandsResolver policyBrandsResolver;
 
-    @NotNull
-    @JsonProperty("connectionConfig") @Valid
-    private ConnectionConfig connectionConfig;
     public EndpointConfiguration getVarnish() {
         return varnish;
-    }
-
-    public ConnectionConfig getConnectionConfig() {
-        return connectionConfig;
     }
 
     public PipelineConfiguration getPipelineConfiguration() {

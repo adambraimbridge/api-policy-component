@@ -11,10 +11,6 @@ varnish:
   secondaryNodes: null
   resilienceStrategy: SIMPLE_FAILOVER_STRATEGY
 
-connectionConfig:
-  numberOfConnectionAttempts: 3
-  timeoutMultiplier: 1000
-
 pipeline:
   webUrlTemplates:
     "http://www.ft.com/ontology/origin/FTComMethode" : "http://www.ft.com/cms/s/{{identifierValue}}.html"
