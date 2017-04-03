@@ -36,8 +36,6 @@ import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.DispatcherType;
 import java.util.EnumSet;
@@ -54,8 +52,6 @@ import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
 import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyApplication.class);
 
     private static final String MAIN_IMAGE_JSON_PROPERTY = "mainImage";
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
@@ -191,8 +187,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-        LOGGER.info("Nr of connection attemps: [" + configuration.getConnectionConfig().getNumberOfConnectionAttempts() + "].");
-        LOGGER.info("Timeout multiplier: [" + configuration.getConnectionConfig().getTimeoutMultiplier() + "].");
         Client healthcheckClient = ResilientClientBuilder.in(environment)
                 .using(configuration.getVarnish())
                 .withContinuationPolicy(
