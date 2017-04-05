@@ -176,6 +176,25 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 syndicationDistributionFilter,
                 contentPackageFilter));
 
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent/.*", "internalcontent",
+                identifiersFilter,
+                webUrlAdder,
+                addSyndication,
+                linkValidationFilter,
+                suppressMarkup,
+                mainImageFilter,
+                alternativeTitlesFilter,
+                alternativeImagesFilter,
+                alternativeStandfirstsFilter,
+                stripCommentsFields,
+                stripProvenance,
+                stripLastModifiedDate,
+                _unstable_stripOpeningXml,
+                accessLevelPropertyFilter,
+                accessLevelHeaderFilter,
+                syndicationDistributionFilter,
+                contentPackageFilter));
+
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists",
                 stripProvenance,
                 stripLastModifiedDate));
