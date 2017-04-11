@@ -7,7 +7,6 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
-import javax.ws.rs.core.Response;
 import java.util.Map;
 
 import static javax.ws.rs.core.Response.Status.OK;
@@ -28,10 +27,10 @@ public class AddSyndication implements ApiFilter {
     @Override
     public MutableResponse processRequest(final MutableRequest request, final HttpPipelineChain chain) {
         final MutableResponse originalResponse = chain.callNextFilter(request);
+        if (!isEligibleForSyndicationField(originalResponse)) {
+            return originalResponse;
+        }
         if (request.policyIs(policy)) {
-            if (!isEligibleForSyndicationField(originalResponse)) {
-                return originalResponse;
-            }
             final Map<String, Object> content = jsonConverter.readEntity(originalResponse);
             if (!content.containsKey(CAN_BE_SYNDICATED_KEY)) {
                 content.put(CAN_BE_SYNDICATED_KEY, CAN_BE_SYNDICATED_VERIFY);
