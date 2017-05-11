@@ -1,5 +1,8 @@
 package com.ft.up.apipolicy;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.api.util.transactionid.TransactionIdUtils;
@@ -7,11 +10,9 @@ import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import io.dropwizard.testing.junit.DropwizardAppRule;
+
 import org.apache.commons.io.IOUtils;
 import org.fest.util.Strings;
 import org.hamcrest.Description;
@@ -24,8 +25,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,9 +36,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
+import io.dropwizard.testing.junit.DropwizardAppRule;
+
 import static com.ft.up.apipolicy.JsonConverter.JSON_MAP_TYPE;
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static io.dropwizard.testing.junit.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -47,7 +61,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * ApiPolicyComponentTest
@@ -71,6 +89,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     private static final String CONTENT_PATH_3 = "/content/e3b60ad0-acda-11e2-a7c4-002128161462";
     private static final String CONCEPT_PATH_REDIRECT = "/redirect/5561512e-1b45-4810-9448-961bc052a2df";
     private static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
+    private static final String ENRICHED_CONTENT_PATH_2 = "/enrichedcontent/285a3560-33df-11e7-bce4-9023f8c0fd2e";
     private static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
     private static final String FOR_BRAND = "&forBrand=";
     private static final String NOT_FOR_BRAND = "&notForBrand=";
@@ -130,6 +149,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
                     "\"identifierValue\": \"220322\"\n" +
                     "}]," +
+                    "\"mainImage\": {\"id\":\"http://api.ft.com/things/111192a7-1f0c-11e4-b0cb-b2227cce2b54\"},\n" +
                     "\"brands\": [ ],\n" +
                     "\"annotations\": [ ], \n" +
                     "\"accessLevel\": \"subscribed\",\n" +
@@ -144,6 +164,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             "\"identifierValue\": \"220322\"\n" +
             "}]" +
             "}";
+    private static final String ENRICHED_CONTENT_EXPANDED_IMAGES_JSON = "{\"id\":\"http://www.ft.com/thing/273563f3-95a0-4f00-8966-6973c0111923\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"identifiers\":[{\"authority\":\"http://www.ft.com/ontology/origin/FTComMethode\",\"identifierValue\":\"273563f3-95a0-4f00-8966-6973c0111923\"}],\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}},\"comments\":{\"enabled\":true},\"canBeSyndicated\":\"verify\"}";
     private static final String SUGGEST_REQUEST_JSON =
             "{"
                     + "\"body\": \"Test content\""
@@ -943,8 +964,6 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
     @Test
     public void givenPolicyINTERNAL_UNSTABLEShouldReturnAccessLevelForEnrichedContent() throws IOException {
-        givenEverythingSetup();
-
         stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH))
                 .willReturn(aResponse()
                         .withBody(ENRICHED_CONTENT_JSON)
@@ -973,8 +992,6 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
     @Test
     public void givenNoPolicyShouldNotReturnAccessLevelForEnrichedContent() throws IOException {
-        givenEverythingSetup();
-
         stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH))
                 .willReturn(aResponse()
                         .withBody(ENRICHED_CONTENT_JSON)
@@ -1012,6 +1029,65 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
             Map<String, Object> result = expectOKResponseWithJSON(response);
             assertFalse(result.containsKey("accessLevel"));
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForEnrichedContent() throws IOException {
+        stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH_2))
+                .willReturn(aResponse()
+                        .withBody(ENRICHED_CONTENT_EXPANDED_IMAGES_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+
+        URI uri = fromFacade(ENRICHED_CONTENT_PATH_2).build();
+
+        String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue()
+                + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue()
+                + "," + Policy.EXPAND_RICH_CONTENT.getHeaderValue();
+
+        ClientResponse response = client
+                .resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH_2)).withQueryParam("expandImages", equalTo("true")));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertTrue(((Map)result.get("mainImage")).size() > 1);
+            assertFalse(((List)result.get("embeds")).isEmpty());
+            assertTrue(((Map)((Map)result.get("alternativeImages")).get("promotionalImage")).size() > 1);
+        } finally {
+            response.close();
+        }
+    }
+
+    @Test
+    public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnExpandedImagesForEnrichedContent() throws IOException {
+        stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH_2))
+                .willReturn(aResponse()
+                        .withBody(ENRICHED_CONTENT_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+
+        URI uri = fromFacade(ENRICHED_CONTENT_PATH_2).build();
+
+        String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue()
+                + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue();
+
+        ClientResponse response = client
+                .resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
+                .get(ClientResponse.class);
+
+        try {
+            verify(0, getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH_2)).withQueryParam("expandImages", equalTo("true")));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertTrue(((Map)result.get("mainImage")).size() == 1);
+            assertNull(result.get("embeds"));
+            assertThat(((Map)result.get("alternativeImages")).size(), equalTo(0));
         } finally {
             response.close();
         }

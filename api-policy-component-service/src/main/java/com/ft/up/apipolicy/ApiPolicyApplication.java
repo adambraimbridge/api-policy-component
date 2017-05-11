@@ -11,6 +11,7 @@ import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.AddSyndication;
+import com.ft.up.apipolicy.filters.ExpandedImagesFilter;
 import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
 import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
 import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
@@ -87,6 +88,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter accessLevelHeaderFilter;
     private ApiFilter syndicationDistributionFilter;
     private ApiFilter contentPackageFilter;
+    private ApiFilter expandedImagesFilter;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -177,7 +179,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 syndicationDistributionFilter,
-                contentPackageFilter));
+                contentPackageFilter,
+                expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent/.*", "internalcontent",
                 identifiersFilter,
@@ -260,6 +263,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         accessLevelHeaderFilter = new RemoveHeaderUnlessPolicyPresentFilter(ACCESS_LEVEL_HEADER, INTERNAL_UNSTABLE);
         syndicationDistributionFilter = new SyndicationDistributionFilter(jsonTweaker, INTERNAL_UNSTABLE);
         contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY);
+        expandedImagesFilter = new ExpandedImagesFilter();
     }
     
     private ApiFilter notificationsFilter() {
