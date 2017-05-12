@@ -3,7 +3,8 @@ package com.ft.up.apipolicy.filters;
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
-import com.ft.up.apipolicy.pipeline.MutableResponse;
+
+import java.util.Map;
 
 public class RemoveJsonPropertiesUnlessPolicyPresentFilter extends SuppressJsonPropertiesFilter {
 
@@ -15,7 +16,7 @@ public class RemoveJsonPropertiesUnlessPolicyPresentFilter extends SuppressJsonP
     }
 
     @Override
-    protected boolean shouldPropertyFilteredOut(final String jsonProperty, final MutableRequest request, final MutableResponse response) {
-        return !request.policyIs(policy) && super.shouldPropertyFilteredOut(jsonProperty, request, response);
+    protected boolean shouldPropertyFilteredOut(final String jsonProperty, final MutableRequest request, Map content) {
+        return !request.policyIs(policy) && super.shouldPropertyFilteredOut(jsonProperty, request, content);
     }
 }
