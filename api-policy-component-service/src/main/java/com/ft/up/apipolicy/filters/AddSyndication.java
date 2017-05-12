@@ -10,7 +10,7 @@ import java.util.Map;
 
 import static javax.ws.rs.core.Response.Status.OK;
 
-public class AddSyndication extends AbstractApiFilter {
+public class AddSyndication extends AbstractImageFilter {
 
     private static final String CAN_BE_SYNDICATED_KEY = "canBeSyndicated";
     private static final String CAN_BE_SYNDICATED_VERIFY = "verify";

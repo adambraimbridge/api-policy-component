@@ -10,11 +10,26 @@ public class ExpandedImagesFilter implements ApiFilter {
 
     private static final String EXPAND_IMAGES = "expandImages";
 
+    private final Policy[] policies;
+
+    public ExpandedImagesFilter(Policy... policies) {
+        this.policies = policies;
+    }
+
     @Override
     public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
-        if (request.policyIs(Policy.INCLUDE_RICH_CONTENT) && request.policyIs(Policy.INTERNAL_UNSTABLE) && request.policyIs(Policy.EXPAND_RICH_CONTENT)) {
+        if (policies.length > 0 && shouldAddParameter(request)) {
             request.getQueryParameters().putSingle(EXPAND_IMAGES, Boolean.TRUE.toString());
         }
         return chain.callNextFilter(request);
+    }
+
+    private boolean shouldAddParameter(MutableRequest request) {
+        for (Policy policy : policies) {
+            if (!request.policyIs(policy)) {
+                return Boolean.FALSE;
+            }
+        }
+        return Boolean.TRUE;
     }
 }

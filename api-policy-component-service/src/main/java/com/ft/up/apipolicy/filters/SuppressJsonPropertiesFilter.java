@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class SuppressJsonPropertiesFilter extends AbstractApiFilter {
+public class SuppressJsonPropertiesFilter extends AbstractImageFilter {
 
     private final JsonConverter jsonConverter;
     private final List<String> jsonProperties;

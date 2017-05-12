@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
@@ -263,7 +264,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         accessLevelHeaderFilter = new RemoveHeaderUnlessPolicyPresentFilter(ACCESS_LEVEL_HEADER, INTERNAL_UNSTABLE);
         syndicationDistributionFilter = new SyndicationDistributionFilter(jsonTweaker, INTERNAL_UNSTABLE);
         contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY);
-        expandedImagesFilter = new ExpandedImagesFilter();
+        expandedImagesFilter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, INTERNAL_UNSTABLE, EXPAND_RICH_CONTENT);
     }
     
     private ApiFilter notificationsFilter() {

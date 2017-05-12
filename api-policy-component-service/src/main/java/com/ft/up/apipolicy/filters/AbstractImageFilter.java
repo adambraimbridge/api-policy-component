@@ -5,12 +5,12 @@ import com.ft.up.apipolicy.pipeline.ApiFilter;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractApiFilter implements ApiFilter {
+public abstract class AbstractImageFilter implements ApiFilter {
 
     protected void applyFilter(String jsonProperty, FieldModifier modifier, Map content) {
         modifier.operation(jsonProperty, content);
         Object mainImageSet = content.get(MAIM_IMAGE);
-        if (mainImageSet != null && mainImageSet instanceof Map) {
+        if (mainImageSet instanceof Map) {
             Map mainImageSetAsMap = (Map) mainImageSet;
             if (mainImageSetAsMap.size() > 1) {
                 applyFilterToFromImageSet(jsonProperty, modifier, mainImageSetAsMap);
@@ -18,7 +18,7 @@ public abstract class AbstractApiFilter implements ApiFilter {
         }
 
         Object embeddedImages = content.get(EMBEDS);
-        if (embeddedImages != null && embeddedImages instanceof List) {
+        if (embeddedImages instanceof List) {
             List embeddedImagesAsList = (List) embeddedImages;
             for (Object embeddedImage : embeddedImagesAsList) {
                 if (embeddedImage instanceof Map) {
@@ -29,10 +29,10 @@ public abstract class AbstractApiFilter implements ApiFilter {
         }
 
         Object alternativeImages = content.get(ALTERNATIVE_IMAGES);
-        if (alternativeImages != null && alternativeImages instanceof Map) {
+        if (alternativeImages instanceof Map) {
             Map alternativeImagesAsMap = (Map) alternativeImages;
             Object promotionalImage = alternativeImagesAsMap.get(PROMOTIONAL_IMAGE);
-            if (promotionalImage != null && promotionalImage instanceof Map) {
+            if (promotionalImage instanceof Map) {
                 Map promotionalImageAsMap = (Map) promotionalImage;
                 if (promotionalImageAsMap.size() > 1) {
                     applyFilterToImageModel(jsonProperty, modifier, promotionalImageAsMap);
@@ -45,7 +45,7 @@ public abstract class AbstractApiFilter implements ApiFilter {
         if (imageSet != null) {
             modifier.operation(jsonProperty, imageSet);
             Object members = imageSet.get(MEMBERS);
-            if (members != null && members instanceof List) {
+            if (members instanceof List) {
                 List membersAsList = (List) members;
                 for (Object member : membersAsList) {
                     if (member instanceof Map) {
