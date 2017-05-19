@@ -7,19 +7,26 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
+import static com.ft.up.apipolicy.pipeline.ApiFilter.ALTERNATIVE_IMAGES;
+import static com.ft.up.apipolicy.pipeline.ApiFilter.EMBEDS;
+import static com.ft.up.apipolicy.pipeline.ApiFilter.MAIM_IMAGE;
+import static com.ft.up.apipolicy.pipeline.ApiFilter.MEMBERS;
+import static com.ft.up.apipolicy.pipeline.ApiFilter.PROMOTIONAL_IMAGE;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -33,7 +40,15 @@ public class RemoveJsonPropertiesUnlessPolicyPresentFilterTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonConverter jsonConverter = new JsonConverter(objectMapper);
-    private final RemoveJsonPropertiesUnlessPolicyPresentFilter removeJsonPropertyUnlessPolicyPresentFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonConverter, INCLUDE_RICH_CONTENT, "mainImage", "comments");
+    private final RemoveJsonPropertiesUnlessPolicyPresentFilter removeJsonPropertyUnlessPolicyPresentFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonConverter, INCLUDE_LAST_MODIFIED_DATE, "lastModified", "comments");
+
+    private static byte[] readFileBytes(final String path) {
+        try {
+            return Files.readAllBytes(Paths.get(RemoveJsonPropertiesUnlessPolicyPresentFilterTest.class.getClassLoader().getResource(path).toURI()));
+        } catch (IOException | URISyntaxException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
     @Test
     public void testFiltersJsonProperty() throws Exception {
@@ -48,14 +63,29 @@ public class RemoveJsonPropertiesUnlessPolicyPresentFilterTest {
         final MutableResponse processedResponse = removeJsonPropertyUnlessPolicyPresentFilter.processRequest(mockedRequest, mockedChain);
 
         final JsonNode actualTree = objectMapper.readTree(processedResponse.getEntityAsString());
-        assertFalse(actualTree.has("mainImage"));
+        assertFalse(actualTree.has("lastModified"));
         assertFalse(actualTree.has("comments"));
+
+        final JsonNode mainImageTree = actualTree.get(MAIM_IMAGE);
+        assertFalse(mainImageTree.has("lastModified"));
+
+        final JsonNode mainImageMember = mainImageTree.get(MEMBERS).get(0);
+        assertFalse(mainImageMember.has("lastModified"));
+
+        final JsonNode embeddedImageSet = actualTree.get(EMBEDS).get(0);
+        assertFalse(embeddedImageSet.has("lastModified"));
+
+        final JsonNode embeddedImage = embeddedImageSet.get(MEMBERS).get(0);
+        assertFalse(embeddedImage.has("lastModified"));
+
+        final JsonNode promotionalImage = actualTree.get(ALTERNATIVE_IMAGES).get(PROMOTIONAL_IMAGE);
+        assertFalse(promotionalImage.has("lastModified"));
     }
 
     @Test
     public void testLeavesJsonPropertyWhenPolicyHeaderSet() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
-        when(mockedRequest.policyIs(INCLUDE_RICH_CONTENT)).thenReturn(true);
+        when(mockedRequest.policyIs(INCLUDE_LAST_MODIFIED_DATE)).thenReturn(true);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
         final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
@@ -76,7 +106,7 @@ public class RemoveJsonPropertiesUnlessPolicyPresentFilterTest {
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
         final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
-        byte[] body = readFileBytes("sample-article-no-image.json");
+        byte[] body = readFileBytes("sample-article-no-last-modified.json");
         final MutableResponse initialResponse = new MutableResponse(headers, body);
         initialResponse.setStatus(200);
         final MutableResponse spiedResponse = spy(initialResponse);
@@ -104,13 +134,5 @@ public class RemoveJsonPropertiesUnlessPolicyPresentFilterTest {
         verify(mockedResponse, never()).setEntity(Mockito.any(byte[].class));
         verify(mockedResponse, never()).setHeaders(Mockito.any(MultivaluedMap.class));
         verify(mockedResponse, never()).setStatus(anyInt());
-    }
-
-    private static byte[] readFileBytes(final String path) {
-        try {
-            return Files.readAllBytes(Paths.get(RemoveJsonPropertiesUnlessPolicyPresentFilterTest.class.getClassLoader().getResource(path).toURI()));
-        } catch (IOException | URISyntaxException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 }

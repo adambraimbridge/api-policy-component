@@ -12,11 +12,12 @@ public enum Policy {
     INCLUDE_PROVENANCE("INCLUDE_PROVENANCE"),
     INCLUDE_LAST_MODIFIED_DATE("INCLUDE_LAST_MODIFIED_DATE"),
     INTERNAL_UNSTABLE("INTERNAL_UNSTABLE"),
-    INCLUDE_MEDIARESOURCE("INCLUDE_MEDIARESOURCE");
+    INCLUDE_MEDIARESOURCE("INCLUDE_MEDIARESOURCE"),
+    EXPAND_RICH_CONTENT("EXPAND_RICH_CONTENT");
 
     private final String headerValue;
 
-    private Policy(final String headerValue) {
+    Policy(final String headerValue) {
         this.headerValue = headerValue;
     }
 

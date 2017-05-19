@@ -6,9 +6,14 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,8 +24,16 @@ import static org.mockito.Mockito.when;
 
 public class AddSyndicationTest {
 
-    private AddSyndication filter = new AddSyndication(JsonConverter.testConverter(), Policy.INTERNAL_UNSTABLE);
     private final HttpPipelineChain mockChain = mock(HttpPipelineChain.class);
+    private AddSyndication filter = new AddSyndication(JsonConverter.testConverter(), Policy.INTERNAL_UNSTABLE);
+
+    private static byte[] readFileBytes(final String path) {
+        try {
+            return Files.readAllBytes(Paths.get(SuppressJsonPropertiesFilterTest.class.getClassLoader().getResource(path).toURI()));
+        } catch (IOException | URISyntaxException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
     @Test
     public void shouldNotProcessErrorResponse() {
@@ -72,30 +85,30 @@ public class AddSyndicationTest {
         final Set<String> policies = new HashSet<>();
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
         final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
-        final String responseBody = "{ \"bodyXML\": \"<body>Testing.</body>\", \"canBeSyndicated\": \"yes\" }";
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
+        final byte[] responseBody = readFileBytes("sample-article-with-image.json");
+        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
         when(mockChain.callNextFilter(request)).thenReturn(response);
 
         MutableResponse filteredResponse = filter.processRequest(request, mockChain);
 
-        assertThat(new String(filteredResponse.getEntity()), is(new String(responseBody.getBytes(Charset.forName("UTF-8")))));
+        assertThat(new String(filteredResponse.getEntity()), is(new String(responseBody)));
     }
 
     @Test
     public void shouldHideOriginalFieldIfPresentButNotPolicy() {
-        final MutableRequest request = new MutableRequest(new HashSet<String>(), getClass().getSimpleName());
-        final String responseBody = "{ \"bodyXML\": \"<body>Testing.</body>\", \"canBeSyndicated\": \"yes\" }";
-        final String filteredResponseBody = "{\"bodyXML\":\"<body>Testing.</body>\"}";
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
+        final MutableRequest request = new MutableRequest(new HashSet<>(), getClass().getSimpleName());
+        final byte[] responseBody = readFileBytes("sample-article-with-image.json");
+        final byte[] filteredResponseBody = readFileBytes("sample-article-no-canBeSyndicated.json");
+        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
         when(mockChain.callNextFilter(request)).thenReturn(response);
 
         MutableResponse filteredResponse = filter.processRequest(request, mockChain);
 
-        assertThat(new String(filteredResponse.getEntity()), is(new String(filteredResponseBody.getBytes(Charset.forName("UTF-8")))));
+        assertThat(new String(filteredResponse.getEntity()), is(new String(filteredResponseBody)));
     }
 
     @Test
@@ -103,29 +116,29 @@ public class AddSyndicationTest {
         final Set<String> policies = new HashSet<>();
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
         final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
-        final String responseBody = "{ \"bodyXML\": \"<body>Testing.</body>\" }";
-        final String filteredResponseBody = "{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"verify\"}";
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
+        final byte[] responseBody = readFileBytes("sample-article-no-canBeSyndicated.json");
+        final byte[] filteredResponseBody = readFileBytes("sample-article-with-image.json");
+        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
         when(mockChain.callNextFilter(request)).thenReturn(response);
 
         MutableResponse filteredResponse = filter.processRequest(request, mockChain);
 
-        assertThat(new String(filteredResponse.getEntity()), is(new String(filteredResponseBody.getBytes(Charset.forName("UTF-8")))));
+        assertThat(new String(filteredResponse.getEntity()), is(new String(filteredResponseBody)));
     }
 
     @Test
     public void shouldNotIncludeIfMissingAndNotPolicy() {
-        final MutableRequest request = new MutableRequest(new HashSet<String>(), getClass().getSimpleName());
-        final String responseBody = "{\"bodyXML\":\"<body>Testing.</body>\"}";
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
+        final MutableRequest request = new MutableRequest(new HashSet<>(), getClass().getSimpleName());
+        final byte[] responseBody = readFileBytes("sample-article-no-canBeSyndicated.json");
+        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
         when(mockChain.callNextFilter(request)).thenReturn(response);
 
         MutableResponse filteredResponse = filter.processRequest(request, mockChain);
 
-        assertThat(new String(filteredResponse.getEntity()), is(new String(responseBody.getBytes(Charset.forName("UTF-8")))));
+        assertThat(new String(filteredResponse.getEntity()), is(new String(responseBody)));
     }
 }

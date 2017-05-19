@@ -7,6 +7,7 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,6 +98,22 @@ public class SyndicationDistributionFilterTest {
     public void shouldReturnErrorWhenNotPolicyAndCanBeDistributedFieldNotYes() {
         MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
         MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"verify\"}");
+
+        when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
+
+        try {
+            filter.processRequest(request, mockChain);
+            fail("No exception was thrown, but expected one.");
+
+        } catch (WebApplicationClientException e) {
+            assertThat(e.getResponse().getStatus(), is(403));
+        }
+    }
+
+    @Test
+    public void shouldReturnErrorWhenNotPolicyAndCanBeDistributedFieldNotYesForNestedImageContent() {
+        MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
+        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"yes\",\"mainImage\":{\"id\":\"sampleId\",\"canBeDistributed\":\"verify\"}}");
 
         when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
 

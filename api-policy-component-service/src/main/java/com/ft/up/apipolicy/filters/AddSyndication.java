@@ -2,7 +2,6 @@ package com.ft.up.apipolicy.filters;
 
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
@@ -11,7 +10,7 @@ import java.util.Map;
 
 import static javax.ws.rs.core.Response.Status.OK;
 
-public class AddSyndication implements ApiFilter {
+public class AddSyndication extends AbstractImageFilter {
 
     private static final String CAN_BE_SYNDICATED_KEY = "canBeSyndicated";
     private static final String CAN_BE_SYNDICATED_VERIFY = "verify";
@@ -30,21 +29,24 @@ public class AddSyndication implements ApiFilter {
         if (!isEligibleForSyndicationField(originalResponse)) {
             return originalResponse;
         }
+        final Map<String, Object> content = jsonConverter.readEntity(originalResponse);
+        FieldModifier modifier;
         if (request.policyIs(policy)) {
-            final Map<String, Object> content = jsonConverter.readEntity(originalResponse);
-            if (!content.containsKey(CAN_BE_SYNDICATED_KEY)) {
-                content.put(CAN_BE_SYNDICATED_KEY, CAN_BE_SYNDICATED_VERIFY);
-                jsonConverter.replaceEntity(originalResponse, content);
-            }
-            return originalResponse;
+            modifier = (jsonProp, contentModel) -> {
+                if (!contentModel.containsKey(jsonProp)) {
+                    contentModel.put(jsonProp, CAN_BE_SYNDICATED_VERIFY);
+                }
+            };
         } else {
-            final Map<String, Object> content = jsonConverter.readEntity(originalResponse);
-            if (content.containsKey(CAN_BE_SYNDICATED_KEY)) {
-                content.remove(CAN_BE_SYNDICATED_KEY);
-                jsonConverter.replaceEntity(originalResponse, content);
-            }
-            return originalResponse;
+            modifier = (jsonProp, contentModel) -> {
+                if (contentModel.containsKey(jsonProp)) {
+                    contentModel.remove(jsonProp);
+                }
+            };
         }
+        applyFilter(CAN_BE_SYNDICATED_KEY, modifier, content);
+        jsonConverter.replaceEntity(originalResponse, content);
+        return originalResponse;
     }
 
     private boolean isEligibleForSyndicationField(final MutableResponse response) {
