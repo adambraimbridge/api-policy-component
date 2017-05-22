@@ -42,11 +42,6 @@ public class WebUrlCalculatorTest {
             "}],\n" +
             "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
             "\"realtime\": true }").getBytes(UTF8);
-    private final static byte[] WEB_URL_ELIGIBLE_BRIGHTCOVE_VIDEO_RESPONSE = ("{ \"identifiers\": [{\n" +
-            "\"authority\": \"http://api.ft.com/system/BRIGHTCOVE\",\n" +
-            "\"identifierValue\": \"219512\"\n" +
-            "}],\n" +
-            "\"type\": \"http://www.ft.com/ontology/content/MediaResource\" }").getBytes(UTF8);
     private final static byte[] WEB_URL_ELIGIBLE_NEXT_VIDEO_RESPONSE = ("{ \"identifiers\": [{\n" +
             "\"authority\": \"http://api.ft.com/system/NEXT-VIDEO-EDITOR\",\n" +
             "\"identifierValue\": \"219512\"\n" +
@@ -82,7 +77,6 @@ public class WebUrlCalculatorTest {
     public void setUpExamples() {
         WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{identifierValue}}");
         WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{identifierValue}}");
-        WEB_URL_TEMPLATES.put("http://api.ft.com/system/BRIGHTCOVE", "BC{{identifierValue}}");
         WEB_URL_TEMPLATES.put("http://api.ft.com/system/NEXT-VIDEO-EDITOR", "NVE{{identifierValue}}");
 
         exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(), ERROR_RESPONSE.getBytes());
@@ -158,11 +152,6 @@ public class WebUrlCalculatorTest {
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
         assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"" + expectedWebUrl + "\""));
-    }
-
-    @Test
-    public void shouldAddWebUrlToSuccessResponseForBrightcoveVideo() {
-        shouldAddWebUrlToSuccessResponse(WEB_URL_ELIGIBLE_BRIGHTCOVE_VIDEO_RESPONSE, "BC219512");
     }
 
     @Test
