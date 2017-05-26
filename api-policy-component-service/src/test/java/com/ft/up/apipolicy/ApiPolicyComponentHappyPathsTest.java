@@ -91,6 +91,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     private static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
     private static final String ENRICHED_CONTENT_PATH_2 = "/enrichedcontent/285a3560-33df-11e7-bce4-9023f8c0fd2e";
     private static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
+	private static final String INTERNAL_CONTENT_PATH = "/internalcontent/c333574c-4993-11e6-8072-e46b2152f259";
     private static final String FOR_BRAND = "&forBrand=";
     private static final String NOT_FOR_BRAND = "&notForBrand=";
     private static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
@@ -203,6 +204,55 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             "\"publishReference\": \"tid_AbCd1203\", " +
             "\"lastModified\": \"2015-12-13T17:04:54.636Z\"" +
             " } ";
+	private static final String INTERNAL_CONTENT_JSON = "{\n" +
+			"  \"accessLevel\": \"premium\",\n" +
+			"  \"alternativeTitles\": {\n" +
+			"    \"promotionalTitle\": \"Could this be the first nuclear\"\n" +
+			"  },\n" +
+			"  \"annotations\": [\n" +
+			"  ],\n" +
+			"  \"apiUrl\": \"http://test.api.ft.com/internalcontent/c333574c-4993-11e6-8072-e46b2152f259\",\n" +
+			"  \"bodyXML\": \"<body>Future profiled back in 2014. </p>\\n</body>\",\n" +
+			"  \"brands\": [\n" +
+			"    \"http://api.ft.com/things/dbb0bdae-1f0c-11e4-b0cb-b2227cce2b54\"\n" +
+			"  ],\n" +
+			"  \"byline\": \"Gillian Tett\",\n" +
+			"  \"canBeDistributed\": \"yes\",\n" +
+			"  \"canBeSyndicated\": \"verify\",\n" +
+			"  \"comments\": {\n" +
+			"    \"enabled\": true\n" +
+			"  },\n" +
+			"  \"containedIn\": [],\n" +
+			"  \"curatedRelatedContent\": [],\n" +
+			"  \"firstPublishedDate\": \"2016-07-14T07:42:07.000Z\",\n" +
+			"  \"id\": \"http://www.ft.com/thing/c333574c-4993-11e6-8072-e46b2152f259\",\n" +
+			"  \"identifiers\": [\n" +
+			"    {\n" +
+			"      \"authority\": \"http://api.ft.com/system/FTCOM-METHODE\",\n" +
+			"      \"identifierValue\": \"c333574c-4993-11e6-8072-e46b2152f259\"\n" +
+			"    }\n" +
+			"  ],\n" +
+			"  \"lastModified\": \"2017-05-18T08:12:00.811Z\",\n" +
+			"  \"mainImage\": {\n" +
+			"    \"id\": \"http://test.api.ft.com/content/ded41f00-d24c-11e4-30f7-978e959e1c97\"\n" +
+			"  },\n" +
+			"  \"prefLabel\": \"Could this be the first nuclear\",\n" +
+			"  \"publishReference\": \"tid_6dbadfcygk\",\n" +
+			"  \"publishedDate\": \"2016-07-14T07:42:07.000Z\",\n" +
+			"  \"requestUrl\": \"http://test.api.ft.com/internalcontent/c333574c-4993-11e6-8072-e46b2152f259\",\n" +
+			"  \"standfirst\": \"Could this be the first nuclear\",\n" +
+			"  \"standout\": {\n" +
+			"    \"editorsChoice\": false,\n" +
+			"    \"exclusive\": false,\n" +
+			"    \"scoop\": false\n" +
+			"  },\n" +
+			"  \"title\": \"Could this be the first nuclear\",\n" +
+			"  \"types\": [\n" +
+			"    \"http://www.ft.com/ontology/content/Article\"\n" +
+			"  ]\n" +
+			"}";
+	private static final String INTERNAL_CONTENT_EXPANDED_IMAGES_JSON = "{\"id\":\"http://www.ft.com/thing/c333574c-4993-11e6-8072-e46b2152f259\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"identifiers\":[{\"authority\":\"http://www.ft.com/ontology/origin/FTComMethode\",\"identifierValue\":\"273563f3-95a0-4f00-8966-6973c0111923\"}],\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}},\"comments\":{\"enabled\":true},\"canBeSyndicated\":\"verify\"}";
+
     private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", NOTIFICATIONS);
     private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND, "");
     private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND, "");
@@ -1029,6 +1079,65 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
             Map<String, Object> result = expectOKResponseWithJSON(response);
             assertFalse(result.containsKey("accessLevel"));
+        } finally {
+            response.close();
+        }
+    }
+
+	@Test
+    public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForInternalContent() throws IOException {
+        stubFor(get(urlPathEqualTo(INTERNAL_CONTENT_PATH))
+                .willReturn(aResponse()
+                        .withBody(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+
+        URI uri = fromFacade(INTERNAL_CONTENT_PATH).build();
+
+        String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue()
+                + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue()
+                + "," + Policy.EXPAND_RICH_CONTENT.getHeaderValue();
+
+        ClientResponse response = client
+                .resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
+                .get(ClientResponse.class);
+
+        try {
+            verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("expandImages", equalTo("true")));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertTrue(((Map)result.get("mainImage")).size() > 1);
+            assertFalse(((List)result.get("embeds")).isEmpty());
+            assertTrue(((Map)((Map)result.get("alternativeImages")).get("promotionalImage")).size() > 1);
+        } finally {
+            response.close();
+        }
+    }
+
+
+	@Test
+    public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnExpandedImagesForInternalContent() throws IOException {
+        stubFor(get(urlPathEqualTo(INTERNAL_CONTENT_PATH))
+                .willReturn(aResponse()
+                        .withBody(INTERNAL_CONTENT_JSON)
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                        .withStatus(200)));
+
+        URI uri = fromFacade(INTERNAL_CONTENT_PATH).build();
+
+        String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue()
+                + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue();
+
+        ClientResponse response = client
+                .resource(uri)
+                .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
+                .get(ClientResponse.class);
+
+        try {
+            verify(0, getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("expandImages", equalTo("true")));
+            Map<String, Object> result = expectOKResponseWithJSON(response);
+            assertTrue(((Map)result.get("mainImage")).size() == 1);
+            assertNull(result.get("embeds"));
         } finally {
             response.close();
         }

@@ -200,7 +200,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 syndicationDistributionFilter,
-                contentPackageFilter));
+                contentPackageFilter,
+				expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists",
                 stripProvenance,
