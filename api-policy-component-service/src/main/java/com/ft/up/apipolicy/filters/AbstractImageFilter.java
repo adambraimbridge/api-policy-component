@@ -45,7 +45,7 @@ public abstract class AbstractImageFilter implements ApiFilter {
 			List leadImagesAsList = (List) leadImages;
 			for (Object leadImage : leadImagesAsList) {
 				if (leadImage instanceof Map) {
-					Map leadImageAsMap = (Map) leadImage;
+					Map leadImageAsMap = (Map) ((Map) leadImage).get(IMAGE);
 					applyFilterToImageModel(jsonProperty, modifier, leadImageAsMap);
 				}
 			}

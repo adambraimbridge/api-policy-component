@@ -13,6 +13,7 @@ public interface ApiFilter {
     String PROMOTIONAL_IMAGE = "promotionalImage";
     String MEMBERS = "members";
 	String LEAD_IMAGES = "leadImages";
+	String IMAGE = "image";
 
     MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain);
 
