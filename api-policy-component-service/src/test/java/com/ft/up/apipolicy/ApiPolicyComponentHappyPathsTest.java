@@ -94,6 +94,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     private static final String ENRICHED_CONTENT_PATH_2 = "/enrichedcontent/285a3560-33df-11e7-bce4-9023f8c0fd2e";
     private static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
 	private static final String INTERNAL_CONTENT_PATH = "/internalcontent/c333574c-4993-11e6-8072-e46b2152f259";
+	private static final String INTERNAL_CONTENT_PREVIEW_PATH = "/internalcontent-preview/c333574c-4993-11e6-8072-e46b2152f259";
     private static final String FOR_BRAND = "&forBrand=";
     private static final String NOT_FOR_BRAND = "&notForBrand=";
     private static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
@@ -267,8 +268,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 			"    \"http://www.ft.com/ontology/content/Article\"\n" +
 			"  ]\n" +
 			"}";
-	private static final String INTERNAL_CONTENT_EXPANDED_IMAGES_JSON = "{\"id\":\"http://www.ft.com/thing/c333574c-4993-11e6-8072-e46b2152f259\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"identifiers\":[{\"authority\":\"http://www.ft.com/ontology/origin/FTComMethode\",\"identifierValue\":\"273563f3-95a0-4f00-8966-6973c0111923\"}],\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"leadImages\":[{\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"identifiers\":[{\"authority\":\"http://api.ft.com/system/FTCOM-METHODE\",\"identifierValue\":\"89f194c8-13bc-11e7-80f4-13e067d5072c\"}],\"lastModified\":\"2017-03-28T13:45:53.438Z\",\"pixelHeight\":2612,\"pixelWidth\":2612,\"publishReference\":\"tid_lej6rdjegj\",\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\"},\"type\":\"square\"},{\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"canBeDistributed\":\"verify\",\"copyright\":{\"notice\":\"© EPA\"},\"firstPublishedDate\":\"2017-03-28T13:42:00.000Z\",\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"identifiers\":[{\"authority\":\"http://api.ft.com/system/FTCOM-METHODE\",\"identifierValue\":\"3e96c818-13bc-11e7-b0c1-37e417ee6c76\"}],\"lastModified\":\"2017-03-28T13:43:00.375Z\",\"pixelHeight\":1152,\"pixelWidth\":2048,\"publishReference\":\"tid_tv7jfgi6jn\",\"publishedDate\":\"2017-03-28T13:42:00.000Z\",\"title\":\"Leader of the PVV party Gert Wilders reacts to the election result\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\"},\"type\":\"standard\"},{\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"identifiers\":[{\"authority\":\"http://api.ft.com/system/FTCOM-METHODE\",\"identifierValue\":\"8d7b4e22-13bc-11e7-80f4-13e067d5072c\"}],\"lastModified\":\"2017-03-28T13:45:53.525Z\",\"pixelHeight\":1548,\"pixelWidth\":4645,\"publishReference\":\"tid_prlsj2avbn\",\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\"},\"type\":\"wide\"}],\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}},\"comments\":{\"enabled\":true},\"canBeSyndicated\":\"verify\"}";
-
+	private static final String INTERNAL_CONTENT_EXPANDED_IMAGES_JSON  = "{\"id\":\"http://www.ft.com/thing/c333574c-4993-11e6-8072-e46b2152f259\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"leadImages\":[{\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"identifiers\":[{\"authority\":\"http://api.ft.com/system/FTCOM-METHODE\",\"identifierValue\":\"89f194c8-13bc-11e7-80f4-13e067d5072c\"}],\"lastModified\":\"2017-03-28T13:45:53.438Z\",\"pixelHeight\":2612,\"pixelWidth\":2612,\"publishReference\":\"tid_lej6rdjegj\",\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\"},\"type\":\"square\"},{\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"canBeDistributed\":\"verify\",\"copyright\":{\"notice\":\"© EPA\"},\"firstPublishedDate\":\"2017-03-28T13:42:00.000Z\",\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"identifiers\":[{\"authority\":\"http://api.ft.com/system/FTCOM-METHODE\",\"identifierValue\":\"3e96c818-13bc-11e7-b0c1-37e417ee6c76\"}],\"lastModified\":\"2017-03-28T13:43:00.375Z\",\"pixelHeight\":1152,\"pixelWidth\":2048,\"publishReference\":\"tid_tv7jfgi6jn\",\"publishedDate\":\"2017-03-28T13:42:00.000Z\",\"title\":\"Leader of the PVV party Gert Wilders reacts to the election result\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\"},\"type\":\"standard\"},{\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"identifiers\":[{\"authority\":\"http://api.ft.com/system/FTCOM-METHODE\",\"identifierValue\":\"8d7b4e22-13bc-11e7-80f4-13e067d5072c\"}],\"lastModified\":\"2017-03-28T13:45:53.525Z\",\"pixelHeight\":1548,\"pixelWidth\":4645,\"publishReference\":\"tid_prlsj2avbn\",\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\"},\"type\":\"wide\"}],\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}},\"canBeSyndicated\":\"verify\",\"webUrl\":\"http://www.ft.com/cms/s/273563f3-95a0-4f00-8966-6973c0111923.html\"}";
     private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", NOTIFICATIONS);
     private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND, "");
     private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND, "");
@@ -1122,14 +1122,13 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         try {
             verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("expandImages", equalTo("true")));
             Map<String, Object> result = expectOKResponseWithJSON(response);
-            assertTrue(((Map)result.get("mainImage")).size() > 1);
+			Map<String, Object> jsonExpected = OBJECT_MAPPER.readValue(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON, JSON_MAP_TYPE);
+			assertTrue(result.equals(jsonExpected));
 			ArrayList leadImages = (ArrayList)result.get("leadImages");
 			assertTrue(leadImages.size() == 3);
 			assertTrue(((Map)(((Map)(leadImages.get(0))).get("image"))).size()>1);
 			assertTrue(((Map)(((Map)(leadImages.get(1))).get("image"))).size()>1);
 			assertTrue(((Map)(((Map)(leadImages.get(2))).get("image"))).size()>1);
-            assertFalse(((List)result.get("embeds")).isEmpty());
-            assertTrue(((Map)((Map)result.get("alternativeImages")).get("promotionalImage")).size() > 1);
         } finally {
             response.close();
         }
@@ -1164,8 +1163,66 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         }
     }
 
-    @Test
-    public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForEnrichedContent() throws IOException {
+	@Test
+	public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForInternalContentPreview() throws IOException {
+		stubFor(get(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).willReturn(
+				aResponse().withBody(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON)
+						.withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+
+		URI uri = fromFacade(INTERNAL_CONTENT_PREVIEW_PATH).build();
+
+		String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue() + ","
+				+ Policy.INCLUDE_RICH_CONTENT.getHeaderValue() + "," + Policy.EXPAND_RICH_CONTENT.getHeaderValue();
+
+		ClientResponse response = client.resource(uri).header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
+				.get(ClientResponse.class);
+
+		try {
+			verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).withQueryParam("expandImages",
+					equalTo("true")));
+			Map<String, Object> result = expectOKResponseWithJSON(response);
+			Map<String, Object> jsonExpected = OBJECT_MAPPER.readValue(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON,
+					JSON_MAP_TYPE);
+			assertTrue(result.equals(jsonExpected));
+			ArrayList leadImages = (ArrayList) result.get("leadImages");
+			assertTrue(leadImages.size() == 3);
+			assertTrue(((Map) (((Map) (leadImages.get(0))).get("image"))).size() > 1);
+			assertTrue(((Map) (((Map) (leadImages.get(1))).get("image"))).size() > 1);
+			assertTrue(((Map) (((Map) (leadImages.get(2))).get("image"))).size() > 1);
+		} finally {
+			response.close();
+		}
+	}
+
+	@Test
+	public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnExpandedImagesForInternalContentPreview()
+			throws IOException {
+		stubFor(get(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).willReturn(
+				aResponse().withBody(INTERNAL_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON)
+						.withStatus(200)));
+
+		URI uri = fromFacade(INTERNAL_CONTENT_PREVIEW_PATH).build();
+
+		String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue() + ","
+				+ Policy.INCLUDE_RICH_CONTENT.getHeaderValue();
+
+		ClientResponse response = client.resource(uri).header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
+				.get(ClientResponse.class);
+
+		try {
+			verify(0,
+					getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).withQueryParam("expandImages",
+							equalTo("true")));
+			Map<String, Object> result = expectOKResponseWithJSON(response);
+			assertTrue(((Map) result.get("mainImage")).size() == 1);
+			assertNull(result.get("embeds"));
+		} finally {
+			response.close();
+		}
+	}
+
+	@Test
+	public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForEnrichedContent() throws IOException {
         stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH_2))
                 .willReturn(aResponse()
                         .withBody(ENRICHED_CONTENT_EXPANDED_IMAGES_JSON)
