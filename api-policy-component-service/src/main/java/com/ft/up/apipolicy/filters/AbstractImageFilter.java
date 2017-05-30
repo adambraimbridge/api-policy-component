@@ -39,6 +39,17 @@ public abstract class AbstractImageFilter implements ApiFilter {
                 }
             }
         }
+
+		Object leadImages = content.get(LEAD_IMAGES);
+		if (leadImages instanceof List) {
+			List leadImagesAsList = (List) leadImages;
+			for (Object leadImage : leadImagesAsList) {
+				if (leadImage instanceof Map) {
+					Map leadImageAsMap = (Map) leadImage;
+					applyFilterToImageModel(jsonProperty, modifier, leadImageAsMap);
+				}
+			}
+		}
     }
 
     private void applyFilterToFromImageSet(String jsonProperty, FieldModifier modifier, Map imageSet) {
