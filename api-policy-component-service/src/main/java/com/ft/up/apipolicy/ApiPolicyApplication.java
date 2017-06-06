@@ -141,7 +141,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripProvenance,
                 stripLastModifiedDate,
                 _unstable_stripOpeningXml,
-                removeAccessFieldRegardlessOfPolicy));
+                removeAccessFieldRegardlessOfPolicy,
+				expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
                 identifiersFilter,
