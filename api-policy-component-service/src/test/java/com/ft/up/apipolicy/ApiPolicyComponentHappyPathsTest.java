@@ -1123,11 +1123,6 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             Map<String, Object> result = expectOKResponseWithJSON(response);
 			Map<String, Object> jsonExpected = OBJECT_MAPPER.readValue(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON, JSON_MAP_TYPE);
 			assertTrue(result.equals(jsonExpected));
-			ArrayList leadImages = (ArrayList)result.get("leadImages");
-			assertTrue(leadImages.size() == 3);
-			assertTrue(((Map)(((Map)(leadImages.get(0))).get("image"))).size()>1);
-			assertTrue(((Map)(((Map)(leadImages.get(1))).get("image"))).size()>1);
-			assertTrue(((Map)(((Map)(leadImages.get(2))).get("image"))).size()>1);
         } finally {
             response.close();
         }
