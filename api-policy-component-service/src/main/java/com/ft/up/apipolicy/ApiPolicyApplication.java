@@ -157,7 +157,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripProvenance,
                 stripLastModifiedDate,
                 _unstable_stripOpeningXml,
-                removeAccessFieldRegardlessOfPolicy));
+                removeAccessFieldRegardlessOfPolicy,
+				expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
                 mediaResourceNotificationsFilter,
@@ -201,7 +202,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 syndicationDistributionFilter,
-                contentPackageFilter));
+                contentPackageFilter,
+				expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists",
                 stripProvenance,
