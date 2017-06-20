@@ -1,5 +1,6 @@
-Policy Component
-================
+[![CircleCI](https://circleci.com/gh/Financial-Times/api-policy-component.svg?style=shield)](https://circleci.com/gh/Financial-Times/api-policy-component)
+Api Policy Component
+====================
 
 An HTTP service provides a facade over the reader endpoint for use by licenced partners.
 
