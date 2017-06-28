@@ -9,19 +9,7 @@ import com.ft.platform.dropwizard.DefaultGoodToGoChecker;
 import com.ft.platform.dropwizard.GoodToGoBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
-import com.ft.up.apipolicy.filters.AddSyndication;
-import com.ft.up.apipolicy.filters.ExpandedImagesFilter;
-import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
-import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
-import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
-import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
-import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
-import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
-import com.ft.up.apipolicy.filters.SyndicationDistributionFilter;
-import com.ft.up.apipolicy.filters.WebUrlCalculator;
+import com.ft.up.apipolicy.filters.*;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -30,6 +18,7 @@ import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.KnownEndpoint;
 import com.ft.up.apipolicy.resources.RequestHandler;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
+import com.ft.up.apipolicy.transformer.BodyPostProcessingFieldTransformerFactory;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 import com.sun.jersey.api.client.Client;
@@ -90,6 +79,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter syndicationDistributionFilter;
     private ApiFilter contentPackageFilter;
     private ApiFilter expandedImagesFilter;
+    private ApiFilter suppressInternalMarkup;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -117,6 +107,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 addSyndication,
                 linkValidationFilter,
                 suppressMarkup,
+                suppressInternalMarkup,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -128,11 +119,17 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 removeAccessFieldRegardlessOfPolicy,
                 syndicationDistributionFilter));
 
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
+                mediaResourceNotificationsFilter,
+                brandFilter,
+                notificationsFilter()));
+
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
                 identifiersFilter,
                 webUrlAdder,
                 addSyndication,
                 suppressMarkup,
+                suppressInternalMarkup,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -142,28 +139,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate,
                 _unstable_stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
-				expandedImagesFilter));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
-                identifiersFilter,
-                webUrlAdder,
-                addSyndication,
-                suppressMarkup,
-                mainImageFilter,
-                alternativeTitlesFilter,
-                alternativeImagesFilter,
-                alternativeStandfirstsFilter,
-                stripCommentsFields,
-                stripProvenance,
-                stripLastModifiedDate,
-                _unstable_stripOpeningXml,
-                removeAccessFieldRegardlessOfPolicy,
-				expandedImagesFilter));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
-                mediaResourceNotificationsFilter,
-                brandFilter,
-                notificationsFilter()));
+                expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
                 identifiersFilter,
@@ -171,6 +147,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 addSyndication,
                 linkValidationFilter,
                 suppressMarkup,
+                suppressInternalMarkup,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -203,7 +180,23 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelHeaderFilter,
                 syndicationDistributionFilter,
                 contentPackageFilter,
-				expandedImagesFilter));
+				        expandedImagesFilter));
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
+                identifiersFilter,
+                webUrlAdder,
+                addSyndication,
+                suppressMarkup,
+                mainImageFilter,
+                alternativeTitlesFilter,
+                alternativeImagesFilter,
+                alternativeStandfirstsFilter,
+                stripCommentsFields,
+                stripProvenance,
+                stripLastModifiedDate,
+                _unstable_stripOpeningXml,
+                removeAccessFieldRegardlessOfPolicy,
+                expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists",
                 stripProvenance,
@@ -242,6 +235,10 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         return (BodyProcessingFieldTransformer) (new BodyProcessingFieldTransformerFactory()).newInstance();
     }
 
+    private BodyProcessingFieldTransformer getBodyPostProcessingFieldTransformer() {
+        return (BodyProcessingFieldTransformer) (new BodyPostProcessingFieldTransformerFactory()).newInstance();
+    }
+
     private void setFilters(ApiPolicyConfiguration configuration, Environment environment) {
         JsonConverter jsonTweaker = new JsonConverter(environment.getObjectMapper());
         PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
@@ -257,6 +254,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         stripLastModifiedDate =  new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_LAST_MODIFIED_DATE, LAST_MODIFIED_JSON_PROPERTY);
         _unstable_stripOpeningXml = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, OPENING_XML_JSON_PROPERTY);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
+        suppressInternalMarkup = new SuppressInternalContentMarkupFilter(jsonTweaker, getBodyPostProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(), jsonTweaker);
         addSyndication = new AddSyndication(jsonTweaker, INTERNAL_UNSTABLE);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
