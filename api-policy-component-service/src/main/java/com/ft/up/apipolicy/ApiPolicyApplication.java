@@ -67,6 +67,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private static final String CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY = "contains";
     private static final String CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY = "containedIn";
     private static final String ACCESS_LEVEL_HEADER = "X-FT-Access-Level";
+    private static final String MASTER_SOURCE_JSON_PROPERTY = "masterSource";
 
     private ApiFilter mainImageFilter;
     private ApiFilter identifiersFilter;
@@ -81,7 +82,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter addSyndication;
     private ApiFilter brandFilter;
     private ApiFilter stripLastModifiedDate;
-    private ApiFilter _unstable_stripOpeningXml;
+    private ApiFilter stripOpeningXml;
     private ApiFilter linkValidationFilter;
     private ApiFilter mediaResourceNotificationsFilter;
     private ApiFilter accessLevelPropertyFilter;
@@ -124,7 +125,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 removeCommentsFieldRegardlessOfPolicy,
                 stripProvenance,
                 stripLastModifiedDate,
-                _unstable_stripOpeningXml,
+                stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
                 syndicationDistributionFilter));
 
@@ -140,7 +141,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripCommentsFields,
                 stripProvenance,
                 stripLastModifiedDate,
-                _unstable_stripOpeningXml,
+                stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
 				expandedImagesFilter));
 
@@ -156,7 +157,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripCommentsFields,
                 stripProvenance,
                 stripLastModifiedDate,
-                _unstable_stripOpeningXml,
+                stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
 				expandedImagesFilter));
 
@@ -178,7 +179,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripCommentsFields,
                 stripProvenance,
                 stripLastModifiedDate,
-                _unstable_stripOpeningXml,
+                stripOpeningXml,
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 syndicationDistributionFilter,
@@ -198,7 +199,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripCommentsFields,
                 stripProvenance,
                 stripLastModifiedDate,
-                _unstable_stripOpeningXml,
+                stripOpeningXml,
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 syndicationDistributionFilter,
@@ -253,12 +254,12 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         alternativeStandfirstsFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, ALT_STANDFIRST_JSON_PROPERTY);
         stripCommentsFields = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_COMMENTS, COMMENTS_JSON_PROPERTY);
         removeCommentsFieldRegardlessOfPolicy = new SuppressJsonPropertiesFilter(jsonTweaker, COMMENTS_JSON_PROPERTY);
-        stripProvenance = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_PROVENANCE, PROVENANCE_JSON_PROPERTY);
+        stripProvenance = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_PROVENANCE, PROVENANCE_JSON_PROPERTY, MASTER_SOURCE_JSON_PROPERTY);
         stripLastModifiedDate =  new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_LAST_MODIFIED_DATE, LAST_MODIFIED_JSON_PROPERTY);
-        _unstable_stripOpeningXml = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, OPENING_XML_JSON_PROPERTY);
+        stripOpeningXml = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, OPENING_XML_JSON_PROPERTY);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(), jsonTweaker);
-        addSyndication = new AddSyndication(jsonTweaker, INTERNAL_UNSTABLE);
+        addSyndication = new AddSyndication(jsonTweaker);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
         linkValidationFilter = new LinkedContentValidationFilter();
         mediaResourceNotificationsFilter = new NotificationsTypeFilter(jsonTweaker, INTERNAL_UNSTABLE);

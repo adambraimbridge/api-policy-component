@@ -1,7 +1,6 @@
 package com.ft.up.apipolicy.filters;
 
 import com.ft.up.apipolicy.JsonConverter;
-import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
@@ -16,11 +15,9 @@ public class AddSyndication extends AbstractImageFilter {
     private static final String CAN_BE_SYNDICATED_VERIFY = "verify";
 
     private JsonConverter jsonConverter;
-    private Policy policy;
 
-    public AddSyndication(final JsonConverter jsonConverter, final Policy policy) {
+    public AddSyndication(final JsonConverter jsonConverter) {
         this.jsonConverter = jsonConverter;
-        this.policy = policy;
     }
 
     @Override
@@ -30,20 +27,12 @@ public class AddSyndication extends AbstractImageFilter {
             return originalResponse;
         }
         final Map<String, Object> content = jsonConverter.readEntity(originalResponse);
-        FieldModifier modifier;
-        if (request.policyIs(policy)) {
-            modifier = (jsonProp, contentModel) -> {
-                if (!contentModel.containsKey(jsonProp)) {
-                    contentModel.put(jsonProp, CAN_BE_SYNDICATED_VERIFY);
-                }
-            };
-        } else {
-            modifier = (jsonProp, contentModel) -> {
-                if (contentModel.containsKey(jsonProp)) {
-                    contentModel.remove(jsonProp);
-                }
-            };
-        }
+        FieldModifier modifier = (jsonProp, contentModel) -> {
+            if (!contentModel.containsKey(jsonProp)) {
+                contentModel.put(jsonProp, CAN_BE_SYNDICATED_VERIFY);
+            }
+        };
+
         applyFilter(CAN_BE_SYNDICATED_KEY, modifier, content);
         jsonConverter.replaceEntity(originalResponse, content);
         return originalResponse;

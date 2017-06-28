@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 public class AddSyndicationTest {
 
     private final HttpPipelineChain mockChain = mock(HttpPipelineChain.class);
-    private AddSyndication filter = new AddSyndication(JsonConverter.testConverter(), Policy.INTERNAL_UNSTABLE);
+    private AddSyndication filter = new AddSyndication(JsonConverter.testConverter());
 
     private static byte[] readFileBytes(final String path) {
         try {
@@ -97,26 +97,9 @@ public class AddSyndicationTest {
     }
 
     @Test
-    public void shouldHideOriginalFieldIfPresentButNotPolicy() {
+    public void shouldShowOriginalFieldIfPresentRegardlessPolicy() {
         final MutableRequest request = new MutableRequest(new HashSet<>(), getClass().getSimpleName());
         final byte[] responseBody = readFileBytes("sample-article-with-image.json");
-        final byte[] filteredResponseBody = readFileBytes("sample-article-no-canBeSyndicated.json");
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
-        response.setStatus(200);
-        response.getHeaders().putSingle("Content-Type", "application/json");
-        when(mockChain.callNextFilter(request)).thenReturn(response);
-
-        MutableResponse filteredResponse = filter.processRequest(request, mockChain);
-
-        assertThat(new String(filteredResponse.getEntity()), is(new String(filteredResponseBody)));
-    }
-
-    @Test
-    public void shouldHaveFieldAddedIfMissingAndPolicy() {
-        final Set<String> policies = new HashSet<>();
-        policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
-        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
-        final byte[] responseBody = readFileBytes("sample-article-no-canBeSyndicated.json");
         final byte[] filteredResponseBody = readFileBytes("sample-article-with-image.json");
         final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
         response.setStatus(200);
@@ -129,9 +112,10 @@ public class AddSyndicationTest {
     }
 
     @Test
-    public void shouldNotIncludeIfMissingAndNotPolicy() {
+    public void shouldHaveFieldAddedIfMissingRegardlessPolicy() {
         final MutableRequest request = new MutableRequest(new HashSet<>(), getClass().getSimpleName());
         final byte[] responseBody = readFileBytes("sample-article-no-canBeSyndicated.json");
+        final byte[] filteredResponseBody = readFileBytes("sample-article-with-image.json");
         final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
@@ -139,6 +123,6 @@ public class AddSyndicationTest {
 
         MutableResponse filteredResponse = filter.processRequest(request, mockChain);
 
-        assertThat(new String(filteredResponse.getEntity()), is(new String(responseBody)));
+        assertThat(new String(filteredResponse.getEntity()), is(new String(filteredResponseBody)));
     }
 }
