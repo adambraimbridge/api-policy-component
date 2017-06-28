@@ -10,13 +10,13 @@ import com.google.common.base.Strings;
 
 import java.util.Map;
 
-public class SuppressInternalContentMarkupFilter implements ApiFilter {
+public class SuppressInternalContentFilter implements ApiFilter {
 
   private static final String BODY_XML_KEY = "bodyXML";
   private final JsonConverter jsonConverter;
   private BodyProcessingFieldTransformer transformer;
 
-  public SuppressInternalContentMarkupFilter(JsonConverter jsonConverter, BodyProcessingFieldTransformer transformer) {
+  public SuppressInternalContentFilter(JsonConverter jsonConverter, BodyProcessingFieldTransformer transformer) {
     this.jsonConverter = jsonConverter;
     this.transformer = transformer;
   }
