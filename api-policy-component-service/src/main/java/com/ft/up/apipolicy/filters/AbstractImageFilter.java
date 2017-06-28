@@ -1,7 +1,10 @@
 package com.ft.up.apipolicy.filters;
 
+import com.ft.api.jaxrs.errors.WebApplicationClientException;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
+import org.apache.http.HttpStatus;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -58,10 +61,19 @@ public abstract class AbstractImageFilter implements ApiFilter {
             Object members = imageSet.get(MEMBERS);
             if (members instanceof List) {
                 List membersAsList = (List) members;
-                for (Object member : membersAsList) {
+                for (Iterator iterator = membersAsList.iterator(); iterator.hasNext(); ) {
+                    Object member = iterator.next();
                     if (member instanceof Map) {
                         Map memberAsMap = (Map) member;
-                        applyFilterToImageModel(jsonProperty, modifier, memberAsMap);
+                        try {
+                            applyFilterToImageModel(jsonProperty, modifier, memberAsMap);
+                        } catch (WebApplicationClientException e) {
+                            if (e.getResponse().getStatus() == HttpStatus.SC_FORBIDDEN) {
+                                iterator.remove();
+                            } else {
+                                throw e;
+                            }
+                        }
                     }
                 }
             }

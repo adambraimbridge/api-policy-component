@@ -50,7 +50,7 @@ public class SyndicationDistributionFilter extends AbstractImageFilter {
             }
         };
         applyFilter(CAN_BE_DISTRIBUTED_KEY, modifier, content);
-
+        jsonConverter.replaceEntity(originalResponse, content);
         return originalResponse;
     }
 }
