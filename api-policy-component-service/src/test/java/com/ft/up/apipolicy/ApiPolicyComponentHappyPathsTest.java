@@ -474,14 +474,14 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     }
 
     @Test
-    public void shouldGetTheContentWithoutSyndicationField() throws IOException {
+    public void shouldGetTheContentWithSyndicationField() throws IOException {
         URI uri  = fromFacade(CONTENT_PATH_3).build();
         givenEverythingSetup();
         ClientResponse response = client.resource(uri).get(ClientResponse.class);
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
             Map<String, Object> result = expectOKResponseWithJSON(response);
-            assertFalse(result.containsKey("canBeSyndicated"));
+            assertTrue(result.containsKey("canBeSyndicated"));
         } finally {
             response.close();
         }

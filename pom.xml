@@ -9,7 +9,6 @@
     
     <modules>
       <module>api-policy-component-service</module>
-      <module>api-policy-component-pkg</module>
       <module>api-policy-component-json-schema</module>
     </modules>
     
