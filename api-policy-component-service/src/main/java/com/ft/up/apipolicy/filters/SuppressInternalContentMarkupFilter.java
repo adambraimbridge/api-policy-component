@@ -12,27 +12,27 @@ import java.util.Map;
 
 public class SuppressInternalContentMarkupFilter implements ApiFilter {
 
-    private static final String BODY_XML_KEY = "bodyXML";
-	  private final JsonConverter jsonConverter;
-    private BodyProcessingFieldTransformer transformer;
+  private static final String BODY_XML_KEY = "bodyXML";
+  private final JsonConverter jsonConverter;
+  private BodyProcessingFieldTransformer transformer;
 
-    public SuppressInternalContentMarkupFilter(JsonConverter jsonConverter, BodyProcessingFieldTransformer transformer) {
-        this.jsonConverter = jsonConverter;
-        this.transformer = transformer;
+  public SuppressInternalContentMarkupFilter(JsonConverter jsonConverter, BodyProcessingFieldTransformer transformer) {
+    this.jsonConverter = jsonConverter;
+    this.transformer = transformer;
+  }
+
+  @Override
+  public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
+    MutableResponse response = chain.callNextFilter(request);
+
+    Map<String, Object> content = jsonConverter.readEntity(response);
+    String xml = (String) content.get(BODY_XML_KEY);
+    if (!Strings.isNullOrEmpty(xml)) {
+      xml = transformer.transform(xml, request.getTransactionId());
+      content.put(BODY_XML_KEY, xml);
     }
 
-    @Override
-    public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
-        MutableResponse response = chain.callNextFilter(request);
-
-        Map<String, Object> content = jsonConverter.readEntity(response);
-        String xml = (String)content.get(BODY_XML_KEY);
-        if (!Strings.isNullOrEmpty(xml)) {
-            xml = transformer.transform(xml, request.getTransactionId());
-            content.put(BODY_XML_KEY, xml);
-        }
-
-        jsonConverter.replaceEntity(response, content);
-        return response;
-    }
+    jsonConverter.replaceEntity(response, content);
+    return response;
+  }
 }

@@ -35,7 +35,7 @@ public class BodyPostProcessingFieldTransformerFactoryTest {
                 "\t\t<li><a href='http://example.com/manually/added/document1.pdf'>External link’s manually added title</a></li>\n" +
                 "\t</ul>\n" +
                 "</recommended>\n</p>\n<p>\"I saw bodies everywhere.\"</p>\n\n\n\n</body>";
-        String expected = "<body><p>He sheltered there.</p>\n<p>\"I saw bodies everywhere.\"</p>\n\n\n\n</body>" ;
+        String expected = "<body><p>He sheltered there.</p>\n<p>\n</p>\n<p>\"I saw bodies everywhere.\"</p>\n\n\n\n</body>" ;
 
         checkTransformation(original, expected);
     }

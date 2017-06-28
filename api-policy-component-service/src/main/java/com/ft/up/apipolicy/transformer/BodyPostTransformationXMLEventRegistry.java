@@ -10,7 +10,7 @@ public class BodyPostTransformationXMLEventRegistry extends XMLEventHandlerRegis
   private static final String[] elementsToStrip = {"recommended"};
 
   public BodyPostTransformationXMLEventRegistry() {
-        /* default is to keep events but leave content, including "body" tags - anything not configured below will be handled via this */
+    /* default is to keep events but leave content, including "body" tags - anything not configured below will be handled via this */
     registerDefaultEventHandler(new RetainXMLEventHandler());
 
     registerCharactersEventHandler(new RetainXMLEventHandler());
