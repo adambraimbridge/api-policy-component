@@ -268,7 +268,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         accessLevelHeaderFilter = new RemoveHeaderUnlessPolicyPresentFilter(ACCESS_LEVEL_HEADER, INTERNAL_UNSTABLE);
         syndicationDistributionFilter = new SyndicationDistributionFilter(jsonTweaker, INTERNAL_UNSTABLE);
         contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY);
-        expandedImagesFilter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, INTERNAL_UNSTABLE, EXPAND_RICH_CONTENT);
+        expandedImagesFilter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, EXPAND_RICH_CONTENT);
     }
     
     private ApiFilter notificationsFilter() {
