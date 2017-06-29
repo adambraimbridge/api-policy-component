@@ -39,7 +39,9 @@ public class WebUrlCalculator implements ApiFilter {
         final MutableResponse originalResponse = chain.callNextFilter(request);
         if (isEligibleForWebUrl(originalResponse)) {
             final Map<String, Object> content = extractContent(originalResponse);
-            return createResponseWithWebUrlCompleted(originalResponse, content);
+            if (!content.containsKey(WEB_URL_KEY)) {
+                return createResponseWithWebUrlCompleted(originalResponse, content);
+            }
         }
         return originalResponse;
     }
