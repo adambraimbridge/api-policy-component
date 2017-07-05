@@ -25,6 +25,10 @@ public class SuppressInternalContentFilter implements ApiFilter {
   public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
     MutableResponse response = chain.callNextFilter(request);
 
+    if(!jsonConverter.isJson(response)) {
+      return response;
+    }
+
     Map<String, Object> content = jsonConverter.readEntity(response);
     String xml = (String) content.get(BODY_XML_KEY);
     if (!Strings.isNullOrEmpty(xml)) {

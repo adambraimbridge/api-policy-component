@@ -80,7 +80,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter syndicationDistributionFilter;
     private ApiFilter contentPackageFilter;
     private ApiFilter expandedImagesFilter;
-    private ApiFilter supressInternalContent;
+    private ApiFilter suppressInternalContent;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -108,7 +108,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 addSyndication,
                 linkValidationFilter,
                 suppressMarkup,
-                supressInternalContent,
+                suppressInternalContent,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -125,7 +125,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 webUrlAdder,
                 addSyndication,
                 suppressMarkup,
-                supressInternalContent,
+                suppressInternalContent,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -148,7 +148,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 addSyndication,
                 linkValidationFilter,
                 suppressMarkup,
-                supressInternalContent,
+                suppressInternalContent,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -255,7 +255,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         stripLastModifiedDate =  new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_LAST_MODIFIED_DATE, LAST_MODIFIED_JSON_PROPERTY);
         stripOpeningXml = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, OPENING_XML_JSON_PROPERTY);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
-        supressInternalContent = new SuppressInternalContentFilter(jsonTweaker, getBodyPostProcessingFieldTransformer());
+        suppressInternalContent = new SuppressInternalContentFilter(jsonTweaker, getBodyPostProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(), jsonTweaker);
         addSyndication = new AddSyndication(jsonTweaker);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
