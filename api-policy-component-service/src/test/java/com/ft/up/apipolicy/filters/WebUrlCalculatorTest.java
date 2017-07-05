@@ -36,6 +36,12 @@ public class WebUrlCalculatorTest {
             "\"identifierValue\": \"219512\"\n" +
             "}],\n" +
             "\"bodyXML\": \"<body>something here</body>\" }").getBytes(UTF8);
+    private final static byte[] WEB_URL_PRESENT_IN_RESPONSE = ("{ \"identifiers\": [{\n" +
+            "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+            "\"identifierValue\": \"219512\"\n" +
+            "}],\n" +
+            "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
+            "\"webUrl\": \"http://ftalphaville.ft.com/marketslive/2017-01-02/\" }").getBytes(UTF8);
     private final static byte[] WEB_URL_ELIGIBLE_LIVE_BLOG_RESPONSE = ("{ \"identifiers\": [{\n" +
             "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
             "\"identifierValue\": \"219512\"\n" +
@@ -70,6 +76,7 @@ public class WebUrlCalculatorTest {
     private MutableResponse exampleErrorResponse;
     private MutableResponse webUrlNonEligibleIdentifierResponse;
     private MutableResponse webUrlEligibleIdentifierResponse;
+    private MutableResponse webUrlPresentInContentResponse;
     private MutableResponse originatingSystemIsNullResponse;
     private MutableResponse minimalPartialExampleResponse;
 
@@ -93,6 +100,10 @@ public class WebUrlCalculatorTest {
         webUrlEligibleIdentifierResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_IDENTIFIER_RESPONSE);
         webUrlEligibleIdentifierResponse.setStatus(200);
         webUrlEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/json");
+
+        webUrlPresentInContentResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_PRESENT_IN_RESPONSE);
+        webUrlPresentInContentResponse.setStatus(200);
+        webUrlPresentInContentResponse.getHeaders().putSingle("Content-Type", "application/json");
 
         originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), NO_IDENTIFIERS_RESPONSE.getBytes());
         originatingSystemIsNullResponse.setStatus(200);
@@ -184,4 +195,13 @@ public class WebUrlCalculatorTest {
 
         assertThat(response.getEntityAsString(),not(containsString("\"webUrl\":\"WP219512\"")));
     }
+
+    @Test
+    public void shouldNotOverwriteWebUrlToSuccessResponseForContentWithDefaultWebUrl() {
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlPresentInContentResponse);
+        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
+
+        assertThat(response.getEntity(), is(WEB_URL_PRESENT_IN_RESPONSE));
+    }
+
 }

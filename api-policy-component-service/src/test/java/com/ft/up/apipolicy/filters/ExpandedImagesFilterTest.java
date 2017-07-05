@@ -34,14 +34,13 @@ public class ExpandedImagesFilterTest {
 
     @Before
     public void setUp() {
-        filter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, INTERNAL_UNSTABLE, EXPAND_RICH_CONTENT);
+        filter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, EXPAND_RICH_CONTENT);
     }
 
     @Test
     public void thatRequestParameterIsAppliedWhenRichContentPolicy() {
         when(request.policyIs(EXPAND_RICH_CONTENT)).thenReturn(true);
         when(request.policyIs(INCLUDE_RICH_CONTENT)).thenReturn(true);
-        when(request.policyIs(INTERNAL_UNSTABLE)).thenReturn(true);
 
         @SuppressWarnings("unchecked")
         MultivaluedMap<String, String> params = mock(MultivaluedMap.class);
@@ -63,24 +62,21 @@ public class ExpandedImagesFilterTest {
     }
 
     @Test
-    public void thatNoChangeIsAppliedWhenInternalUnstableAndExpandRichContentPoliciesArePresent() {
-        when(request.policyIs(INCLUDE_RICH_CONTENT)).thenReturn(Boolean.TRUE);
+    public void thatNoChangeIsAppliedWhenOnlyExpandRichContentPolicyIsPresent() {
+        when(request.policyIs(EXPAND_RICH_CONTENT)).thenReturn(Boolean.TRUE);
         filter.processRequest(request, chain);
 
         verify(request).policyIs(INCLUDE_RICH_CONTENT);
-        verify(request).policyIs(INTERNAL_UNSTABLE);
         verifyNoMoreInteractions(request);
         verify(chain).callNextFilter(request);
     }
 
     @Test
-    public void thatNoChangeIsAppliedWhenExpandRichContentPolicyIsPresent() {
+    public void thatNoChangeIsAppliedWhenOnlyIncludeRichContentPolicyIsPresent() {
         when(request.policyIs(INCLUDE_RICH_CONTENT)).thenReturn(Boolean.TRUE);
-        when(request.policyIs(INTERNAL_UNSTABLE)).thenReturn(Boolean.TRUE);
         filter.processRequest(request, chain);
 
         verify(request).policyIs(INCLUDE_RICH_CONTENT);
-        verify(request).policyIs(INTERNAL_UNSTABLE);
         verify(request).policyIs(EXPAND_RICH_CONTENT);
         verifyNoMoreInteractions(request);
         verify(chain).callNextFilter(request);
