@@ -35,10 +35,10 @@ public class BodyTransformationXMLEventRegistry extends XMLEventHandlerRegistry 
                 "a"
         );
 
-        final XMLEventHandler removeMediaResouce = new StripElementIfSpecificAttributesXmlEventHandler(
+        final XMLEventHandler removeMediaResource = new StripElementIfSpecificAttributesXmlEventHandler(
                 Collections.singletonMap("type", MEDIA_RESOURCE_CLASS_URI), new RetainXMLEventHandler());
         final XMLEventHandler removeImageSet = new StripElementIfSpecificAttributesXmlEventHandler(
-                Collections.singletonMap("type", IMAGE_SET_CLASS_URI), removeMediaResouce);
+                Collections.singletonMap("type", IMAGE_SET_CLASS_URI), removeMediaResource);
         registerStartAndEndElementEventHandler(removeImageSet, FT_CONTENT);
     }
 }
