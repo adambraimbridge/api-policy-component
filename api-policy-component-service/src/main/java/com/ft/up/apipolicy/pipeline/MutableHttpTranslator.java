@@ -1,5 +1,17 @@
 package com.ft.up.apipolicy.pipeline;
 
+import com.ft.api.jaxrs.errors.ServerError;
+import com.ft.api.util.transactionid.TransactionIdUtils;
+import com.ft.up.apipolicy.LinkedMultivalueMap;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -9,20 +21,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.ft.api.jaxrs.errors.ServerError;
-import com.ft.api.util.transactionid.TransactionIdUtils;
-import com.ft.up.apipolicy.LinkedMultivalueMap;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * MutableHttpTranslator
@@ -61,17 +59,17 @@ public class MutableHttpTranslator {
                 String headerName = headerNames.nextElement();
 
                 Enumeration<String> values = realRequest.getHeaders(headerName);
-
                 if(HttpPipeline.POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
                     if(values!=null) {
                         hasXPolicyHeaders = true;
                         policies = new LinkedHashSet<>();
+                        StringBuilder sb = new StringBuilder();
                         while(values.hasMoreElements()) {
                             String value = values.nextElement();
-                            LOGGER.info("Processed Policies: {}", value);
+                            sb.append(value).append(",");
                             policies.addAll(Arrays.asList(value.split("[ ,]")));
                         }
-
+                        LOGGER.info("Processed {} : {}", HttpPipeline.POLICY_HEADER_NAME, sb);
                     }
                 } else if(HEADER_BLACKLIST.contains(headerName)) {
                     if(LOGGER.isDebugEnabled()) {
