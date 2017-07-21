@@ -1,14 +1,11 @@
 package com.ft.up.apipolicy;
 
-import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.google.common.io.Resources;
-import io.dropwizard.testing.junit.DropwizardAppRule;
-import org.junit.ClassRule;
-
 import java.io.File;
 
-import static io.dropwizard.testing.junit.ConfigOverride.config;
+import org.junit.ClassRule;
+
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.io.Resources;
 
 public abstract class AbstractApiComponentTest {
     static final int SOME_PORT = (int) (Math.random() * 10000) + 40000;

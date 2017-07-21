@@ -1,7 +1,14 @@
 package com.ft.up.apipolicy.filters;
 
-import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
-import com.ft.up.apipolicy.pipeline.MutableRequest;
+import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -10,16 +17,8 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.MultivaluedMap;
-
-import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
+import com.ft.up.apipolicy.pipeline.MutableRequest;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExpandedImagesFilterTest {
