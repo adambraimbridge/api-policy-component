@@ -19,6 +19,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,6 +87,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     private static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
     private static final String EXAMPLE_PATH = "/example";
     private static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
+  private static final String ANNOTATIONS_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694/annotations";
     private static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
     private static final String CONTENT_PATH_3 = "/content/e3b60ad0-acda-11e2-a7c4-002128161462";
     private static final String CONCEPT_PATH_REDIRECT = "/redirect/5561512e-1b45-4810-9448-961bc052a2df";
@@ -217,6 +219,18 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             "{"
                     + "\"body\": \"Test content\""
                     + "}";
+
+    private static final String ANNOTATIONS_RESPONSE_JSON = "{\n" +
+            "   \"predicate\": \"http://www.ft.com/ontology/annotation/mentions\",\n" +
+            "   \"id\": \"http://api.ft.com/things/0a619d71-9af5-3755-90dd-f789b686c67a\",\n" +
+            "   \"apiUrl\": \"http://api.ft.com/people/0a619d71-9af5-3755-90dd-f789b686c67a\",\n" +
+            "   \"types\": [\n" +
+            "      \"http://www.ft.com/ontology/core/Thing\",\n" +
+            "      \"http://www.ft.com/ontology/concept/Concept\",\n" +
+            "      \"http://www.ft.com/ontology/person/Person\"\n" +
+            "   ],\n" +
+            "   \"prefLabel\": \"Barack H. Obama\"\n" +
+            "}";
     private static final String SUGGEST_RESPONSE_JSON =
             "{"
                     + "\"suggestions\": [ ]"
@@ -341,6 +355,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(post(urlEqualTo(SUGGEST_PATH)).willReturn(aResponse().withBody(SUGGEST_RESPONSE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
+        stubFor(get(urlPathEqualTo(ANNOTATIONS_PATH)).willReturn(aResponse().withBody(ANNOTATIONS_RESPONSE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(get(urlPathEqualTo(CONTENT_PATH_3)).willReturn(aResponse().withBody(CONTENT_JSON_3).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
 //        leasedConnectionsBeforeForContent = getLeasedConnections("content");
@@ -436,6 +451,23 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             response.close();
         }
     }
+
+  @Test
+  public void shouldGetAnnotations() throws IOException {
+    givenEverythingSetup();
+    URI uri = fromFacade(ANNOTATIONS_PATH).build();
+
+    ClientResponse response = client.resource(uri).get(ClientResponse.class);
+
+    try {
+      verify(getRequestedFor(urlEqualTo(ANNOTATIONS_PATH)));
+
+      Map<String, Object> result = expectOKResponseWithJSON(response);
+      assertThat(result.get("id"), is("http://api.ft.com/things/0a619d71-9af5-3755-90dd-f789b686c67a"));
+    } finally {
+      response.close();
+    }
+  }
 
     @Test
     public void shouldGetTheContentWithExtraWebUrlField() throws IOException {

@@ -120,6 +120,9 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 removeAccessFieldRegardlessOfPolicy,
                 syndicationDistributionFilter));
 
+        // no filters needed for public-annotations-api
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/annotations", "public-annotations-api", new ApiFilter[]{}));
+
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
                 identifiersFilter,
                 webUrlAdder,
@@ -135,7 +138,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate,
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
-				expandedImagesFilter));
+                expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
                 mediaResourceNotificationsFilter,
@@ -180,7 +183,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelHeaderFilter,
                 syndicationDistributionFilter,
                 contentPackageFilter,
-				expandedImagesFilter));
+                expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
                 identifiersFilter,
