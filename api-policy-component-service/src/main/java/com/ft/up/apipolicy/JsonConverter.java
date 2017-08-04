@@ -22,8 +22,8 @@ public class JsonConverter {
         return new JsonConverter(new ObjectMapper());
     }
 
-    public static final TypeReference<LinkedHashMap<String,Object>> JSON_MAP_TYPE = new TypeReference<LinkedHashMap<String, Object>>() {
-    };
+    public static final TypeReference<LinkedHashMap<String,Object>> JSON_MAP_TYPE = new TypeReference<LinkedHashMap<String, Object>>() {};
+    public static final TypeReference<LinkedHashMap<String,Object>[]> JSON_ARRAY_TYPE = new TypeReference<LinkedHashMap<String, Object>[]>() {};
     private final ObjectMapper objectMapper;
 
     public JsonConverter(ObjectMapper objectMapper) {

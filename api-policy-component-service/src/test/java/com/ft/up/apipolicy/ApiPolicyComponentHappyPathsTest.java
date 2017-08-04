@@ -1,15 +1,15 @@
 package com.ft.up.apipolicy;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 
@@ -19,7 +19,6 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,6 +42,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import io.dropwizard.testing.junit.DropwizardAppRule;
 
+import static com.ft.up.apipolicy.JsonConverter.JSON_ARRAY_TYPE;
 import static com.ft.up.apipolicy.JsonConverter.JSON_MAP_TYPE;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
@@ -220,7 +220,8 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     + "\"body\": \"Test content\""
                     + "}";
 
-    private static final String ANNOTATIONS_RESPONSE_JSON = "{\n" +
+    private static final String ANNOTATIONS_RESPONSE_JSON = "[" +
+            "{\n" +
             "   \"predicate\": \"http://www.ft.com/ontology/annotation/mentions\",\n" +
             "   \"id\": \"http://api.ft.com/things/0a619d71-9af5-3755-90dd-f789b686c67a\",\n" +
             "   \"apiUrl\": \"http://api.ft.com/people/0a619d71-9af5-3755-90dd-f789b686c67a\",\n" +
@@ -230,7 +231,8 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             "      \"http://www.ft.com/ontology/person/Person\"\n" +
             "   ],\n" +
             "   \"prefLabel\": \"Barack H. Obama\"\n" +
-            "}";
+            "}" +
+          "]";
     private static final String SUGGEST_RESPONSE_JSON =
             "{"
                     + "\"suggestions\": [ ]"
@@ -462,8 +464,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     try {
       verify(getRequestedFor(urlEqualTo(ANNOTATIONS_PATH)));
 
-      Map<String, Object> result = expectOKResponseWithJSON(response);
-      assertThat(result.get("id"), is("http://api.ft.com/things/0a619d71-9af5-3755-90dd-f789b686c67a"));
+      Map<String, Object>[] result = expectOKResponseWithJSONArray(response);
+      assertThat(result.length, is(1));
+      assertThat(result[0].get("id"), is("http://api.ft.com/things/0a619d71-9af5-3755-90dd-f789b686c67a"));
     } finally {
       response.close();
     }
@@ -1477,6 +1480,13 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         String bodyString = response.getEntity(String.class);
 
         return OBJECT_MAPPER.readValue(bodyString, JSON_MAP_TYPE);
+    }
+
+    private Map<String, Object>[] expectOKResponseWithJSONArray(ClientResponse response) throws IOException {
+      assertThat(response.getStatus(), is(200));
+      String bodyString = response.getEntity(String.class);
+
+      return OBJECT_MAPPER.readValue(bodyString, JSON_ARRAY_TYPE);
     }
 
     private Matcher<? super String> containsJsonProperty(final String jsonProperty) {
