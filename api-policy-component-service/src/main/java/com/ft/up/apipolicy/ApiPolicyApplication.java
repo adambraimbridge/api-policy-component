@@ -9,7 +9,20 @@ import com.ft.platform.dropwizard.DefaultGoodToGoChecker;
 import com.ft.platform.dropwizard.GoodToGoBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.filters.*;
+import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
+import com.ft.up.apipolicy.filters.AddSyndication;
+import com.ft.up.apipolicy.filters.ExpandedImagesFilter;
+import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
+import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
+import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
+import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
+import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
+import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
+import com.ft.up.apipolicy.filters.SuppressInternalContentFilter;
+import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
+import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
+import com.ft.up.apipolicy.filters.SyndicationDistributionFilter;
+import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -21,17 +34,20 @@ import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyPostProcessingFieldTransformerFactory;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
+
 import com.sun.jersey.api.client.Client;
+
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.DispatcherType;
+
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-
-import javax.servlet.DispatcherType;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
@@ -98,8 +114,79 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.jersey().register(new RuntimeExceptionMapper());
         setFilters(configuration, environment);
 
-        SortedSet<KnownEndpoint> knownWildcardEndpoints = new TreeSet<>();
-        SortedSet<KnownEndpoint> knownWhitelistedPostEndpoints = new TreeSet<>();
+        Set<KnownEndpoint> knownWildcardEndpoints = new LinkedHashSet<>();
+        Set<KnownEndpoint> knownWhitelistedPostEndpoints = new LinkedHashSet<>();
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/things.*", "things", new ApiFilter[]{}));
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", notificationsFilter()));
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists",
+                stripProvenance,
+                stripLastModifiedDate));
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent/.*", "internalcontent",
+                identifiersFilter,
+                webUrlAdder,
+                addSyndication,
+                linkValidationFilter,
+                mainImageFilter,
+                alternativeTitlesFilter,
+                alternativeImagesFilter,
+                alternativeStandfirstsFilter,
+                stripCommentsFields,
+                stripProvenance,
+                stripLastModifiedDate,
+                stripOpeningXml,
+                accessLevelPropertyFilter,
+                accessLevelHeaderFilter,
+                syndicationDistributionFilter,
+                contentPackageFilter,
+                expandedImagesFilter));
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
+                identifiersFilter,
+                webUrlAdder,
+                addSyndication,
+                mainImageFilter,
+                alternativeTitlesFilter,
+                alternativeImagesFilter,
+                alternativeStandfirstsFilter,
+                stripCommentsFields,
+                stripProvenance,
+                stripLastModifiedDate,
+                stripOpeningXml,
+                removeAccessFieldRegardlessOfPolicy,
+                expandedImagesFilter));
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
+                identifiersFilter,
+                webUrlAdder,
+                addSyndication,
+                linkValidationFilter,
+                suppressMarkup,
+                suppressInternalContent,
+                mainImageFilter,
+                alternativeTitlesFilter,
+                alternativeImagesFilter,
+                alternativeStandfirstsFilter,
+                stripCommentsFields,
+                stripProvenance,
+                stripLastModifiedDate,
+                stripOpeningXml,
+                accessLevelPropertyFilter,
+                accessLevelHeaderFilter,
+                syndicationDistributionFilter,
+                contentPackageFilter,
+                expandedImagesFilter));
+
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
+                mediaResourceNotificationsFilter,
+                brandFilter,
+                notificationsFilter()));
+
+        // no filters needed for public-annotations-api
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/annotations", "public-annotations-api", new ApiFilter[]{}));
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
@@ -135,77 +222,9 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate,
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
-				expandedImagesFilter));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
-                mediaResourceNotificationsFilter,
-                brandFilter,
-                notificationsFilter()));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
-                identifiersFilter,
-                webUrlAdder,
-                addSyndication,
-                linkValidationFilter,
-                suppressMarkup,
-                suppressInternalContent,
-                mainImageFilter,
-                alternativeTitlesFilter,
-                alternativeImagesFilter,
-                alternativeStandfirstsFilter,
-                stripCommentsFields,
-                stripProvenance,
-                stripLastModifiedDate,
-                stripOpeningXml,
-                accessLevelPropertyFilter,
-                accessLevelHeaderFilter,
-                syndicationDistributionFilter,
-                contentPackageFilter,
                 expandedImagesFilter));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent/.*", "internalcontent",
-                identifiersFilter,
-                webUrlAdder,
-                addSyndication,
-                linkValidationFilter,
-                mainImageFilter,
-                alternativeTitlesFilter,
-                alternativeImagesFilter,
-                alternativeStandfirstsFilter,
-                stripCommentsFields,
-                stripProvenance,
-                stripLastModifiedDate,
-                stripOpeningXml,
-                accessLevelPropertyFilter,
-                accessLevelHeaderFilter,
-                syndicationDistributionFilter,
-                contentPackageFilter,
-				expandedImagesFilter));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
-                identifiersFilter,
-                webUrlAdder,
-                addSyndication,
-                mainImageFilter,
-                alternativeTitlesFilter,
-                alternativeImagesFilter,
-                alternativeStandfirstsFilter,
-                stripCommentsFields,
-                stripProvenance,
-                stripLastModifiedDate,
-                stripOpeningXml,
-                removeAccessFieldRegardlessOfPolicy,
-                expandedImagesFilter));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists",
-                stripProvenance,
-                stripLastModifiedDate));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", notificationsFilter()));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/concordances.*", "concordances", new ApiFilter[]{}));
-
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/things.*", "things", new ApiFilter[]{}));
 
         // DEFAULT CASE: Just forward it
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/.*", "other", new ApiFilter[]{}));
