@@ -2,13 +2,13 @@ package com.ft.up.apipolicy;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.api.util.transactionid.TransactionIdUtils;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -34,6 +34,8 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -92,11 +94,13 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     private static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
     private static final String ENRICHED_CONTENT_PATH_2 = "/enrichedcontent/285a3560-33df-11e7-bce4-9023f8c0fd2e";
 	private static final String CONTENT_PREVIEW_PATH = "/content-preview/285a3560-33df-11e7-bce4-9023f8c0fd2e";
-    private static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
+    private static final String NOTIFICATIONS_PATH = "/content/notifications";
 	private static final String INTERNAL_CONTENT_PATH = "/internalcontent/c333574c-4993-11e6-8072-e46b2152f259";
 	private static final String INTERNAL_CONTENT_PREVIEW_PATH = "/internalcontent-preview/c333574c-4993-11e6-8072-e46b2152f259";
-    private static final String FOR_BRAND = "&forBrand=";
-    private static final String NOT_FOR_BRAND = "&notForBrand=";
+    private static final String TYPE = "type";
+    private static final String SINCE = "since";
+    private static final String FOR_BRAND = "forBrand";
+    private static final String NOT_FOR_BRAND = "notForBrand";
     private static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
     private static final String SUGGEST_PATH = "/suggest";
     private static final String QUERY_PARAM_NAME = "curatedTopStoriesFor";
@@ -314,10 +318,10 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 			"}";
 	private static final String INTERNAL_CONTENT_EXPANDED_IMAGES_JSON  ="{\"id\":\"http://www.ft.com/thing/c333574c-4993-11e6-8072-e46b2152f259\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"leadImages\":[{\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"pixelHeight\":2612,\"pixelWidth\":2612,\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"square\",\"canBeSyndicated\":\"verify\"},{\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"canBeDistributed\":\"verify\",\"copyright\":{\"notice\":\"© EPA\"},\"firstPublishedDate\":\"2017-03-28T13:42:00.000Z\",\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"pixelHeight\":1152,\"pixelWidth\":2048,\"publishedDate\":\"2017-03-28T13:42:00.000Z\",\"title\":\"Leader of the PVV party Gert Wilders reacts to the election result\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"standard\",\"canBeSyndicated\":\"verify\"},{\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"pixelHeight\":1548,\"pixelWidth\":4645,\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"wide\",\"canBeSyndicated\":\"verify\"}],\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}},\"canBeSyndicated\":\"verify\",\"webUrl\":\"http://www.ft.com/cms/s/273563f3-95a0-4f00-8966-6973c0111923.html\"}";
 	private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", NOTIFICATIONS);
-    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND, "");
-    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND, "");
+    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "&" + FOR_BRAND + "=" + FASTFT_BRAND, "");
+    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "&" + NOT_FOR_BRAND + "=" + FASTFT_BRAND, "");
     private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
-            FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND, "");
+            "&" + FOR_BRAND + "=" + FASTFT_BRAND + "&" + NOT_FOR_BRAND + "=" + FASTFT_BRAND, "");
 
     private static final String LIST_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", LIST_NOTIFICATION_JSON);
 
@@ -343,18 +347,18 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(get(urlPathEqualTo(CONTENT_PATH_3)).willReturn(aResponse().withBody(CONTENT_JSON_3).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
-//        leasedConnectionsBeforeForContent = getLeasedConnections("content");
-//        leasedConnectionsBeforeForNotifications = getLeasedConnections("notifications");
-//        leasedConnectionsBeforeForEnrichedContent = getLeasedConnections("enrichedcontent");
-//        leasedConnectionsBeforeForOther = getLeasedConnections("other");
+        leasedConnectionsBeforeForContent = getLeasedConnections("content");
+        leasedConnectionsBeforeForNotifications = getLeasedConnections("notifications");
+        leasedConnectionsBeforeForEnrichedContent = getLeasedConnections("enrichedcontent");
+        leasedConnectionsBeforeForOther = getLeasedConnections("other");
     }
 
     @After
     public void checkThatNumberOfLeasedConnectionsHaveNotChanged() {
-//        assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
-//        assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
-//        assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
-//        assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
+        assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
+        assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
+        assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
+        assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
     }
 
     @Test
@@ -514,11 +518,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
+        String sinceDate = "2014-10-15";
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8")
-                + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
-
-        stubForNotifications(url, FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), Collections.singletonList(FASTFT_BRAND), FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
 
         /*
 
@@ -565,7 +567,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         }
 
         // after all that, we're only really interested in whether the app called the varnish layer with the same parameters.
-        verify(getRequestedFor(urlEqualTo(url)));
+        verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate)));
 
     }
 
@@ -575,14 +577,12 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
 
-        String url = BASE_NOTIFICATION_PATH;
-
-        stubForNotifications(url, ALL_NOTIFICATIONS_JSON);
+        stubForNotifications("2014-10-15", null, null, null, ALL_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlEqualTo(url)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)));
 
             String requestUrl = expectRequestUrl(response);
 
@@ -598,16 +598,17 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
+        String sinceDate = "2014-10-15";
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
-
-        stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), null, FASTFT_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY")
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlEqualTo(url)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH))
+                .withQueryParam(SINCE, equalTo(sinceDate))
+                .withQueryParam(FOR_BRAND, equalTo(FASTFT_BRAND)));
 
             String requestUrl = expectRequestUrl(response);
 
@@ -622,16 +623,17 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
+        String sinceDate = "2014-10-15";
 
-        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
-
-        stubForNotifications(url, NOT_FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(sinceDate, null, null, Collections.singletonList(FASTFT_BRAND), NOT_FASTFT_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT")
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlEqualTo(url)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH))
+                .withQueryParam(SINCE, equalTo(sinceDate))
+                .withQueryParam(NOT_FOR_BRAND, equalTo(FASTFT_BRAND)));
 
             String requestUrl = expectRequestUrl(response);
 
@@ -647,11 +649,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
+        String sinceDate = "2014-10-15";
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8")
-                + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
-
-        stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), Collections.singletonList(FASTFT_BRAND), FASTFT_NOTIFICATIONS_JSON);
 
         ClientResponse response = client.resource(facadeUri)
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY, EXCLUDE_FASTFT_CONTENT")
@@ -659,7 +659,10 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
 
         try {
-            verify(getRequestedFor(urlEqualTo(url)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH))
+                .withQueryParam(SINCE, equalTo(sinceDate))
+                .withQueryParam(FOR_BRAND, equalTo(FASTFT_BRAND))
+                .withQueryParam(NOT_FOR_BRAND, equalTo(FASTFT_BRAND)));
 
             String requestUrl = expectRequestUrl(response);
 
@@ -733,8 +736,23 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .build();
     }
 
-    private void stubForNotifications(String url, String responseBody) {
-        stubFor(get(urlEqualTo(url))
+    private void stubForNotifications(String sinceDate, String type, Collection<String> forBrands, Collection<String> notForBrands, String responseBody) throws IOException {
+        MappingBuilder request = get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate));
+        if (type != null) {
+            request = request.withQueryParam(TYPE, equalTo(type));
+        }
+        if (forBrands != null) {
+            for (String brand : forBrands) {
+                request = request.withQueryParam(FOR_BRAND, equalTo(URLEncoder.encode(brand, "UTF-8")));
+            }
+        }
+        if (notForBrands != null) {
+            for (String brand : notForBrands) {
+                request = request.withQueryParam(NOT_FOR_BRAND, equalTo(URLEncoder.encode(brand, "UTF-8")));
+            }
+        }
+        
+        stubFor(request
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(responseBody)));
@@ -1001,10 +1019,11 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     @Test
     public void shouldRemovePublishReferenceAndLastModifiedAndLeaveAllOthersInJSONForNotifications() {
         givenEverythingSetup();
-        final URI uri = fromFacade("/content/notifications")
-                .queryParam("since", "2014-10-15")
+        String sinceDate = "2014-10-15";
+        final URI uri = fromFacade(NOTIFICATIONS_PATH)
+                .queryParam(SINCE, sinceDate)
                 .build();
-        stubFor(get(urlEqualTo(BASE_NOTIFICATION_PATH))
+        stubFor(get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate))
                 .willReturn(aResponse()
                         .withBody(ALL_NOTIFICATIONS_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -1013,7 +1032,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         final ClientResponse response = client.resource(uri)
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate)));
             assertThat(response.getStatus(), is(200));
             String jsonPayload = response.getEntity(String.class);
             assertThat(jsonPayload, not(containsNestedJsonProperty("notifications", "publishReference")));
@@ -1030,10 +1049,12 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     @Test
     public void shouldLeaveLastModifiedAndLeaveAllOthersInJSONForNotifications() {
         givenEverythingSetup();
-        final URI uri = fromFacade("/content/notifications")
-                .queryParam("since", "2014-10-15")
+        String sinceDate = "2014-10-15";
+        final URI uri = fromFacade(NOTIFICATIONS_PATH)
+                .queryParam(SINCE, sinceDate)
                 .build();
-        stubFor(get(urlEqualTo(BASE_NOTIFICATION_PATH))
+        stubFor(get(urlPathEqualTo(NOTIFICATIONS_PATH))
+            .withQueryParam(SINCE, equalTo(sinceDate))
                 .willReturn(aResponse()
                         .withBody(ALL_NOTIFICATIONS_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -1043,7 +1064,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
                 .get(ClientResponse.class);
         try {
-            verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate)));
             assertThat(response.getStatus(), is(200));
             String jsonPayload = response.getEntity(String.class);
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "lastModified"));
