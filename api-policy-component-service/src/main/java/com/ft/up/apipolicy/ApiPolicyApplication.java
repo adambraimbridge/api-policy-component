@@ -146,7 +146,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 identifiersFilter,
                 webUrlAdder,
                 addSyndication,
-                suppressMarkup,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
