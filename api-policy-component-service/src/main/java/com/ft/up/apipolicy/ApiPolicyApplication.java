@@ -31,7 +31,6 @@ import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.resources.KnownEndpoint;
 import com.ft.up.apipolicy.resources.RequestHandler;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
-import com.ft.up.apipolicy.transformer.BodyPostProcessingFieldTransformerFactory;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 
@@ -96,7 +95,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter syndicationDistributionFilter;
     private ApiFilter contentPackageFilter;
     private ApiFilter expandedImagesFilter;
-    private ApiFilter suppressInternalContent;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -165,7 +163,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 addSyndication,
                 linkValidationFilter,
                 suppressMarkup,
-                suppressInternalContent,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -195,7 +192,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 addSyndication,
                 linkValidationFilter,
                 suppressMarkup,
-                suppressInternalContent,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -212,7 +208,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 webUrlAdder,
                 addSyndication,
                 suppressMarkup,
-                suppressInternalContent,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -253,10 +248,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         return (BodyProcessingFieldTransformer) (new BodyProcessingFieldTransformerFactory()).newInstance();
     }
 
-    private BodyProcessingFieldTransformer getBodyPostProcessingFieldTransformer() {
-        return (BodyProcessingFieldTransformer) (new BodyPostProcessingFieldTransformerFactory()).newInstance();
-    }
-
     private void setFilters(ApiPolicyConfiguration configuration, Environment environment) {
         JsonConverter jsonTweaker = new JsonConverter(environment.getObjectMapper());
         PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
@@ -272,7 +263,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         stripLastModifiedDate =  new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_LAST_MODIFIED_DATE, LAST_MODIFIED_JSON_PROPERTY);
         stripOpeningXml = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, OPENING_XML_JSON_PROPERTY);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
-        suppressInternalContent = new SuppressInternalContentFilter(jsonTweaker, getBodyPostProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(), jsonTweaker);
         addSyndication = new AddSyndication(jsonTweaker);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);

@@ -1,6 +1,12 @@
 package com.ft.up.apipolicy.transformer;
 
-import com.ft.bodyprocessing.xml.eventhandlers.*;
+import com.ft.bodyprocessing.xml.eventhandlers.PlainTextHtmlEntityReferenceEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.RetainXMLEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.StripElementAndContentsXMLEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.StripElementByClassEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.StripElementIfSpecificAttributesXmlEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.XMLEventHandler;
+import com.ft.bodyprocessing.xml.eventhandlers.XMLEventHandlerRegistry;
 import com.ft.up.apipolicy.transformer.xmlhandler.AttributeValue;
 import com.ft.up.apipolicy.transformer.xmlhandler.StripIfSpecificAttributes;
 
