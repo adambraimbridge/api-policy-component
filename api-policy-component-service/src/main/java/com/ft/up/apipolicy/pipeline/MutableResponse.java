@@ -5,9 +5,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
@@ -22,15 +21,15 @@ public class MutableResponse {
 
     @SuppressWarnings("EI_EXPOSE_REP2")
     private byte[] entity;
-    private MultivaluedMap<String, String> headers;
+    private MultivaluedMap<String, Object> headers;
     private int status;
 
     public MutableResponse() {
-        headers = new MultivaluedMapImpl();
+        headers = new MultivaluedHashMap<>();
     }
 
-    public MutableResponse(MultivaluedMap<String,String> headers,  byte[] entity) {
-        this.headers = new MultivaluedMapImpl(headers);
+    public MutableResponse(MultivaluedMap<String,Object> headers,  byte[] entity) {
+        this.headers = new MultivaluedHashMap(headers);
         this.entity = entity;
     }
 
@@ -42,7 +41,7 @@ public class MutableResponse {
         return new String(entity);
     }
 
-    public MultivaluedMap<String,String> getHeaders() {
+    public MultivaluedMap<String,Object> getHeaders() {
         return headers;
     }
 
@@ -50,7 +49,7 @@ public class MutableResponse {
         this.entity = bytes;
     }
 
-    public void setHeaders(MultivaluedMap<String, String> headers) {
+    public void setHeaders(MultivaluedMap<String, Object> headers) {
         this.headers = headers;
     }
 
@@ -63,15 +62,15 @@ public class MutableResponse {
     }
 
     public String getContentType() {
-        return headers.getFirst("Content-Type");
+        return String.valueOf(headers.getFirst("Content-Type"));
     }
 
     public Set<String> getHeadersInVaryList() {
         Set<String> varyByHeadersSet = new LinkedHashSet<>();
         if(headers.containsKey(VARY_HEADER)) {
-            List<String> headerListsFromVaryHeaders = headers.get(VARY_HEADER);
-            for(String headerListFromAVaryHeader : headerListsFromVaryHeaders) {
-                String [] varyByHeaders = headerListFromAVaryHeader.split("[, ]");
+            List<Object> headerListsFromVaryHeaders = headers.get(VARY_HEADER);
+            for(Object headerListFromAVaryHeader : headerListsFromVaryHeaders) {
+                String [] varyByHeaders = String.valueOf(headerListFromAVaryHeader).split("[, ]");
                 varyByHeadersSet.addAll(Arrays.asList(varyByHeaders));
             }
         }

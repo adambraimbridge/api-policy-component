@@ -8,15 +8,10 @@ import java.io.File;
 
 public abstract class AbstractApiComponentTest {
     static final int SOME_PORT = (int) (Math.random() * 10000) + 40000;
-    static final String primaryNodes = String.format("localhost:%d:%d, localhost:%d:%d",
-            SOME_PORT, SOME_PORT + 1,
-            SOME_PORT + 2, SOME_PORT + 3);
+    static final String primaryNodes = String.format("localhost:%d:%d", SOME_PORT, SOME_PORT + 1);
 
     @ClassRule
     public static WireMockClassRule WIRE_MOCK_1 = new WireMockClassRule(SOME_PORT);
-
-    @ClassRule
-    public static WireMockClassRule WIRE_MOCK_2 = new WireMockClassRule(SOME_PORT + 2);
 
     static String resourceFilePath(String resourceClassPathLocation) {
 

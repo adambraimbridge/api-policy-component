@@ -1,20 +1,20 @@
 package com.ft.up.apipolicy;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.io.Resources;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import org.junit.After;
-import org.junit.Before;
+
+import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.net.URI;
@@ -24,9 +24,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static io.dropwizard.testing.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -47,10 +46,6 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
     @Rule
     public final WireMockClassRule wireMockForVarnish1 = WIRE_MOCK_1;
 
-    @Rule
-    public final WireMockClassRule wireMockForVarnish2 = WIRE_MOCK_2;
-
-
     @ClassRule
     public static final DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
@@ -58,43 +53,20 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
             config("varnish.primaryNodes", primaryNodes)
     );
 
-    private final Client client = Client.create();
-
-    private int leasedConnectionsBeforeForContent = 0;
-    private int leasedConnectionsBeforeForNotifications = 0;
-    private int leasedConnectionsBeforeForEnrichedContent = 0;
-    private int leasedConnectionsBeforeForOther = 0;
-
-    @Before
-    public void setup() {
-        leasedConnectionsBeforeForContent = getLeasedConnections("content");
-        leasedConnectionsBeforeForNotifications = getLeasedConnections("notifications");
-        leasedConnectionsBeforeForEnrichedContent = getLeasedConnections("enrichedcontent");
-        leasedConnectionsBeforeForOther = getLeasedConnections("other");
-    }
-
-    @After
-    public void checkThatNumberOfLeasedConnectionsHaveNotChanged() {
-        assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
-        assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
-        assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
-        assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
-    }
-
+    private final Client client = JerseyClientBuilder.newClient();
 
     @Test
     public void shouldNotAllowNonWhitelistedPostRequestsThrough() {
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, "{}");
+        Response response = client.target(uri).request()
+                                  .post(Entity.json("{}"));
 
         try {
             verify(0, postRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(405));
-            assertThat(response.getEntity(String.class), is(UNSUPPORTED_REQUEST_EXCEPTION_JSON));
+            assertThat(response.readEntity(String.class), is(UNSUPPORTED_REQUEST_EXCEPTION_JSON));
 
         } finally {
             response.close();
@@ -107,19 +79,15 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
         wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(ERROR_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(500)));
 
-        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(SERVER_ERROR_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(500)));
-
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
-            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(500));//TODO should map downstream errors to a 503
-            assertThat(response.getEntity(String.class), is(SERVER_ERROR_JSON));
+            assertThat(response.readEntity(String.class), is(ERROR_JSON));
 
         } finally {
             response.close();
@@ -131,19 +99,15 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
         wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(ERROR_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(503)));
 
-        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(SERVER_ERROR_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(503)));
-
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
-            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(503));
-            assertThat(response.getEntity(String.class), is(SERVER_ERROR_JSON));
+            assertThat(response.readEntity(String.class), is(ERROR_JSON));
 
         } finally {
             response.close();
@@ -155,19 +119,15 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
         wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse()
                 .withStatus(503)));
 
-        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse()
-                .withStatus(503)));
-
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
-            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(503));
-            assertThat(response.getEntity(String.class), is(SERVER_ERROR_JSON));
+            assertThat(response.readEntity(String.class), is(SERVER_ERROR_JSON));
 
         } finally {
             response.close();
@@ -180,59 +140,20 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
         wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withFixedDelay(2000)));
 
-        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withFixedDelay(2000)));
-
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
-            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(504));
-            assertThat(response.getEntity(String.class), is(SOCKET_TIMEOUT_JSON));
+            assertThat(response.readEntity(String.class), is(SOCKET_TIMEOUT_JSON));
 
         } finally {
             response.close();
         }
     }
-
-    // First request fails, second request is OK
-    @Test
-    public void shouldReturnSuccessFromSecondNodeWhereRecoverableErrorOccursForFirstNode() {
-
-        wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH))
-                .willReturn(
-                        aResponse()
-                                .withBody(ERROR_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                                .withStatus(500)
-                ));
-
-        wireMockForVarnish2.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH))
-                .willReturn(
-                        aResponse()
-                                .withBody(EXAMPLE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                                .withStatus(200)
-                ));
-
-        URI uri = fromFacade(EXAMPLE_PATH).build();
-
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
-
-        try {
-            wireMockForVarnish1.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
-            wireMockForVarnish2.verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
-
-            assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), is(EXAMPLE_JSON));
-
-        } finally {
-            response.close();
-        }
-    }
-
 
     private UriBuilder fromFacade(String path) {
         return UriBuilder.fromPath(path).host("localhost").port(policyComponent.getLocalPort()).scheme("http");
@@ -254,15 +175,5 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
             }
             throw new RuntimeException(e);
         }
-    }
-
-
-    private int getLeasedConnections(String name) {
-        return client.resource("http://localhost:" + 21082).path("/metrics") //hardcoded because we have no access to getAdminPort() on the app rule
-                .get(JsonNode.class)
-                .get("gauges")
-                .get("org.apache.http.conn.ClientConnectionManager." + name + ".leased-connections")
-                .get("value").asInt();
-
     }
 }

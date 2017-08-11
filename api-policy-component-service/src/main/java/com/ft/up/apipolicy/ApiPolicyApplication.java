@@ -1,9 +1,7 @@
 package com.ft.up.apipolicy;
 
-import com.ft.api.jaxrs.errors.RuntimeExceptionMapper;
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
-import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.platform.dropwizard.DefaultGoodToGoChecker;
 import com.ft.platform.dropwizard.GoodToGoBundle;
@@ -21,12 +19,16 @@ import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyPostProcessingFieldTransformerFactory;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
-import com.sun.jersey.api.client.Client;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 import javax.servlet.DispatcherType;
+import javax.ws.rs.client.Client;
+
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -95,7 +97,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     @Override
     public void run(final ApiPolicyConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
-        environment.jersey().register(new RuntimeExceptionMapper());
+        environment.jersey().register(new ApiPolicyExceptionMapper());
         setFilters(configuration, environment);
 
         SortedSet<KnownEndpoint> knownWildcardEndpoints = new TreeSet<>();
@@ -219,12 +221,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-        Client healthcheckClient;
-        if (configuration.isCheckingVulcanHealth()) {
-            healthcheckClient = ResilientClientBuilder.in(environment).usingDNS().named("healthcheck-client").build();
-        } else {
-            healthcheckClient = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named("healthcheck-client").build();
-        }
+        Client healthcheckClient = JerseyClientBuilder.newClient();
         environment.healthChecks()
                 .register("Reader API Connectivity",
                         new ReaderNodesHealthCheck("Reader API Connectivity ", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
@@ -285,7 +282,12 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
                                          String urlPattern, String instanceName, ApiFilter... filterChain) {
-        final Client client = ResilientClientBuilder.in(environment).using(configuration.getVarnish()).named(instanceName).build();
+      
+        final Client client = JerseyClientBuilder.newBuilder()
+            .property(ClientProperties.FOLLOW_REDIRECTS, false)
+            .property(ClientProperties.CONNECT_TIMEOUT, configuration.getVarnish().getConnectTimeoutMillis())
+            .property(ClientProperties.READ_TIMEOUT, configuration.getVarnish().getReadTimeoutMillis())
+            .build();
 
         final RequestForwarder requestForwarder = new JerseyRequestForwarder(client, configuration.getVarnish());
         return new KnownEndpoint(urlPattern, new HttpPipeline(requestForwarder, filterChain));

@@ -1,6 +1,5 @@
 package com.ft.up.apipolicy.resources;
 
-import com.ft.api.jaxrs.errors.ClientError;
 import com.ft.api.jaxrs.errors.ServerError;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
@@ -10,18 +9,20 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
 
 import com.google.common.base.Joiner;
 
-import com.sun.jersey.api.client.ClientHandlerException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketTimeoutException;
+import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -44,14 +45,16 @@ public class RequestHandler {
         MutableResponse response;
         try {
             response = handleRequest(mutableRequest, pathPart);
-        } catch (ClientHandlerException che) {
+        } catch (ClientErrorException che) {
             if (che.getCause() instanceof SocketTimeoutException) {
                 throw ServerError.status(504).error(che.getMessage()).exception(che);
             } else {
                 throw ServerError.status(503).error(che.getMessage()).exception(che);
             }
         } catch (UnsupportedRequestException ure) {
-            throw ClientError.status(405).error(ure.getMessage()).exception(ure);
+            return Response.status(HttpServletResponse.SC_METHOD_NOT_ALLOWED).type(MediaType.APPLICATION_JSON)
+                .entity(Collections.singletonMap("message", ure.getMessage()))
+                .build();
         }
         if (response == null) {
             return Response.serverError().build();

@@ -2,14 +2,13 @@ package com.ft.up.apipolicy.pipeline;
 
 import com.ft.api.jaxrs.errors.ServerError;
 import com.ft.api.util.transactionid.TransactionIdUtils;
-import com.ft.up.apipolicy.LinkedMultivalueMap;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -47,7 +46,7 @@ public class MutableHttpTranslator {
     public MutableRequest translateFrom(HttpServletRequest realRequest) {
 
 
-        MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         Set<String> policies = Collections.emptySet();
 
         String transactionId = null;
@@ -102,7 +101,7 @@ public class MutableHttpTranslator {
             LOGGER.debug("No headers");
         }
 
-        MultivaluedMap<String, String> queryParameters = new LinkedMultivalueMap();
+        MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<>();
         Enumeration<String> parameterNames = realRequest.getParameterNames();
         if(parameterNames!=null) {
             while(parameterNames.hasMoreElements()) {
@@ -142,16 +141,16 @@ public class MutableHttpTranslator {
 
         for(String headerName : mutableResponse.getHeaders().keySet()) {
 
-            List<String> values = mutableResponse.getHeaders().get(headerName);
+            List<Object> values = mutableResponse.getHeaders().get(headerName);
 
             if(HEADER_BLACKLIST.contains(headerName)) {
                 if(LOGGER.isDebugEnabled()) {
-                    for(String value : values) {
+                    for(Object value : values) {
                         LOGGER.debug("Not Processed: {}={}", headerName, value);
                     }
                 }
             } else {
-                for(String value : values) {
+                for(Object value : values) {
                     responseBuilder.header(headerName, value);
                     LOGGER.debug("Passed Down: {}={}", headerName, value);
                 }

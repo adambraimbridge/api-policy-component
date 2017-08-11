@@ -6,9 +6,9 @@ import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+
+import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -21,7 +21,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.net.URI;
@@ -35,7 +37,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static io.dropwizard.testing.ConfigOverride.config;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.not;
@@ -144,8 +146,8 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     private final String jsonResponseForContent;
     private final String jsonResponseForEnrichedContent;
 
-    private final Client client = Client.create();
-    private ClientResponse response;
+    private final Client client = JerseyClientBuilder.newClient();
+    private Response response;
 
     public ApiPolicyComponentContentEndpointsRestrictedPropertiesTest(String propertyName, Policy requiredPolicy,
                                                                       boolean allowForContent, boolean allowForContentPreview, boolean allowForEnrichedContent, String jsonResponseForContent, String jsonResponseForEnrichedContent) {
@@ -188,9 +190,9 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
         verify(getRequestedFor(urlPathEqualTo(path)));
         assertThat(response.getStatus(), is(SC_OK));
         if (expectProperty) {
-            assertThat(response.getEntity(String.class), containsJsonProperty(propertyName));
+            assertThat(response.readEntity(String.class), containsJsonProperty(propertyName));
         } else {
-            assertThat(response.getEntity(String.class), not(containsJsonProperty(propertyName)));
+            assertThat(response.readEntity(String.class), not(containsJsonProperty(propertyName)));
         }
     }
 
@@ -217,9 +219,9 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     @Test
     public void shouldAllowPropertyForContentWhenPolicyIsPresent() throws Exception {
         final URI uri = fromFacade(CONTENT_PATH).build();
-        response = client.resource(uri)
+        response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, requiredPolicy.getHeaderValue())
-                .get(ClientResponse.class);
+                .get();
 
         checkResponse(CONTENT_PATH, allowForContentEndpoint);
     }
@@ -227,9 +229,9 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     @Test
     public void shouldAllowPropertyForContentPreviewWhenPolicyIsPresent() throws Exception {
         final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
-        response = client.resource(uri)
+        response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, requiredPolicy.getHeaderValue())
-                .get(ClientResponse.class);
+                .get();
 
         checkResponse(CONTENT_PREVIEW_PATH, allowForContentPreviewEndpoint);
     }
@@ -237,9 +239,9 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     @Test
     public void shouldAllowPropertyForEnrichedContentWhenPolicyIsPresent() throws Exception {
         final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        response = client.resource(uri)
+        response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, requiredPolicy.getHeaderValue())
-                .get(ClientResponse.class);
+                .get();
 
         checkResponse(ENRICHED_CONTENT_PATH, allowForEnrichedContentEndpoint);
     }
@@ -247,8 +249,7 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     @Test
     public void shouldRemovePropertyForContentWhenPolicyIsNotPresent() throws Exception {
         final URI uri = fromFacade(CONTENT_PATH).build();
-        response = client.resource(uri)
-                .get(ClientResponse.class);
+        response = client.target(uri).request().get();
 
         checkResponse(CONTENT_PATH, false);
     }
@@ -256,8 +257,7 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     @Test
     public void shouldRemovePropertyForContentPreviewWhenPolicyIsNotPresent() throws Exception {
         final URI uri = fromFacade(CONTENT_PREVIEW_PATH).build();
-        response = client.resource(uri)
-                .get(ClientResponse.class);
+        response = client.target(uri).request().get();
 
         checkResponse(CONTENT_PREVIEW_PATH, false);
     }
@@ -265,8 +265,7 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     @Test
     public void shouldRemovePropertyForEnrichedContentWhenPolicyIsNotPresent() throws Exception {
         final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
-        response = client.resource(uri)
-                .get(ClientResponse.class);
+        response = client.target(uri).request().get();
 
         checkResponse(ENRICHED_CONTENT_PATH, false);
     }

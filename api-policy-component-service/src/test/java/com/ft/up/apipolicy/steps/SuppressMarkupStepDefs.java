@@ -7,7 +7,7 @@ import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import javax.ws.rs.core.MultivaluedHashMap;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -67,7 +67,7 @@ public class SuppressMarkupStepDefs {
 
 	private MutableResponse defaultResponse() {
 		MutableResponse expectedResponse = new MutableResponse();
-		MultivaluedMapImpl headers = new MultivaluedMapImpl();
+		MultivaluedHashMap<String,Object> headers = new MultivaluedHashMap<>();
 		headers.putSingle("Content-Type","application/json");
 		expectedResponse.setHeaders(headers);
 		return expectedResponse;

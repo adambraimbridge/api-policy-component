@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Charsets;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -101,7 +101,7 @@ public class MutableHttpTranslatorTest {
     @Test
     public void shouldCopyResponseHeadersToMutableResponse() {
 
-        MultivaluedMap<String,String> headersPresent = new MultivaluedMapImpl();
+        MultivaluedMap<String,Object> headersPresent = new MultivaluedHashMap<>();
         headersPresent.putSingle("Foo","01");
         headersPresent.putSingle("Bar","02");
         headersPresent.putSingle("Baz","03");
@@ -120,7 +120,7 @@ public class MutableHttpTranslatorTest {
 
     @Test
     public void shouldExcludeBlacklistedResponseHeadersFromMutableResponse() {
-        MultivaluedMap<String,String> headersPresent = new MultivaluedMapImpl();
+        MultivaluedMap<String,Object> headersPresent = new MultivaluedHashMap<>();
         headersPresent.putSingle("Foo","01");
         headersPresent.putSingle("Bar","02");
         headersPresent.putSingle("Host","varnishnode01.ft.com");
@@ -153,7 +153,7 @@ public class MutableHttpTranslatorTest {
     @Test
     public void shouldAddAllPoliciesFromXPolicyHeaderHoweverConfigured() {
         // supports multiple values in one header AND multiple versions of the header
-        MultivaluedMap<String,String> headersPresent = new MultivaluedMapImpl();
+        MultivaluedMap<String,String> headersPresent = new MultivaluedHashMap<>();
         headersPresent.add(HttpPipeline.POLICY_HEADER_NAME, "POLICY_ONE, POLICY_TWO");
         headersPresent.add(HttpPipeline.POLICY_HEADER_NAME, "POLICY_THREE");
 

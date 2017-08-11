@@ -5,9 +5,10 @@ import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import org.junit.Test;
+
+import javax.ws.rs.core.MultivaluedHashMap;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -41,7 +42,7 @@ public class AddSyndicationTest {
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
         final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final String responseBody = "{ \"message\" : \"TestError\" }";
-        MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes());
+        MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(), responseBody.getBytes());
         response.setStatus(500);
         when(mockChain.callNextFilter(request)).thenReturn(response);
 
@@ -55,7 +56,7 @@ public class AddSyndicationTest {
         final Set<String> policies = new HashSet<>();
         final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final String responseBody = "";
-        MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes());
+        MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(), responseBody.getBytes());
         response.setStatus(404);
         when(mockChain.callNextFilter(request)).thenReturn(response);
 
@@ -70,7 +71,7 @@ public class AddSyndicationTest {
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
         final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final String responseBody = "{ \"bodyXML\": \"<body>Testing.</body>\" }";
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes(Charset.forName("UTF-8")));
+        final MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(), responseBody.getBytes(Charset.forName("UTF-8")));
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/ld-json");
         when(mockChain.callNextFilter(request)).thenReturn(response);
@@ -86,7 +87,7 @@ public class AddSyndicationTest {
         policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
         final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final byte[] responseBody = readFileBytes("sample-article-with-image.json");
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
+        final MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(), responseBody);
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
         when(mockChain.callNextFilter(request)).thenReturn(response);
@@ -101,7 +102,7 @@ public class AddSyndicationTest {
         final MutableRequest request = new MutableRequest(new HashSet<>(), getClass().getSimpleName());
         final byte[] responseBody = readFileBytes("sample-article-with-image.json");
         final byte[] filteredResponseBody = readFileBytes("sample-article-with-image.json");
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
+        final MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(), responseBody);
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
         when(mockChain.callNextFilter(request)).thenReturn(response);
@@ -116,7 +117,7 @@ public class AddSyndicationTest {
         final MutableRequest request = new MutableRequest(new HashSet<>(), getClass().getSimpleName());
         final byte[] responseBody = readFileBytes("sample-article-no-canBeSyndicated.json");
         final byte[] filteredResponseBody = readFileBytes("sample-article-with-image.json");
-        final MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody);
+        final MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(), responseBody);
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
         when(mockChain.callNextFilter(request)).thenReturn(response);

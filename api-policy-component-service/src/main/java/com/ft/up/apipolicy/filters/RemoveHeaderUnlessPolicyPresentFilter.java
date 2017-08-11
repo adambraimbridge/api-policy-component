@@ -25,7 +25,7 @@ public class RemoveHeaderUnlessPolicyPresentFilter implements ApiFilter {
             return response;
         }
 
-        MultivaluedMap<String, String> headers = response.getHeaders();
+        MultivaluedMap<String, Object> headers = response.getHeaders();
         if (shouldFilterHeaderOut(request, response)) {
             headers.remove(header);
         }
@@ -33,7 +33,7 @@ public class RemoveHeaderUnlessPolicyPresentFilter implements ApiFilter {
     }
 
     private boolean shouldFilterHeaderOut(MutableRequest request, MutableResponse response) {
-        MultivaluedMap<String, String> headers = response.getHeaders();
+        MultivaluedMap<String, Object> headers = response.getHeaders();
         return (!request.policyIs(policy) && headers.containsKey(header));
     }
 }

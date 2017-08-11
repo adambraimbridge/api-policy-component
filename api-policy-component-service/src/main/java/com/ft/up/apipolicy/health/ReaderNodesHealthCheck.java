@@ -1,10 +1,10 @@
 package com.ft.up.apipolicy.health;
 
-import com.ft.jerseyhttpwrapper.config.EndpointConfiguration;
+import com.ft.up.apipolicy.configuration.EndpointConfiguration;
 import com.ft.platform.dropwizard.AdvancedHealthCheck;
 import com.ft.platform.dropwizard.AdvancedResult;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 
 import javax.ws.rs.core.UriBuilder;
@@ -44,10 +44,9 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
                     .build();
         }
 
-        ClientResponse response = null;
+        Response response = null;
         try {
-            // Resilient Client provides functionality to try each node until at least one reports 200 OK.
-            response = client.resource(healthcheckUri).header("Cache-Control", "max-age=0").get(ClientResponse.class);
+            response = client.target(healthcheckUri).request().header("Cache-Control", "max-age=0").get();
 
             if (response.getStatus() == HttpStatus.SC_OK) {
                 return AdvancedResult.healthy("All is ok");

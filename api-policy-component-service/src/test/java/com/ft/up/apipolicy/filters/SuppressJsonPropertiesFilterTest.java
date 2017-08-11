@@ -6,7 +6,6 @@ import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -17,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import static com.ft.up.apipolicy.pipeline.ApiFilter.ALTERNATIVE_IMAGES;
@@ -52,7 +52,7 @@ public class SuppressJsonPropertiesFilterTest {
     public void testFiltersJsonProperties() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
-        final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+        final MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
         final MutableResponse initialResponse = new MutableResponse(headers, readFileBytes("sample-article-with-image.json"));
         initialResponse.setStatus(200);
@@ -84,7 +84,7 @@ public class SuppressJsonPropertiesFilterTest {
     public void testDoesNotTouchWhenJsonPropertyIsAbsent() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
-        final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+        final MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
         byte[] body = readFileBytes("sample-article-no-last-modified.json");
         final MutableResponse initialResponse = new MutableResponse(headers, body);
