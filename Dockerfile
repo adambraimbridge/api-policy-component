@@ -18,6 +18,7 @@ EXPOSE 8080 8081
 CMD exec java $JAVA_OPTS \
          -Ddw.server.applicationConnectors[0].port=8080 \
          -Ddw.server.adminConnectors[0].port=8081 \
+         -Dsun.net.http.allowRestrictedHeaders=true \
          -Ddw.varnish.primaryNodes=$READ_ENDPOINT \      
          -Ddw.varnish.jerseyClient.timeout=$JERSEY_TIMEOUT_DURATION \
          -Ddw.checkingVulcanHealth=true \
