@@ -1,5 +1,10 @@
 package com.ft.up.apipolicy.filters;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+
 import com.ft.api.jaxrs.errors.WebApplicationClientException;
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.configuration.Policy;
@@ -19,11 +24,6 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SyndicationDistributionFilterTest {

@@ -1,24 +1,5 @@
 package com.ft.up.apipolicy.filters;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ft.up.apipolicy.JsonConverter;
-import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
-import com.ft.up.apipolicy.pipeline.MutableRequest;
-import com.ft.up.apipolicy.pipeline.MutableResponse;
-
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-
 import static com.ft.up.apipolicy.pipeline.ApiFilter.ALTERNATIVE_IMAGES;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.EMBEDS;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.MAIM_IMAGE;
@@ -31,6 +12,25 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.up.apipolicy.JsonConverter;
+import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
+import com.ft.up.apipolicy.pipeline.MutableRequest;
+import com.ft.up.apipolicy.pipeline.MutableResponse;
+
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class SuppressJsonPropertiesFilterTest {
 

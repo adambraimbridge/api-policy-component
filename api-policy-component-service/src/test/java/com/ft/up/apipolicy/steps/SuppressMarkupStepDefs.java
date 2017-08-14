@@ -1,5 +1,11 @@
 package com.ft.up.apipolicy.steps;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
@@ -7,19 +13,14 @@ import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
-import javax.ws.rs.core.MultivaluedHashMap;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
-import java.util.HashMap;
+import javax.ws.rs.core.MultivaluedHashMap;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.HashMap;
 
 public class SuppressMarkupStepDefs {
 

@@ -3,11 +3,12 @@ package com.ft.up.apipolicy.health;
 import com.ft.up.apipolicy.configuration.EndpointConfiguration;
 import com.ft.platform.dropwizard.AdvancedHealthCheck;
 import com.ft.platform.dropwizard.AdvancedResult;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+
 import java.net.URI;
 
 public class ReaderNodesHealthCheck extends AdvancedHealthCheck {

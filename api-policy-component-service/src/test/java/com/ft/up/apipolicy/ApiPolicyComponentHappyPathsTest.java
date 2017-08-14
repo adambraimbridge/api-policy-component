@@ -1,50 +1,5 @@
 package com.ft.up.apipolicy;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ft.api.util.transactionid.TransactionIdUtils;
-import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.pipeline.HttpPipeline;
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-
-import io.dropwizard.testing.junit.DropwizardAppRule;
-
 import static com.ft.up.apipolicy.JsonConverter.JSON_ARRAY_TYPE;
 import static com.ft.up.apipolicy.JsonConverter.JSON_MAP_TYPE;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -71,6 +26,51 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.api.util.transactionid.TransactionIdUtils;
+import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
+import com.ft.up.apipolicy.configuration.Policy;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+
+import io.dropwizard.testing.junit.DropwizardAppRule;
+
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * ApiPolicyComponentTest

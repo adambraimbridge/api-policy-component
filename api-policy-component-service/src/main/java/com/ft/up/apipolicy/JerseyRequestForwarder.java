@@ -1,9 +1,15 @@
 package com.ft.up.apipolicy;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.ft.up.apipolicy.configuration.EndpointConfiguration;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -12,15 +18,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * JerseyRequestForwarder

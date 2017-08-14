@@ -1,5 +1,13 @@
 package com.ft.up.apipolicy;
 
+import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
+
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
@@ -16,7 +24,6 @@ import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.SuppressInternalContentFilter;
 import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.SyndicationDistributionFilter;
@@ -32,31 +39,21 @@ import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 
-
-import javax.ws.rs.client.Client;
+import io.dropwizard.Application;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
 
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.client.Client;
 
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import javax.servlet.DispatcherType;
-
-import io.dropwizard.Application;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-
-import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 

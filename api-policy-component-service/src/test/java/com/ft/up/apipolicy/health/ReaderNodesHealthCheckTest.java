@@ -1,21 +1,21 @@
 package com.ft.up.apipolicy.health;
 
-import com.ft.up.apipolicy.configuration.EndpointConfiguration;
-import com.ft.platform.dropwizard.AdvancedResult;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-
-import javax.ws.rs.core.Response;
-import org.junit.Test;
-
-import java.net.URI;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.ft.up.apipolicy.configuration.EndpointConfiguration;
+import com.ft.platform.dropwizard.AdvancedResult;
+import org.junit.Test;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
+import java.net.URI;
 
 /**
  * ReaderNodesHealthCheckTest

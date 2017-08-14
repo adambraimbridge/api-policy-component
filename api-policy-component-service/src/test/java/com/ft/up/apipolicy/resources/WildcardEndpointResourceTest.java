@@ -11,6 +11,27 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import com.ft.up.apipolicy.pipeline.ApiFilter;
+import com.ft.up.apipolicy.pipeline.DummyFilter;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
+import com.ft.up.apipolicy.pipeline.MutableRequest;
+import com.ft.up.apipolicy.pipeline.MutableResponse;
+import com.ft.up.apipolicy.pipeline.RequestForwarder;
+
+import org.apache.http.HttpStatus;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,27 +43,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.http.HttpStatus;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import com.ft.up.apipolicy.pipeline.ApiFilter;
-import com.ft.up.apipolicy.pipeline.DummyFilter;
-import com.ft.up.apipolicy.pipeline.HttpPipeline;
-import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
-import com.ft.up.apipolicy.pipeline.MutableRequest;
-import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.ft.up.apipolicy.pipeline.RequestForwarder;
 
 public class WildcardEndpointResourceTest {
     

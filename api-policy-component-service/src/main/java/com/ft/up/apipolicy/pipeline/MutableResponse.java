@@ -1,14 +1,14 @@
 package com.ft.up.apipolicy.pipeline;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * MutableResponse
