@@ -1,7 +1,5 @@
 package com.ft.up.apipolicy.pipeline;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
