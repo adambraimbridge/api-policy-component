@@ -3,7 +3,6 @@ package com.ft.up.apipolicy.filters;
 import com.ft.api.jaxrs.errors.ClientError;
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
@@ -12,7 +11,7 @@ import java.util.Map;
 
 import static javax.ws.rs.core.Response.Status.OK;
 
-public class SyndicationDistributionFilter implements ApiFilter {
+public class SyndicationDistributionFilter extends AbstractImageFilter {
 
     private static final String CAN_BE_DISTRIBUTED_KEY = "canBeDistributed";
     private static final String CAN_BE_DISTRIBUTED_VALUE_YES = "yes";
@@ -39,19 +38,19 @@ public class SyndicationDistributionFilter implements ApiFilter {
 
         final Map<String, Object> content = jsonConverter.readEntity(originalResponse);
 
-        if (content.containsKey(CAN_BE_DISTRIBUTED_KEY)) {
-
-            String canBeDistributed = (String) content.get(CAN_BE_DISTRIBUTED_KEY);
-            if (CAN_BE_DISTRIBUTED_VALUE_YES.equals(canBeDistributed)) {
-                content.remove(CAN_BE_DISTRIBUTED_KEY);
-                jsonConverter.replaceEntity(originalResponse, content);
-
-            } else {
-                throw ClientError.status(403).error("Access denied.").exception();
-
+        FieldModifier modifier = (jsonProperty, contentModel) -> {
+            if (contentModel.containsKey(jsonProperty)) {
+                String canBeDistributed = (String) contentModel.get(jsonProperty);
+                if (CAN_BE_DISTRIBUTED_VALUE_YES.equals(canBeDistributed)) {
+                    contentModel.remove(jsonProperty);
+                    jsonConverter.replaceEntity(originalResponse, content);
+                } else {
+                    throw ClientError.status(403).error("Access denied.").exception();
+                }
             }
-        }
-
+        };
+        applyFilter(CAN_BE_DISTRIBUTED_KEY, modifier, content);
+        jsonConverter.replaceEntity(originalResponse, content);
         return originalResponse;
     }
 }

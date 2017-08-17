@@ -57,27 +57,6 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
             resourceFilePath("config-junit.yml"),
             config("varnish.endpointConfiguration.primaryNodes", primaryNodes)
     );
-    @Parameters
-    public static Collection<Object[]> data() {
-      /* Elements in each array are as follows:
-       * - Property name
-       * - Required policy
-       * - Expect value to be present in /content endpoint when allowed by policy
-       * - Expect value to be present in /content-preview endpoint when allowed by policy
-       * - Expect value to be present in /enrichedcontent endpoint when allowed by policy
-       */
-        return Arrays.asList(new Object[][]{
-                {"comments", Policy.INCLUDE_COMMENTS, false, true, true},
-                {"identifiers", Policy.INCLUDE_IDENTIFIERS, true, true, true},
-                {"lastModified", Policy.INCLUDE_LAST_MODIFIED_DATE, true, true, true},
-                {"publishReference", Policy.INCLUDE_PROVENANCE, true, true, true},
-                {"mainImage", Policy.INCLUDE_RICH_CONTENT, true, true, true},
-                {"openingXML", Policy.INTERNAL_UNSTABLE, true, true, true},
-                {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true},
-                {"alternativeImages", Policy.INTERNAL_UNSTABLE, true, true, true},
-                {"alternativeStandfirsts", Policy.INTERNAL_UNSTABLE, true, true, true}
-        });
-    }
 
     private static final String CONTENT_PREVIEW_PATH = "/content-preview/bcafca32-5bc7-343f-851f-fd6d3514e694";
 
@@ -109,6 +88,50 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                     "\"brands\": [ ],\n" +
                     "\"annotations\": [ ]" +
                     "}";
+
+    private static final String IMAGE_JSON = "{" +
+            "\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\"," +
+            "\"type\":\"http://www.ft.com/ontology/content/MediaResource\"," +
+            "\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\"," +
+            "\"publishedDate\":\"2015-02-03T12:58:00.000Z\"," +
+            "\"lastModified\":\"2017-02-13T17:51:57.723Z\"," +
+            "\"canBeSyndicated\":\"verify\"," +
+            "\"masterSource\": {\n" +
+            "        \"authority\": \"http://api.ft.com/system/FT-FOTOWARE\",\n" +
+            "        \"identifierValue\": \"1234_FOTOWARE_ID\"\n" +
+            "    }";
+
+    private static final String IMAGE_CONTENT_JSON = IMAGE_JSON + "}";
+
+    private static final String IMAGE_ENRICHED_CONTENT_JSON =
+                    IMAGE_JSON + ",\n" +
+                    "\"brands\": [ ],\n" +
+                    "\"annotations\": [ ]" +
+                    "}";
+
+    @Parameters
+    public static Collection<Object[]> data() {
+      /* Elements in each array are as follows:
+       * - Property name
+       * - Required policy
+       * - Expect value to be present in /content endpoint when allowed by policy
+       * - Expect value to be present in /content-preview endpoint when allowed by policy
+       * - Expect value to be present in /enrichedcontent endpoint when allowed by policy
+       */
+        return Arrays.asList(new Object[][]{
+                {"comments", Policy.INCLUDE_COMMENTS, false, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
+                {"identifiers", Policy.INCLUDE_IDENTIFIERS, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
+                {"lastModified", Policy.INCLUDE_LAST_MODIFIED_DATE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
+                {"publishReference", Policy.INCLUDE_PROVENANCE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
+                {"masterSource", Policy.INCLUDE_PROVENANCE, true, true, true,IMAGE_CONTENT_JSON,IMAGE_ENRICHED_CONTENT_JSON},
+                {"mainImage", Policy.INCLUDE_RICH_CONTENT, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
+                {"openingXML", Policy.INTERNAL_UNSTABLE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
+                {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
+                {"alternativeImages", Policy.INTERNAL_UNSTABLE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
+                {"alternativeStandfirsts", Policy.INTERNAL_UNSTABLE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON}
+        });
+    }
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     @Rule
     public final WireMockClassRule wireMockForVarnish = WIRE_MOCK_1;
@@ -118,32 +141,36 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     private final boolean allowForContentEndpoint;
     private final boolean allowForContentPreviewEndpoint;
     private final boolean allowForEnrichedContentEndpoint;
+    private final String jsonResponseForContent;
+    private final String jsonResponseForEnrichedContent;
 
     private final Client client = Client.create();
     private ClientResponse response;
 
     public ApiPolicyComponentContentEndpointsRestrictedPropertiesTest(String propertyName, Policy requiredPolicy,
-                                                                      boolean allowForContent, boolean allowForContentPreview, boolean allowForEnrichedContent) {
+                                                                      boolean allowForContent, boolean allowForContentPreview, boolean allowForEnrichedContent, String jsonResponseForContent, String jsonResponseForEnrichedContent) {
 
         this.propertyName = propertyName;
         this.requiredPolicy = requiredPolicy;
         this.allowForContentEndpoint = allowForContent;
         this.allowForContentPreviewEndpoint = allowForContentPreview;
         this.allowForEnrichedContentEndpoint = allowForEnrichedContent;
+        this.jsonResponseForContent = jsonResponseForContent;
+        this.jsonResponseForEnrichedContent = jsonResponseForEnrichedContent;
     }
 
     @Before
     public void setUp() {
-        stubFor(WireMock.get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+        stubFor(WireMock.get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(jsonResponseForContent)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(SC_OK)));
-        stubFor(WireMock.get(urlPathEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
+        stubFor(WireMock.get(urlPathEqualTo(CONTENT_PREVIEW_PATH)).willReturn(aResponse().withBody(jsonResponseForContent)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
-        stubFor(WireMock.get(urlPathEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+        stubFor(WireMock.get(urlPathEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(jsonResponseForEnrichedContent)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
-        stubFor(WireMock.get(urlPathEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
+        stubFor(WireMock.get(urlPathEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(jsonResponseForEnrichedContent)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
     }

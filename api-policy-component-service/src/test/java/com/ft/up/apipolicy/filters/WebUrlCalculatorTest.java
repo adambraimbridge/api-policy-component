@@ -36,14 +36,20 @@ public class WebUrlCalculatorTest {
             "\"identifierValue\": \"219512\"\n" +
             "}],\n" +
             "\"bodyXML\": \"<body>something here</body>\" }").getBytes(UTF8);
+    private final static byte[] WEB_URL_PRESENT_IN_RESPONSE = ("{ \"identifiers\": [{\n" +
+            "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
+            "\"identifierValue\": \"219512\"\n" +
+            "}],\n" +
+            "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
+            "\"webUrl\": \"http://ftalphaville.ft.com/marketslive/2017-01-02/\" }").getBytes(UTF8);
     private final static byte[] WEB_URL_ELIGIBLE_LIVE_BLOG_RESPONSE = ("{ \"identifiers\": [{\n" +
             "\"authority\": \"http://www.ft.com/ontology/origin/FT-CLAMO\",\n" +
             "\"identifierValue\": \"219512\"\n" +
             "}],\n" +
             "\"type\": \"http://www.ft.com/ontology/content/Article\",\n" +
             "\"realtime\": true }").getBytes(UTF8);
-    private final static byte[] WEB_URL_ELIGIBLE_VIDEO_RESPONSE = ("{ \"identifiers\": [{\n" +
-            "\"authority\": \"http://api.ft.com/system/BRIGHTCOVE\",\n" +
+    private final static byte[] WEB_URL_ELIGIBLE_NEXT_VIDEO_RESPONSE = ("{ \"identifiers\": [{\n" +
+            "\"authority\": \"http://api.ft.com/system/NEXT-VIDEO-EDITOR\",\n" +
             "\"identifierValue\": \"219512\"\n" +
             "}],\n" +
             "\"type\": \"http://www.ft.com/ontology/content/MediaResource\" }").getBytes(UTF8);
@@ -70,6 +76,7 @@ public class WebUrlCalculatorTest {
     private MutableResponse exampleErrorResponse;
     private MutableResponse webUrlNonEligibleIdentifierResponse;
     private MutableResponse webUrlEligibleIdentifierResponse;
+    private MutableResponse webUrlPresentInContentResponse;
     private MutableResponse originatingSystemIsNullResponse;
     private MutableResponse minimalPartialExampleResponse;
 
@@ -77,7 +84,7 @@ public class WebUrlCalculatorTest {
     public void setUpExamples() {
         WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-CLAMO", "TEST{{identifierValue}}");
         WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{identifierValue}}");
-        WEB_URL_TEMPLATES.put("http://api.ft.com/system/BRIGHTCOVE", "{{identifierValue}}");
+        WEB_URL_TEMPLATES.put("http://api.ft.com/system/NEXT-VIDEO-EDITOR", "NVE{{identifierValue}}");
 
         exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(), ERROR_RESPONSE.getBytes());
         exampleErrorResponse.setStatus(500);
@@ -93,6 +100,10 @@ public class WebUrlCalculatorTest {
         webUrlEligibleIdentifierResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_IDENTIFIER_RESPONSE);
         webUrlEligibleIdentifierResponse.setStatus(200);
         webUrlEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/json");
+
+        webUrlPresentInContentResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_PRESENT_IN_RESPONSE);
+        webUrlPresentInContentResponse.setStatus(200);
+        webUrlPresentInContentResponse.getHeaders().putSingle("Content-Type", "application/json");
 
         originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), NO_IDENTIFIERS_RESPONSE.getBytes());
         originatingSystemIsNullResponse.setStatus(200);
@@ -139,7 +150,11 @@ public class WebUrlCalculatorTest {
 
     @Test
     public void shouldAddWebUrlToSuccessResponseForLiveBlog() {
-        MutableResponse liveBlogResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_LIVE_BLOG_RESPONSE);
+        shouldAddWebUrlToSuccessResponse(WEB_URL_ELIGIBLE_LIVE_BLOG_RESPONSE, "TEST219512");
+    }
+
+    private void shouldAddWebUrlToSuccessResponse(byte[] successResponseWithEligibleWebUrl, final String expectedWebUrl) {
+        MutableResponse liveBlogResponse = new MutableResponse(new MultivaluedMapImpl(), successResponseWithEligibleWebUrl);
         liveBlogResponse.setStatus(200);
         liveBlogResponse.getHeaders().putSingle("Content-Type", "application/json");
 
@@ -147,33 +162,17 @@ public class WebUrlCalculatorTest {
 
         MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
 
-        assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"TEST219512\""));
-    }
-
-    @Test
-    public void shouldAddWebUrlToSuccessResponseForBrightcoveVideo() {
-        MutableResponse videoResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_VIDEO_RESPONSE);
-        videoResponse.setStatus(200);
-        videoResponse.getHeaders().putSingle("Content-Type", "application/json");
-
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(videoResponse);
-
-        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
-
-        assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"219512\""));
+        assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"" + expectedWebUrl + "\""));
     }
 
     @Test
     public void shouldAddWebUrlToSuccessResponseForLiveBlogEnrichedContent() {
-        MutableResponse liveBlogResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_LIVE_BLOG_MULTI_TYPES_RESPONSE);
-        liveBlogResponse.setStatus(200);
-        liveBlogResponse.getHeaders().putSingle("Content-Type", "application/json");
+        shouldAddWebUrlToSuccessResponse(WEB_URL_ELIGIBLE_LIVE_BLOG_MULTI_TYPES_RESPONSE, "TEST219512");
+    }
 
-        when(mockChain.callNextFilter(exampleRequest)).thenReturn(liveBlogResponse);
-
-        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
-
-        assertThat(response.getEntityAsString(), containsString("\"webUrl\":\"TEST219512\""));
+    @Test
+    public void shouldAddWebUrlToSuccessResponseForNextVideo() {
+        shouldAddWebUrlToSuccessResponse(WEB_URL_ELIGIBLE_NEXT_VIDEO_RESPONSE, "NVE219512");
     }
 
     @Test
@@ -196,4 +195,13 @@ public class WebUrlCalculatorTest {
 
         assertThat(response.getEntityAsString(),not(containsString("\"webUrl\":\"WP219512\"")));
     }
+
+    @Test
+    public void shouldNotOverwriteWebUrlToSuccessResponseForContentWithDefaultWebUrl() {
+        when(mockChain.callNextFilter(exampleRequest)).thenReturn(webUrlPresentInContentResponse);
+        MutableResponse response = calculator.processRequest(exampleRequest, mockChain);
+
+        assertThat(response.getEntity(), is(WEB_URL_PRESENT_IN_RESPONSE));
+    }
+
 }

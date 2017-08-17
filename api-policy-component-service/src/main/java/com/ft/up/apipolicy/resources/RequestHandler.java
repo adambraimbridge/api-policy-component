@@ -30,9 +30,9 @@ public class RequestHandler {
     public static final Joiner COMMA_DELIMITED = Joiner.on(", ");
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandler.class);
     private MutableHttpTranslator translator;
-    private SortedSet<KnownEndpoint> knownEndpoints;
+    private Set<KnownEndpoint> knownEndpoints;
 
-    public RequestHandler(MutableHttpTranslator translator, SortedSet<KnownEndpoint> knownEndpoints) {
+    public RequestHandler(MutableHttpTranslator translator, Set<KnownEndpoint> knownEndpoints) {
         this.translator = translator;
         this.knownEndpoints = knownEndpoints;
     }
@@ -70,7 +70,6 @@ public class RequestHandler {
 
     private MutableResponse handleRequest(MutableRequest request, String path) {
         for (KnownEndpoint candidate : knownEndpoints) {
-
             Pattern compiledUriRegex = candidate.getUriPattern();
 
             Matcher matcher = compiledUriRegex.matcher(path);

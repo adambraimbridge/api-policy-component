@@ -22,10 +22,9 @@ public class WebUrlCalculator implements ApiFilter {
     private static final String TYPES_KEY = "types";
     private static final String IDENTIFIERS_KEY = "identifiers";
     private static final String AUTHORITY_KEY = "authority";
-    private static final String BRIGHTCOVE_AUTHORITY = "http://api.ft.com/system/BRIGHTCOVE";
+    private static final String NEXT_VIDEO_EDITOR_AUTHORITY = "http://api.ft.com/system/NEXT-VIDEO-EDITOR";
 
     private static final String ARTICLE_TYPE = "http://www.ft.com/ontology/content/Article";
-    private static final String MEDIA_RESOURCE_TYPE = "http://www.ft.com/ontology/content/MediaResource";
 
     private final Map<String, String> urlTemplates;
     private JsonConverter jsonConverter;
@@ -40,7 +39,9 @@ public class WebUrlCalculator implements ApiFilter {
         final MutableResponse originalResponse = chain.callNextFilter(request);
         if (isEligibleForWebUrl(originalResponse)) {
             final Map<String, Object> content = extractContent(originalResponse);
-            return createResponseWithWebUrlCompleted(originalResponse, content);
+            if (!content.containsKey(WEB_URL_KEY)) {
+                return createResponseWithWebUrlCompleted(originalResponse, content);
+            }
         }
         return originalResponse;
     }
@@ -74,7 +75,7 @@ public class WebUrlCalculator implements ApiFilter {
                         Map identifier = ((Map) identifierRaw);
                         if (identifier.containsKey(AUTHORITY_KEY)) {
                             final Object authority = identifier.get(AUTHORITY_KEY);
-                            if (BRIGHTCOVE_AUTHORITY.equals(authority)) {
+                            if (NEXT_VIDEO_EDITOR_AUTHORITY.equals(authority)) {
                                 return true;
                             }
                         }

@@ -68,7 +68,7 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
     @Override
     protected String panicGuideUrl() {
-        return "https://sites.google.com/a/ft.com/dynamic-publishing-team/api-policy-component";
+        return "https://dewey.ft.com/APIPolicyComponent.html";
     }
 
 }

@@ -58,7 +58,7 @@ public class NotificationsTypeFilterTest {
 
     @Test
     public void testThatArticleTypeQueryParamIsAddedWhenNoPolicyIsPresent() throws Exception {
-        when(request.policyIs(Policy.INCLUDE_MEDIARESOURCE)).thenReturn(false);
+        when(request.policyIs(Policy.INCLUDE_PROVENANCE)).thenReturn(false);
         @SuppressWarnings("unchecked")
         MultivaluedMap<String, String> params = mock(MultivaluedMap.class);
         when(request.getQueryParameters()).thenReturn(params);
