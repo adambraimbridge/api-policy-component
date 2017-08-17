@@ -10,4 +10,4 @@ image:
   pullPolicy: Always
 resources:
   limits:
-    memory: 384Mi
+    memory: 512Mi
