@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 public class ApiPolicyConfiguration extends Configuration {
 
     @JsonProperty("checkingVulcanHealth")
-    private boolean checkingVulcanHealth = false;
+    private boolean checkingVulcanHealth = true;
 
     @NotNull
     @JsonProperty("pipeline")

@@ -20,7 +20,7 @@ CMD exec java $JAVA_OPTS \
          -Ddw.server.adminConnectors[0].port=8081 \
          -Ddw.varnish.endpointConfiguration.primaryNodes=$READ_ENDPOINT \
          -Ddw.varnish.endpointConfiguration.jerseyClient.timeout=$JERSEY_TIMEOUT_DURATION \
-         -Ddw.checkingVulcanHealth=true \
+         -Ddw.checkingVulcanHealth=$CHECKING_VULCAN_HEALTH \
          -Ddw.metrics.reporters[0].host=$GRAPHITE_HOST \
          -Ddw.metrics.reporters[0].port=$GRAPHITE_PORT \
          -Ddw.metrics.reporters[0].prefix=$GRAPHITE_PREFIX \

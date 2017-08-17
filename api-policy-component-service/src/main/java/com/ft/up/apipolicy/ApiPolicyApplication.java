@@ -51,6 +51,8 @@ import javax.servlet.DispatcherType;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
@@ -62,6 +64,7 @@ import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyApplication.class);
     private static final String MAIN_IMAGE_JSON_PROPERTY = "mainImage";
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
     private static final String ALT_TITLES_JSON_PROPERTY = "alternativeTitles";
@@ -240,6 +243,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         Client healthcheckClient;
         VarnishConfiguration varnishConfiguration = configuration.getVarnishConfiguration();
+        LOGGER.info("Checking vulcan health: [" + configuration.isCheckingVulcanHealth() + "].");
         if (configuration.isCheckingVulcanHealth()) {
             healthcheckClient = ResilientClientBuilder.in(environment).usingDNS().named("healthcheck-client").build();
         } else {
