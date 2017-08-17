@@ -10,6 +10,9 @@ import javax.validation.constraints.NotNull;
 
 public class ApiPolicyConfiguration extends Configuration {
 
+    @JsonProperty("checkingVulcanHealth")
+    private boolean checkingVulcanHealth = false;
+
     @NotNull
     @JsonProperty("pipeline")
     @Valid
@@ -33,7 +36,12 @@ public class ApiPolicyConfiguration extends Configuration {
         return policyBrandsResolver;
     }
 
+
     public VarnishConfiguration getVarnishConfiguration() {
         return varnishConfiguration;
+    }
+
+    public boolean isCheckingVulcanHealth() {
+        return checkingVulcanHealth;
     }
 }

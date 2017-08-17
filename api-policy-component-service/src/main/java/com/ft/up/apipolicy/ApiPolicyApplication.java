@@ -237,13 +237,18 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-        VarnishConfiguration varnishConfiguration = configuration.getVarnishConfiguration();
-        ConnectionConfiguration connectionConfiguration = varnishConfiguration.getConnectionConfiguration();
-        Client healthcheckClient = configureResilientClient(environment, varnishConfiguration, connectionConfiguration);
 
+        Client healthcheckClient;
+        VarnishConfiguration varnishConfiguration = configuration.getVarnishConfiguration();
+        if (configuration.isCheckingVulcanHealth()) {
+            healthcheckClient = ResilientClientBuilder.in(environment).usingDNS().named("healthcheck-client").build();
+        } else {
+            ConnectionConfiguration connectionConfiguration = varnishConfiguration.getConnectionConfiguration();
+            healthcheckClient = configureResilientClient(environment, varnishConfiguration, connectionConfiguration);
+        }
         environment.healthChecks()
                 .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity ", varnishConfiguration.getEndpointConfiguration(), healthcheckClient));
+                        new ReaderNodesHealthCheck("Reader API Connectivity ", varnishConfiguration.getEndpointConfiguration(), healthcheckClient, configuration.isCheckingVulcanHealth()));
     }
 
     private Client configureResilientClient(Environment environment, VarnishConfiguration varnishConfiguration, ConnectionConfiguration connectionConfiguration) {
@@ -256,6 +261,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                             )
                     ).named("healthcheck-client")
                     .build();
+
     }
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {

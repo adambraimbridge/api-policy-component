@@ -94,6 +94,7 @@ public class MutableHttpTranslatorTest {
 
         assertThat(result.getHeaders().getFirst("Foo"),is("Value of Foo"));
         assertThat(result.getHeaders().getFirst("Bar"),is("Value of Bar"));
+        assertThat(result.getHeaders().getFirst("Host"),is("public-services"));
     }
 
 

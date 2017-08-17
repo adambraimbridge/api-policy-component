@@ -78,6 +78,8 @@ public class MutableHttpTranslator {
                             LOGGER.debug("Not Processed: {}={}", headerName, value);
                         }
                     }
+                } else if(("Host").equals(headerName)) { // for Containerisation
+                    headers.add(headerName, "public-services");
                 } else if(TransactionIdUtils.TRANSACTION_ID_HEADER.equals(headerName)) {
                     transactionId = values.nextElement();
                 }
