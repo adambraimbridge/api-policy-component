@@ -41,7 +41,7 @@ spec:
         - name: JERSEY_TIMEOUT_DURATION
           value: "10000ms"
         - name: GRAPHITE_PREFIX
-          value: "coco.services.k8s.api-policy-component" 
+          value: 'coco.services.{{required "The target_env value is required for this app. Use helm upgrade ... --set target_env=... when installing." .Values.target_env}}.api-policy-component'
         ports:
         - containerPort: 8080
         - containerPort: 8081
