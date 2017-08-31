@@ -7,7 +7,6 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.nio.charset.Charset;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,21 +23,23 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SyndicationDistributionFilterTest {
+public class CanBeSyndicatedAccessFilterTest {
 
-    private SyndicationDistributionFilter filter;
+    private CanBeSyndicatedAccessFilter filter;
 
     @Mock
     private HttpPipelineChain mockChain;
 
     @Before
     public void setUp() {
-        filter = new SyndicationDistributionFilter(JsonConverter.testConverter(), Policy.INTERNAL_UNSTABLE);
+        filter = new CanBeSyndicatedAccessFilter(JsonConverter.testConverter(), Policy.RESTRICT_NON_SYNDICATABLE_CONTENT);
     }
 
     @Test
     public void shouldNotProcessErrorResponse() {
-        final MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
+        final Set<String> policies = new HashSet<>();
+        policies.add(Policy.RESTRICT_NON_SYNDICATABLE_CONTENT.getHeaderValue());
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
         final String responseBody = "{\"message\":\"TestError\"}";
         MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes());
         response.setStatus(500);
@@ -51,12 +51,11 @@ public class SyndicationDistributionFilterTest {
     }
 
     @Test
-    public void shouldNotModifyResponseWhenPolicy() {
+    public void shouldNotModifyResponseWhenNoPolicy() {
         final Set<String> policies = new HashSet<>();
-        policies.add(Policy.INTERNAL_UNSTABLE.getHeaderValue());
         final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
 
-        final String responseBody = "{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"no\"}";
+        final String responseBody = "{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"no\"}";
         final MutableResponse response = createSuccessfulResponse(responseBody);
 
         when(mockChain.callNextFilter(request)).thenReturn(response);
@@ -67,13 +66,14 @@ public class SyndicationDistributionFilterTest {
     }
 
     @Test
-    public void shouldNotModifyResponseWhenNotPolicyAndMissingCanBeDistributedField() {
-        MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
+    public void shouldNotModifyResponseWhenPolicyAndCanBeSyndicatedFieldYes() {
+        final Set<String> policies = new HashSet<>();
+        policies.add(Policy.RESTRICT_NON_SYNDICATABLE_CONTENT.getHeaderValue());
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
+        String responseBody = "{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"yes\"}";
+        MutableResponse chainedResponse = createSuccessfulResponse(responseBody);
 
-        String responseBody = "{\"bodyXML\":\"<body>Testing.</body>\"}";
-        MutableResponse response = createSuccessfulResponse(responseBody);
-
-        when(mockChain.callNextFilter(request)).thenReturn(response);
+        when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
 
         MutableResponse filteredResponse = filter.processRequest(request, mockChain);
 
@@ -81,49 +81,38 @@ public class SyndicationDistributionFilterTest {
     }
 
     @Test
-    public void shouldModifyResponseWhenNotPolicyAndCanBeDistributedFieldYes() {
-        MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
-        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"yes\"}");
+    public void shouldReturnForbiddenErrorWhenPolicyAndCanBeSyndicatedFieldNotYes() {
+        final Set<String> policies = new HashSet<>();
+        policies.add(Policy.RESTRICT_NON_SYNDICATABLE_CONTENT.getHeaderValue());
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
+        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"verify\"}");
 
         when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
 
-        final String expectedFilteredResponseBody = "{\"bodyXML\":\"<body>Testing.</body>\"}";
+        try {
+            filter.processRequest(request, mockChain);
+            fail("No exception was thrown, but expected one.");
+
+        } catch (WebApplicationClientException e) {
+            assertThat(e.getResponse().getStatus(), is(403));
+        }
+    }
+
+    @Test
+    public void shouldStripNestedImageWhenPolicyAndCanBeSyndicatedFieldNotYesForNestedImageContent() {
+        final Set<String> policies = new HashSet<>();
+        policies.add(Policy.RESTRICT_NON_SYNDICATABLE_CONTENT.getHeaderValue());
+        final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
+        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"yes\",\"mainImage\":{\"id\":\"sampleId\",\"canBeSyndicated\":\"verify\"}}");
+
+        when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
+
+        final String expectedFilteredResponseBody = "{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"yes\"}";
 
         MutableResponse actualFilteredResponse = filter.processRequest(request, mockChain);
 
         assertThat(new String(actualFilteredResponse.getEntity()), is(new String(expectedFilteredResponseBody.getBytes(Charset.forName("UTF-8")))));
-    }
 
-    @Test
-    public void shouldReturnErrorWhenNotPolicyAndCanBeDistributedFieldNotYes() {
-        MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
-        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"verify\"}");
-
-        when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
-
-        try {
-            filter.processRequest(request, mockChain);
-            fail("No exception was thrown, but expected one.");
-
-        } catch (WebApplicationClientException e) {
-            assertThat(e.getResponse().getStatus(), is(403));
-        }
-    }
-
-    @Test
-    public void shouldReturnErrorWhenNotPolicyAndCanBeDistributedFieldNotYesForNestedImageContent() {
-        MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
-        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"yes\",\"mainImage\":{\"id\":\"sampleId\",\"canBeDistributed\":\"verify\"}}");
-
-        when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
-
-        try {
-            filter.processRequest(request, mockChain);
-            fail("No exception was thrown, but expected one.");
-
-        } catch (WebApplicationClientException e) {
-            assertThat(e.getResponse().getStatus(), is(403));
-        }
     }
 
     private MutableResponse createSuccessfulResponse(String body) {

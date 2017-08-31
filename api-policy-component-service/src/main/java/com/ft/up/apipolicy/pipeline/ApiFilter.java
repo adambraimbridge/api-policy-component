@@ -7,13 +7,13 @@ package com.ft.up.apipolicy.pipeline;
  */
 public interface ApiFilter {
 
-    String MAIM_IMAGE = "mainImage";
+    String MAIN_IMAGE = "mainImage";
     String EMBEDS = "embeds";
     String ALTERNATIVE_IMAGES = "alternativeImages";
     String PROMOTIONAL_IMAGE = "promotionalImage";
     String MEMBERS = "members";
-	String LEAD_IMAGES = "leadImages";
-	String IMAGE = "image";
+    String LEAD_IMAGES = "leadImages";
+    String IMAGE = "image";
 
     MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain);
 

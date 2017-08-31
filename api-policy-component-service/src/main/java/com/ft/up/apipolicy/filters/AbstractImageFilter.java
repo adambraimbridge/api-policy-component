@@ -12,21 +12,38 @@ public abstract class AbstractImageFilter implements ApiFilter {
 
     protected void applyFilter(String jsonProperty, FieldModifier modifier, Map content) {
         modifier.operation(jsonProperty, content);
-        Object mainImageSet = content.get(MAIM_IMAGE);
+        Object mainImageSet = content.get(MAIN_IMAGE);
         if (mainImageSet instanceof Map) {
             Map mainImageSetAsMap = (Map) mainImageSet;
             if (mainImageSetAsMap.size() > 1) {
-                applyFilterToFromImageSet(jsonProperty, modifier, mainImageSetAsMap);
+                try {
+                    applyFilterToFromImageSet(jsonProperty, modifier, mainImageSetAsMap);
+                } catch (WebApplicationClientException e) {
+                    if (e.getResponse().getStatus() == HttpStatus.SC_FORBIDDEN) {
+                        content.remove(MAIN_IMAGE);
+                    } else {
+                        throw e;
+                    }
+                }
             }
         }
 
         Object embeddedImages = content.get(EMBEDS);
         if (embeddedImages instanceof List) {
             List embeddedImagesAsList = (List) embeddedImages;
-            for (Object embeddedImage : embeddedImagesAsList) {
+            for (Iterator iterator = embeddedImagesAsList.iterator(); iterator.hasNext(); ) {
+                Object embeddedImage = iterator.next();
                 if (embeddedImage instanceof Map) {
                     Map embeddedImageAsMap = (Map) embeddedImage;
-                    applyFilterToFromImageSet(jsonProperty, modifier, embeddedImageAsMap);
+                    try {
+                        applyFilterToFromImageSet(jsonProperty, modifier, embeddedImageAsMap);
+                    } catch (WebApplicationClientException e) {
+                        if (e.getResponse().getStatus() == HttpStatus.SC_FORBIDDEN) {
+                            iterator.remove();
+                        } else {
+                            throw e;
+                        }
+                    }
                 }
             }
         }
@@ -38,21 +55,38 @@ public abstract class AbstractImageFilter implements ApiFilter {
             if (promotionalImage instanceof Map) {
                 Map promotionalImageAsMap = (Map) promotionalImage;
                 if (promotionalImageAsMap.size() > 1) {
-                    applyFilterToImageModel(jsonProperty, modifier, promotionalImageAsMap);
+                    try {
+                        applyFilterToImageModel(jsonProperty, modifier, promotionalImageAsMap);
+                    } catch (WebApplicationClientException e) {
+                        if (e.getResponse().getStatus() == HttpStatus.SC_FORBIDDEN) {
+                            content.remove(PROMOTIONAL_IMAGE);
+                        } else {
+                            throw e;
+                        }
+                    }
                 }
             }
         }
 
-		Object leadImages = content.get(LEAD_IMAGES);
-		if (leadImages instanceof List) {
-			List leadImagesAsList = (List) leadImages;
-			for (Object leadImage : leadImagesAsList) {
-				if (leadImage instanceof Map) {
-					Map leadImageAsMap = (Map) ((Map) leadImage).get(IMAGE);
-					applyFilterToImageModel(jsonProperty, modifier, leadImageAsMap);
-				}
-			}
-		}
+        Object leadImages = content.get(LEAD_IMAGES);
+        if (leadImages instanceof List) {
+            List leadImagesAsList = (List) leadImages;
+            for (Iterator iterator = leadImagesAsList.iterator(); iterator.hasNext(); ) {
+                Object leadImage = iterator.next();
+                if (leadImage instanceof Map) {
+                    Map leadImageAsMap = (Map) ((Map) leadImage).get(IMAGE);
+                    try {
+                        applyFilterToImageModel(jsonProperty, modifier, leadImageAsMap);
+                    } catch (WebApplicationClientException e) {
+                        if (e.getResponse().getStatus() == HttpStatus.SC_FORBIDDEN) {
+                            iterator.remove();
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void applyFilterToFromImageSet(String jsonProperty, FieldModifier modifier, Map imageSet) {
