@@ -25,7 +25,8 @@ import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter
 import com.ft.up.apipolicy.filters.SuppressInternalContentFilter;
 import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
-import com.ft.up.apipolicy.filters.SyndicationDistributionFilter;
+import com.ft.up.apipolicy.filters.CanBeDistributedAccessFilter;
+import com.ft.up.apipolicy.filters.CanBeSyndicatedAccessFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
@@ -61,6 +62,7 @@ import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DAT
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
 import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
+import static com.ft.up.apipolicy.configuration.Policy.RESTRICT_NON_SYNDICATABLE_CONTENT;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
@@ -99,7 +101,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter accessLevelPropertyFilter;
     private ApiFilter removeAccessFieldRegardlessOfPolicy;
     private ApiFilter accessLevelHeaderFilter;
-    private ApiFilter syndicationDistributionFilter;
+    private ApiFilter canBeDistributedAccessFilter;
+    private ApiFilter canBeSyndicatedAccessFilter;
     private ApiFilter contentPackageFilter;
     private ApiFilter expandedImagesFilter;
 
@@ -131,9 +134,11 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent/.*", "internalcontent",
+                canBeDistributedAccessFilter,
+                addSyndication,
+                canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
-                addSyndication,
                 linkValidationFilter,
                 mainImageFilter,
                 alternativeTitlesFilter,
@@ -145,14 +150,14 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripOpeningXml,
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
-                syndicationDistributionFilter,
                 contentPackageFilter,
                 expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
+                addSyndication,
+                canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
-                addSyndication,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -165,9 +170,11 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 expandedImagesFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
+                canBeDistributedAccessFilter,
+                addSyndication,
+                canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
-                addSyndication,
                 linkValidationFilter,
                 suppressMarkup,
                 mainImageFilter,
@@ -180,7 +187,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripOpeningXml,
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
-                syndicationDistributionFilter,
                 contentPackageFilter,
                 expandedImagesFilter));
 
@@ -194,9 +200,11 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
+                canBeDistributedAccessFilter,
+                addSyndication,
+                canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
-                addSyndication,
                 linkValidationFilter,
                 suppressMarkup,
                 mainImageFilter,
@@ -207,13 +215,13 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripProvenance,
                 stripLastModifiedDate,
                 stripOpeningXml,
-                removeAccessFieldRegardlessOfPolicy,
-                syndicationDistributionFilter));
+                removeAccessFieldRegardlessOfPolicy));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
+                addSyndication,
+                canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
-                addSyndication,
                 suppressMarkup,
                 mainImageFilter,
                 alternativeTitlesFilter,
@@ -295,7 +303,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         accessLevelPropertyFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, ACCESS_LEVEL_JSON_PROPERTY);
         removeAccessFieldRegardlessOfPolicy = new SuppressJsonPropertiesFilter(jsonTweaker, ACCESS_LEVEL_JSON_PROPERTY);
         accessLevelHeaderFilter = new RemoveHeaderUnlessPolicyPresentFilter(ACCESS_LEVEL_HEADER, INTERNAL_UNSTABLE);
-        syndicationDistributionFilter = new SyndicationDistributionFilter(jsonTweaker, INTERNAL_UNSTABLE);
+        canBeDistributedAccessFilter = new CanBeDistributedAccessFilter(jsonTweaker, INTERNAL_UNSTABLE);
+        canBeSyndicatedAccessFilter = new CanBeSyndicatedAccessFilter(jsonTweaker, RESTRICT_NON_SYNDICATABLE_CONTENT);
         contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY);
         expandedImagesFilter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, EXPAND_RICH_CONTENT);
     }

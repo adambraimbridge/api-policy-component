@@ -11,17 +11,17 @@ import java.util.Map;
 
 import static javax.ws.rs.core.Response.Status.OK;
 
-public class SyndicationDistributionFilter extends AbstractImageFilter {
+public abstract class AccessFilterBase extends AbstractImageFilter {
+    private static final String YES_VALUE = "yes";
 
-    private static final String CAN_BE_DISTRIBUTED_KEY = "canBeDistributed";
-    private static final String CAN_BE_DISTRIBUTED_VALUE_YES = "yes";
+    protected JsonConverter jsonConverter;
+    protected Policy policy;
+    protected String jsonProperty;
 
-    private JsonConverter jsonConverter;
-    private Policy policy;
-
-    public SyndicationDistributionFilter(JsonConverter jsonConverter, Policy policy) {
+    public AccessFilterBase(JsonConverter jsonConverter, Policy policy, String jsonProperty) {
         this.jsonConverter = jsonConverter;
         this.policy = policy;
+        this.jsonProperty = jsonProperty;
     }
 
     @Override
@@ -32,25 +32,39 @@ public class SyndicationDistributionFilter extends AbstractImageFilter {
             return originalResponse;
         }
 
-        if (request.policyIs(policy)) {
+        if (shouldSkipFilter(request)) {
             return originalResponse;
         }
 
         final Map<String, Object> content = jsonConverter.readEntity(originalResponse);
 
-        FieldModifier modifier = (jsonProperty, contentModel) -> {
-            if (contentModel.containsKey(jsonProperty)) {
-                String canBeDistributed = (String) contentModel.get(jsonProperty);
-                if (CAN_BE_DISTRIBUTED_VALUE_YES.equals(canBeDistributed)) {
-                    contentModel.remove(jsonProperty);
+        FieldModifier modifier = (propertyKey, contentModel) -> {
+            if (contentModel.containsKey(propertyKey)) {
+                String property = (String) contentModel.get(propertyKey);
+                if (YES_VALUE.equals(property)) {
+                    if (shouldRemoveProperty()) {
+                        contentModel.remove(propertyKey);
+                    }
                     jsonConverter.replaceEntity(originalResponse, content);
                 } else {
                     throw ClientError.status(403).error("Access denied.").exception();
                 }
+            } else {
+                if (shouldThrowClientError()) {
+                    throw ClientError.status(403).error("Access denied.").exception();
+                }
             }
         };
-        applyFilter(CAN_BE_DISTRIBUTED_KEY, modifier, content);
+        applyFilter(jsonProperty, modifier, content);
         jsonConverter.replaceEntity(originalResponse, content);
         return originalResponse;
+
     }
+
+    protected abstract boolean shouldThrowClientError();
+
+    protected abstract boolean shouldRemoveProperty();
+
+    protected abstract boolean shouldSkipFilter(MutableRequest request);
+
 }
