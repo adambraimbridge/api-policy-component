@@ -1,12 +1,12 @@
 FROM coco/dropwizardbase:0.7.x-mvn333
 ADD .git/ /.git/
 ADD api-policy-component-service/ /api-policy-component-service/
-ADD pom.xml /
 RUN apk --update add git \
   && cd api-policy-component-service \
   && HASH=$(git log -1 --pretty=format:%H) \
   && TAG=$(git tag -l --contains $HASH) \
   && VERSION=${TAG:-untagged} \
+  && sed -i "s/<parent>//; s/<\/parent>//; s/<artifactId>api-policy-component<\/artifactId>//" ./pom.xml \
   && mvn versions:set -DnewVersion=$VERSION \
   && mvn clean install -Dbuild.git.revision=$HASH -Djava.net.preferIPv4Stack=true \
   && rm target/api-policy-component-service-*-sources.jar \
