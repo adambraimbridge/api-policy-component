@@ -4,7 +4,7 @@ ADD api-policy-component-service/ /api-policy-component-service/
 RUN apk --update add git \
   && cd api-policy-component-service \
   && HASH=$(git log -1 --pretty=format:%H) \
-  && TAG=$(git tag -l --contains $HASH) \
+  && TAG=$(git tag -l --points-at $HASH) \
   && VERSION=${TAG:-untagged} \
   && sed -i "s/<parent>//; s/<\/parent>//; s/<artifactId>api-policy-component<\/artifactId>//" ./pom.xml \
   && mvn versions:set -DnewVersion=$VERSION \
