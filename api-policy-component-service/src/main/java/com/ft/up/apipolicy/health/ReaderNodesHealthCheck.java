@@ -25,7 +25,6 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
     @Override
     protected AdvancedResult checkAdvanced() throws Exception {
-
         URI healthcheckUri;
 
         if (checkVulcanHealth) {
@@ -37,7 +36,7 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
                     .build();
         } else {
             healthcheckUri = UriBuilder
-                    .fromPath("/build-info")
+                    .fromPath("/status")
                     .host(endpoint.getHost())
                     .port(endpoint.getPort())
                     .scheme("http")

@@ -55,7 +55,7 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     public static final DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
             resourceFilePath("config-junit.yml"),
-            config("varnish.primaryNodes", primaryNodes)
+            config("varnish.endpointConfiguration.primaryNodes", primaryNodes)
     );
 
     private static final String CONTENT_PREVIEW_PATH = "/content-preview/bcafca32-5bc7-343f-851f-fd6d3514e694";

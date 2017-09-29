@@ -1,0 +1,4 @@
+apiVersion: v1
+description: API Policy Component Helm chart for Kubernetes
+name: api-policy-component
+version: 0.0.0
