@@ -2,7 +2,7 @@ package com.ft.up.apipolicy.filters;
 
 import static com.ft.up.apipolicy.pipeline.ApiFilter.ALTERNATIVE_IMAGES;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.EMBEDS;
-import static com.ft.up.apipolicy.pipeline.ApiFilter.MAIM_IMAGE;
+import static com.ft.up.apipolicy.pipeline.ApiFilter.MAIN_IMAGE;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.MEMBERS;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.PROMOTIONAL_IMAGE;
 import static org.junit.Assert.assertFalse;
@@ -64,7 +64,7 @@ public class SuppressJsonPropertiesFilterTest {
         assertFalse(actualTree.has("comments"));
         assertFalse(actualTree.has(LAST_MODIFIED));
 
-        final JsonNode mainImageTree = actualTree.get(MAIM_IMAGE);
+        final JsonNode mainImageTree = actualTree.get(MAIN_IMAGE);
         assertFalse(mainImageTree.has(LAST_MODIFIED));
 
         final JsonNode mainImageMember = mainImageTree.get(MEMBERS).get(0);

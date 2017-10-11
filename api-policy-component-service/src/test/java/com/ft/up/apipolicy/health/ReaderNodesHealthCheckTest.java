@@ -1,14 +1,17 @@
 package com.ft.up.apipolicy.health;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ft.up.apipolicy.configuration.EndpointConfiguration;
 import com.ft.platform.dropwizard.AdvancedResult;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
@@ -23,6 +26,12 @@ import java.net.URI;
  * @author Simon.Gibbs
  */
 public class ReaderNodesHealthCheckTest {
+
+    // used in stacks with vulcan-based routing
+    private static final String VULCAN_HC_PATH = "/v2/status";
+
+    //used in stacks with varnish-based routing
+    private static final String VARNISH_HC_PATH = "/status";
 
     @Test
     public void shouldReturnErrorStateIfClientThrowsException() throws Exception {
@@ -66,6 +75,32 @@ public class ReaderNodesHealthCheckTest {
         ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test",config,client,false);
 
         assertThat(check.checkAdvanced().status(),is(AdvancedResult.Status.OK));
+    }
+
+    @Test
+    public void shouldCheckVarnishIfCheckVulcanHealthFalse() throws Exception {
+        testHealthcheckURI(false, VARNISH_HC_PATH);
+    }
+
+    @Test
+    public void shouldCheckVulcanIfCheckVulcanHealthTrue() throws Exception {
+        testHealthcheckURI(true, VULCAN_HC_PATH);
+    }
+
+    private void testHealthcheckURI(boolean checkVulcanHealth, String expectedPath) throws Exception {
+        EndpointConfiguration config = mock(EndpointConfiguration.class);
+        Client client = mock(Client.class);
+
+        ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test", config, client, checkVulcanHealth);
+        check.checkAdvanced();
+
+        ArgumentCaptor<URI> argument = ArgumentCaptor.forClass(URI.class);
+        verify(client).target(argument.capture());
+
+        assertNotNull(argument.getValue());
+        String path = argument.getValue().getPath();
+        assertNotNull(path);
+        assertThat(path, is(expectedPath));
     }
 
     private Client primeClientToGive(int status) {

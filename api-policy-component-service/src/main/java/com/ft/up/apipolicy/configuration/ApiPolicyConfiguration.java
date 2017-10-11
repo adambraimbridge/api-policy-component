@@ -15,14 +15,16 @@ public class ApiPolicyConfiguration extends Configuration {
     private EndpointConfiguration varnish;
 
     @JsonProperty("checkingVulcanHealth")
-    private boolean checkingVulcanHealth = false;
+    private boolean checkingVulcanHealth;
 
     @NotNull
-    @JsonProperty("pipeline") @Valid
+    @JsonProperty("pipeline")
+    @Valid
     private PipelineConfiguration pipelineConfiguration;
 
     @NotNull
-    @JsonProperty("policyBrandsMapper") @Valid
+    @JsonProperty("policyBrandsMapper")
+    @Valid
     private PolicyBrandsResolver policyBrandsResolver;
 
     public EndpointConfiguration getVarnish() {

@@ -26,16 +26,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SyndicationDistributionFilterTest {
+public class CanBeDistributedAccessFilterTest {
 
-    private SyndicationDistributionFilter filter;
+    private CanBeDistributedAccessFilter filter;
 
     @Mock
     private HttpPipelineChain mockChain;
 
     @Before
     public void setUp() {
-        filter = new SyndicationDistributionFilter(JsonConverter.testConverter(), Policy.INTERNAL_UNSTABLE);
+        filter = new CanBeDistributedAccessFilter(JsonConverter.testConverter(), Policy.INTERNAL_UNSTABLE);
     }
 
     @Test
@@ -112,19 +112,17 @@ public class SyndicationDistributionFilterTest {
     }
 
     @Test
-    public void shouldReturnErrorWhenNotPolicyAndCanBeDistributedFieldNotYesForNestedImageContent() {
+    public void shouldStripNestedImageWhenNotPolicyAndCanBeDistributedFieldNotYesForNestedImageContent() {
         MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
         MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"yes\",\"mainImage\":{\"id\":\"sampleId\",\"canBeDistributed\":\"verify\"}}");
 
         when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
 
-        try {
-            filter.processRequest(request, mockChain);
-            fail("No exception was thrown, but expected one.");
+        final String expectedFilteredResponseBody = "{\"bodyXML\":\"<body>Testing.</body>\"}";
 
-        } catch (WebApplicationClientException e) {
-            assertThat(e.getResponse().getStatus(), is(403));
-        }
+        MutableResponse actualFilteredResponse = filter.processRequest(request, mockChain);
+
+        assertThat(new String(actualFilteredResponse.getEntity()), is(new String(expectedFilteredResponseBody.getBytes(Charset.forName("UTF-8")))));
     }
 
     private MutableResponse createSuccessfulResponse(String body) {

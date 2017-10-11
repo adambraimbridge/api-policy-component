@@ -3,7 +3,7 @@ package com.ft.up.apipolicy.filters;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.ALTERNATIVE_IMAGES;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.EMBEDS;
-import static com.ft.up.apipolicy.pipeline.ApiFilter.MAIM_IMAGE;
+import static com.ft.up.apipolicy.pipeline.ApiFilter.MAIN_IMAGE;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.MEMBERS;
 import static com.ft.up.apipolicy.pipeline.ApiFilter.PROMOTIONAL_IMAGE;
 import static org.junit.Assert.assertFalse;
@@ -66,7 +66,7 @@ public class RemoveJsonPropertiesUnlessPolicyPresentFilterTest {
         assertFalse(actualTree.has("lastModified"));
         assertFalse(actualTree.has("comments"));
 
-        final JsonNode mainImageTree = actualTree.get(MAIM_IMAGE);
+        final JsonNode mainImageTree = actualTree.get(MAIN_IMAGE);
         assertFalse(mainImageTree.has("lastModified"));
 
         final JsonNode mainImageMember = mainImageTree.get(MEMBERS).get(0);
