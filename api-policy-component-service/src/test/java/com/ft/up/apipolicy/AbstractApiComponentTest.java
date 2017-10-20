@@ -2,13 +2,26 @@ package com.ft.up.apipolicy;
 
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.io.Resources;
+import org.junit.Before;
 import org.junit.ClassRule;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
 
 public abstract class AbstractApiComponentTest {
-    static final int SOME_PORT = (int) (Math.random() * 10000) + 40000;
-    static final String primaryNodes = String.format("localhost:%d:%d", SOME_PORT, SOME_PORT + 1);
+    static final int SOME_PORT;
+    
+	static {
+		try (ServerSocket socket = new ServerSocket(0)) {
+            socket.setReuseAddress(true);
+            SOME_PORT = socket.getLocalPort();
+        } catch (IOException e) {
+        	throw new ExceptionInInitializerError(e);
+        }
+	}
+	
+    static final String primaryNodes = String.format("localhost:%d:%d", SOME_PORT, SOME_PORT);
 
     @ClassRule
     public static WireMockClassRule WIRE_MOCK_1 = new WireMockClassRule(SOME_PORT);
@@ -28,5 +41,12 @@ public abstract class AbstractApiComponentTest {
             }
             throw new RuntimeException(e);
         }
+    }
+    
+    @Before
+    public void setUp() {
+    	WIRE_MOCK_1.resetMappings();
+    	WIRE_MOCK_1.resetRequests();
+    	WIRE_MOCK_1.resetScenarios();
     }
 }

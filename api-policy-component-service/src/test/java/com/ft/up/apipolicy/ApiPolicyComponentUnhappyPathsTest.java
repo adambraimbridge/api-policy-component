@@ -75,7 +75,7 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
 
     // Fails completely    
     @Test
-    public void shouldFailWhereBothNodesAreReturning500() {
+    public void shouldFailWhereTargetNodeReturns500() {
         wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(ERROR_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(500)));
 
@@ -95,7 +95,7 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
     }
 
     @Test
-    public void shouldFailWhereBothNodesAreReturning503() {
+    public void shouldFailWhereTargetNodeReturns503() {
         wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(ERROR_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(503)));
 
@@ -115,7 +115,7 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
     }
 
     @Test
-    public void shouldFailWhereBothNodesAreReturning503WithoutABody() {
+    public void shouldFailWhereTargetNodeReturns503WithoutABody() {
         wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse()
                 .withStatus(503)));
 
