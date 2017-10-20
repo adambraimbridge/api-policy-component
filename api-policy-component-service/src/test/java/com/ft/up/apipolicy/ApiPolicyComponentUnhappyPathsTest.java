@@ -137,8 +137,9 @@ public class ApiPolicyComponentUnhappyPathsTest extends AbstractApiComponentTest
 
     @Test
     public void shouldReturnErrorIfTimeoutOccurs() {
+    	int tooLong = policyComponent.getConfiguration().getVarnish().getReadTimeoutMillis() + 500;
         wireMockForVarnish1.stubFor(WireMock.get(urlEqualTo(EXAMPLE_PATH)).willReturn(aResponse().withBody(EXAMPLE_JSON)
-                .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withFixedDelay(2000)));
+                .withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withFixedDelay(tooLong)));
 
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
