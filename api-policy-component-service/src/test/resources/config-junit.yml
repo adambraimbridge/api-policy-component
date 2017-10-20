@@ -2,8 +2,8 @@
 varnish:
   shortName: "semanticReaderVarnish"
   path: content/
-  timeout: 500ms
-  connectionTimeout: 500ms
+  timeout: 2000ms
+  connectionTimeout: 2000ms
   primaryNodes: "localhost:9090:9091"
 
 pipeline:
