@@ -23,7 +23,7 @@ CMD exec java $JAVA_OPTS \
          -Ddw.server.adminConnectors[0].port=8081 \
          -Dsun.net.http.allowRestrictedHeaders=true \
          -Ddw.varnish.primaryNodes=$READ_ENDPOINT \      
-         -Ddw.varnish.jerseyClient.timeout=$JERSEY_TIMEOUT_DURATION \
+         -Ddw.varnish.timeout=$JERSEY_TIMEOUT_DURATION \
          -Ddw.checkingVulcanHealth=$CHECKING_VULCAN_HEALTH \
          -Ddw.metrics.reporters[0].host=$GRAPHITE_HOST \
          -Ddw.metrics.reporters[0].port=$GRAPHITE_PORT \
