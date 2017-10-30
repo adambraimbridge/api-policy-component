@@ -1,18 +1,10 @@
 
 varnish:
-  endpointConfiguration:
-    shortName: "semanticReaderVarnish"
-    path: content/
-    jerseyClient:
-        timeout: 4000ms
-        connectionTimeout: 1s
-        keepAlive: 80s
-        timeToLive: 45s
-    primaryNodes: ["localhost:9090:9091", "localhost:9090:9091"]
-    secondaryNodes: null
-  connectionConfiguration:
-    numberOfConnectionAttempts: 3
-    timeoutMultiplier: 1000
+  shortName: "semanticReaderVarnish"
+  path: content/
+  timeout: 4000ms
+  connectionTimeout: 1s
+  primaryNodes: "localhost:9090:9091"
 
 pipeline:
   webUrlTemplates:
@@ -46,12 +38,10 @@ server:
         port: 20082
 
   requestLog:
-
     appenders:
-
       - type: console
-        logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
-
+        # Add transaction_id to the end of Dropwizard's default format, which is itself based on the "combined" log format
+        logFormat: "%h %l %u [%t] \"%r\" %s %b \"%i{Referer}\" \"%i{User-Agent}\" %D transaction_id=%i{X-Request-Id}"
         # The timezone used to format dates. HINT: USE THE DEFAULT, UTC.
         timeZone: UTC
 
@@ -62,6 +52,7 @@ logging:
   loggers:
     io.dropwizard: DEBUG
     com.ft.jerseyhttpwrapper.AttemptLogger: WARN
+    com.ft.api.util.transactionid.TransactionIdFilter: WARN
 
   appenders:
 

@@ -1,12 +1,16 @@
 package com.ft.up.apipolicy.filters;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+
 import com.ft.api.jaxrs.errors.WebApplicationClientException;
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,15 +18,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.ws.rs.core.MultivaluedHashMap;
+
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CanBeDistributedAccessFilterTest {
@@ -41,7 +42,7 @@ public class CanBeDistributedAccessFilterTest {
     public void shouldNotProcessErrorResponse() {
         final MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
         final String responseBody = "{\"message\":\"TestError\"}";
-        MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), responseBody.getBytes());
+        MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(), responseBody.getBytes());
         response.setStatus(500);
         when(mockChain.callNextFilter(request)).thenReturn(response);
 
@@ -125,7 +126,7 @@ public class CanBeDistributedAccessFilterTest {
     }
 
     private MutableResponse createSuccessfulResponse(String body) {
-        MutableResponse response = new MutableResponse(new MultivaluedMapImpl(), body.getBytes(Charset.forName("UTF-8")));
+        MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(), body.getBytes(Charset.forName("UTF-8")));
         response.setStatus(200);
         response.getHeaders().putSingle("Content-Type", "application/json");
         return response;

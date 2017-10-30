@@ -1,23 +1,5 @@
 package com.ft.up.apipolicy.filters;
 
-import com.ft.up.apipolicy.JsonConverter;
-import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
-import com.ft.up.apipolicy.pipeline.MutableRequest;
-import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.InOrder;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.ws.rs.core.MultivaluedMap;
-import java.util.Arrays;
-import java.util.Collections;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -26,6 +8,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
+import com.ft.up.apipolicy.JsonConverter;
+import com.ft.up.apipolicy.configuration.Policy;
+import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
+import com.ft.up.apipolicy.pipeline.MutableRequest;
+import com.ft.up.apipolicy.pipeline.MutableResponse;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.mockito.InOrder;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import java.util.Arrays;
+import java.util.Collections;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NotificationsTypeFilterTest {
@@ -39,7 +39,7 @@ public class NotificationsTypeFilterTest {
     private NotificationsTypeFilter filter = new NotificationsTypeFilter(jsonConverter ,Policy.INTERNAL_UNSTABLE);
     private MutableRequest request = mock(MutableRequest.class);
     private HttpPipelineChain chain = mock(HttpPipelineChain.class);
-    private MultivaluedMapImpl headers = new MultivaluedMapImpl();
+    private MultivaluedMap<String,Object> headers = new MultivaluedHashMap<>();
 
     private MutableResponse errorResponse;
     private MutableResponse successResponse;
@@ -89,7 +89,7 @@ public class NotificationsTypeFilterTest {
     @Test
     public void testIncomingQueryParamsCannotOverwritePolicyRestriction() throws Exception {
         when(request.policyIs(Policy.INTERNAL_UNSTABLE)).thenReturn(false);
-        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> params = new MultivaluedHashMap<>();
         params.putSingle("type", "mediaResource");
         when(request.getQueryParameters()).thenReturn(params);
         when(chain.callNextFilter(request)).thenReturn(successResponse);

@@ -1,32 +1,25 @@
 package com.ft.up.apipolicy;
 
-import com.ft.jerseyhttpwrapper.config.EndpointConfiguration;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.ft.up.apipolicy.configuration.EndpointConfiguration;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandler;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.ClientFilter;
-import com.sun.jersey.client.apache4.ApacheHttpClient4Handler;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.params.ClientPNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 /**
  * JerseyRequestForwarder
@@ -42,21 +35,6 @@ public class JerseyRequestForwarder implements RequestForwarder {
     public JerseyRequestForwarder(Client client, EndpointConfiguration varnish) {
         this.client = client;
         this.varnish = varnish;
-        configureJersey();
-    }
-
-    private void configureJersey() {
-        client.setFollowRedirects(false);
-        // Hack to force http client to stop handling redirects. This needs to be changed to the new 'DW way' when we upgrade from v0.7.1
-        ClientHandler handler = client.getHeadHandler();
-        while (handler instanceof ClientFilter) {
-            handler = ((ClientFilter) handler).getNext();
-            if (handler instanceof ApacheHttpClient4Handler) {
-                LOGGER.info("Reconfiguring underlying http client to stop handling redirects.");
-                ApacheHttpClient4Handler apacheHandler = (ApacheHttpClient4Handler) handler;
-                apacheHandler.getHttpClient().getParams().setParameter(ClientPNames.HANDLE_REDIRECTS, false);
-            }
-        }
     }
 
     @Override
@@ -77,7 +55,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
             }
         }
 
-        WebResource.Builder resource = client.resource(builder.build()).getRequestBuilder();
+        Invocation.Builder resource = client.target(builder.build()).request();
 
         MultivaluedMap<String, String> headers = request.getHeaders();
         for (String headerName : headers.keySet()) {
@@ -87,14 +65,14 @@ public class JerseyRequestForwarder implements RequestForwarder {
             }
         }
 
-        ClientResponse clientResponse = null;
+        Response clientResponse = null;
 
         String requestEntity = request.getRequestEntityAsString();
 
         if (StringUtils.isNotEmpty(requestEntity)) {
-            clientResponse = resource.method(request.getHttpMethod(), ClientResponse.class, requestEntity);
+            clientResponse = resource.build(request.getHttpMethod(), Entity.json(requestEntity)).invoke();
         } else {
-            clientResponse = resource.method(request.getHttpMethod(), ClientResponse.class);
+            clientResponse = resource.build(request.getHttpMethod()).invoke();
         }
         MutableResponse result = new MutableResponse();
 
@@ -102,9 +80,9 @@ public class JerseyRequestForwarder implements RequestForwarder {
             byte[] responseEntity = null;
             try {
                 if (clientResponse.hasEntity()) {
-                    responseEntity = IOUtils.toByteArray(clientResponse.getEntityInputStream());
+                    responseEntity = clientResponse.readEntity(byte[].class);
                 }
-            } catch (ClientHandlerException e) {
+            } catch (IllegalStateException e) {
                 // thrown if there is an IOException in hasEntity()
                 LOGGER.error("unable to obtain a response entity", e);
             }
@@ -123,13 +101,10 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
             result.setStatus(responseStatus);
             result.setHeaders(clientResponse.getHeaders());
-        } catch (IOException e) {
-            throw new ForwarderException(e);
         } finally {
             clientResponse.close();
         }
 
         return result;
-
     }
 }

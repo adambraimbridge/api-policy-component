@@ -6,20 +6,22 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * AddBrandFilterParametersTest
@@ -50,7 +52,7 @@ public class AddBrandFilterParametersTest {
     @Before
     public void setUpExamples() {
 
-        MultivaluedMapImpl allHeaders = new MultivaluedMapImpl();
+        MultivaluedMap<String,Object> allHeaders = new MultivaluedHashMap<>();
         allHeaders.put(HttpPipeline.POLICY_HEADER_NAME, Arrays.asList("FASTFT_CONTENT_ONLY", "EXCLUDE_FASTFT_CONTENT"));
 
         exampleErrorResponse = new MutableResponse(allHeaders,ERROR_RESPONSE.getBytes());

@@ -1,7 +1,8 @@
 package com.ft.up.apipolicy.resources;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -9,6 +10,27 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+
+import com.ft.up.apipolicy.pipeline.ApiFilter;
+import com.ft.up.apipolicy.pipeline.DummyFilter;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
+import com.ft.up.apipolicy.pipeline.MutableRequest;
+import com.ft.up.apipolicy.pipeline.MutableResponse;
+import com.ft.up.apipolicy.pipeline.RequestForwarder;
+
+import org.apache.http.HttpStatus;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,27 +40,9 @@ import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriInfo;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import com.ft.api.jaxrs.errors.WebApplicationClientException;
-import com.ft.up.apipolicy.pipeline.ApiFilter;
-import com.ft.up.apipolicy.pipeline.DummyFilter;
-import com.ft.up.apipolicy.pipeline.HttpPipeline;
-import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
-import com.ft.up.apipolicy.pipeline.MutableRequest;
-import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.ft.up.apipolicy.pipeline.RequestForwarder;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 public class WildcardEndpointResourceTest {
     
@@ -59,7 +63,7 @@ public class WildcardEndpointResourceTest {
 	@Before
 	public void setup() throws IOException {
 		RequestForwarder requestForwarder = mock(RequestForwarder.class);
-		MutableResponse mutableResponse = new MutableResponse(new MultivaluedMapImpl(), "response".getBytes());
+		MutableResponse mutableResponse = new MutableResponse(new MultivaluedHashMap<>(), "response".getBytes());
 		when(requestForwarder.forwardRequest(any(MutableRequest.class))).thenReturn(mutableResponse);
 
 		SortedSet<KnownEndpoint> knownEndpoints = new TreeSet<>();
@@ -155,15 +159,15 @@ public class WildcardEndpointResourceTest {
         mockEnvironmentForRequestTo("/non-matching/54307a12-37fa-11e3-8f44-002128161462");
         when(request.getMethod()).thenReturn("POST");
 
-        expectedException.expect(WebApplicationClientException.class);
-        expectedException.expect(hasProperty("message", equalTo(
-                "com.ft.up.apipolicy.resources.UnsupportedRequestException: "
-                + "Unsupported request: path [/non-matching/54307a12-37fa-11e3-8f44-002128161462] "
-                + "with method [POST].")));
-
+        Response actual = wildcardEndpointResource.post(request, uriInfo);
+        assertThat("status", actual.getStatus(), equalTo(HttpStatus.SC_METHOD_NOT_ALLOWED));
         
-        wildcardEndpointResource.post(request, uriInfo);
-
+        Object entity = actual.getEntity();
+        assertThat("message", (String)((Map)entity).get("message"), containsString(
+          "Unsupported request: path [/non-matching/54307a12-37fa-11e3-8f44-002128161462] "
+          + "with method [POST]."
+            ));
+        
         verify(suggestPipeline, never()).forwardRequest(any(MutableRequest.class));
     }
     
@@ -180,6 +184,20 @@ public class WildcardEndpointResourceTest {
              public int read() throws IOException {
                  return byteArrayInputStream.read();
              }
+
+            @Override
+            public boolean isFinished() {
+              return false;
+            }
+
+            @Override
+            public boolean isReady() {
+              return false;
+            }
+
+            @Override
+            public void setReadListener(ReadListener arg0) {
+            }
          };
      }
 

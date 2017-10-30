@@ -1,23 +1,24 @@
 package com.ft.up.apipolicy.health;
 
-import com.ft.jerseyhttpwrapper.config.EndpointConfiguration;
-import com.ft.platform.dropwizard.AdvancedResult;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandler;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientResponse;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.net.URI;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.ft.up.apipolicy.configuration.EndpointConfiguration;
+import com.ft.platform.dropwizard.AdvancedResult;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
+import java.net.URI;
 
 /**
  * ReaderNodesHealthCheckTest
@@ -34,11 +35,17 @@ public class ReaderNodesHealthCheckTest {
 
     @Test
     public void shouldReturnErrorStateIfClientThrowsException() throws Exception {
-        ClientHandler mockHandler = mock(ClientHandler.class);
-        Client client = new Client(mockHandler);
+        Invocation.Builder builder = mock(Invocation.Builder.class);
+        when(builder.header(any(String.class), any(String.class))).thenReturn(builder);
+        WebTarget target = mock(WebTarget.class);
+        when(target.request()).thenReturn(builder);
+        
+        Client client = mock(Client.class);
+        when(client.target(any(URI.class))).thenReturn(target);
+        
+        when(builder.get()).thenThrow(new RuntimeException("Synthetic client exception"));
+        
         EndpointConfiguration config = mock(EndpointConfiguration.class);
-
-        when(mockHandler.handle(any(ClientRequest.class))).thenThrow(new RuntimeException("Synthetic client exception"));
 
         ReaderNodesHealthCheck check = new ReaderNodesHealthCheck("test",config,client,false);
 
@@ -88,7 +95,7 @@ public class ReaderNodesHealthCheckTest {
         check.checkAdvanced();
 
         ArgumentCaptor<URI> argument = ArgumentCaptor.forClass(URI.class);
-        verify(client).resource(argument.capture());
+        verify(client).target(argument.capture());
 
         assertNotNull(argument.getValue());
         String path = argument.getValue().getPath();
@@ -97,12 +104,18 @@ public class ReaderNodesHealthCheckTest {
     }
 
     private Client primeClientToGive(int status) {
-        ClientHandler mockHandler = mock(ClientHandler.class);
-        Client client = new Client(mockHandler);
-        ClientResponse mockResponse = mock(ClientResponse.class);
+        Invocation.Builder builder = mock(Invocation.Builder.class);
+        when(builder.header(any(String.class), any(String.class))).thenReturn(builder);
+        WebTarget target = mock(WebTarget.class);
+        when(target.request()).thenReturn(builder);
+        
+        Client client = mock(Client.class);
+        when(client.target(any(URI.class))).thenReturn(target);
+        
+        Response mockResponse = mock(Response.class);
         when(mockResponse.getStatus()).thenReturn(status);
-
-        when(mockHandler.handle(any(ClientRequest.class))).thenReturn(mockResponse);
+        when(builder.get()).thenReturn(mockResponse);
+        
         return client;
     }
 }

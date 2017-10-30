@@ -1,18 +1,21 @@
 package com.ft.up.apipolicy;
 
-import com.ft.api.jaxrs.errors.RuntimeExceptionMapper;
+import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
+import static com.ft.up.apipolicy.configuration.Policy.RESTRICT_NON_SYNDICATABLE_CONTENT;
+
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
-import com.ft.jerseyhttpwrapper.ResilientClientBuilder;
-import com.ft.jerseyhttpwrapper.config.EndpointConfiguration;
-import com.ft.jerseyhttpwrapper.continuation.ExponentialBackoffContinuationPolicy;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
 import com.ft.platform.dropwizard.DefaultGoodToGoChecker;
 import com.ft.platform.dropwizard.GoodToGoBundle;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-import com.ft.up.apipolicy.configuration.ConnectionConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.configuration.VarnishConfiguration;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.AddSyndication;
 import com.ft.up.apipolicy.filters.ExpandedImagesFilter;
@@ -22,7 +25,6 @@ import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.SuppressInternalContentFilter;
 import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
 import com.ft.up.apipolicy.filters.CanBeDistributedAccessFilter;
@@ -39,7 +41,15 @@ import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
 
-import com.sun.jersey.api.client.Client;
+import io.dropwizard.Application;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.client.Client;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -47,26 +57,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.DispatcherType;
-
-import io.dropwizard.Application;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
-import static com.ft.up.apipolicy.configuration.Policy.RESTRICT_NON_SYNDICATABLE_CONTENT;
-
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyApplication.class);
     private static final String MAIN_IMAGE_JSON_PROPERTY = "mainImage";
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
     private static final String ALT_TITLES_JSON_PROPERTY = "alternativeTitles";
@@ -119,7 +111,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     @Override
     public void run(final ApiPolicyConfiguration configuration, final Environment environment) throws Exception {
         environment.jersey().register(new BuildInfoResource());
-        environment.jersey().register(new RuntimeExceptionMapper());
+        environment.jersey().register(new ApiPolicyExceptionMapper());
         setFilters(configuration, environment);
 
         Set<KnownEndpoint> knownWildcardEndpoints = new LinkedHashSet<>();
@@ -248,32 +240,10 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.servlets().addFilter("Transaction ID Filter",
                 new TransactionIdFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-
-        Client healthcheckClient;
-        VarnishConfiguration varnishConfiguration = configuration.getVarnishConfiguration();
-        LOGGER.info("Checking vulcan health: [" + configuration.isCheckingVulcanHealth() + "].");
-        if (configuration.isCheckingVulcanHealth()) {
-            healthcheckClient = ResilientClientBuilder.in(environment).usingDNS().named("healthcheck-client").build();
-        } else {
-            ConnectionConfiguration connectionConfiguration = varnishConfiguration.getConnectionConfiguration();
-            healthcheckClient = configureResilientClient(environment, varnishConfiguration, connectionConfiguration);
-        }
+        Client healthcheckClient = JerseyClientBuilder.newClient();
         environment.healthChecks()
                 .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity ", varnishConfiguration.getEndpointConfiguration(), healthcheckClient, configuration.isCheckingVulcanHealth()));
-    }
-
-    private Client configureResilientClient(Environment environment, VarnishConfiguration varnishConfiguration, ConnectionConfiguration connectionConfiguration) {
-        return ResilientClientBuilder.in(environment)
-                    .using(varnishConfiguration.getEndpointConfiguration())
-                    .withContinuationPolicy(
-                            new ExponentialBackoffContinuationPolicy(
-                                    connectionConfiguration.getNumberOfConnectionAttempts(),
-                                    connectionConfiguration.getTimeoutMultiplier()
-                            )
-                    ).named("healthcheck-client")
-                    .build();
-
+                        new ReaderNodesHealthCheck("Reader API Connectivity ", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
     }
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
@@ -327,10 +297,14 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
                                          String urlPattern, String instanceName, ApiFilter... filterChain) {
-        EndpointConfiguration endpointConfiguration = configuration.getVarnishConfiguration().getEndpointConfiguration();
-        final Client client = ResilientClientBuilder.in(environment).using(endpointConfiguration).named(instanceName).build();
+      
+        final Client client = JerseyClientBuilder.newBuilder()
+            .property(ClientProperties.FOLLOW_REDIRECTS, false)
+            .property(ClientProperties.CONNECT_TIMEOUT, configuration.getVarnish().getConnectTimeoutMillis())
+            .property(ClientProperties.READ_TIMEOUT, configuration.getVarnish().getReadTimeoutMillis())
+            .build();
 
-        final RequestForwarder requestForwarder = new JerseyRequestForwarder(client, endpointConfiguration);
+        final RequestForwarder requestForwarder = new JerseyRequestForwarder(client, configuration.getVarnish());
         return new KnownEndpoint(urlPattern, new HttpPipeline(requestForwarder, filterChain));
     }
 }

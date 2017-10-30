@@ -1,19 +1,5 @@
 package com.ft.up.apipolicy.filters;
 
-import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
-import com.ft.up.apipolicy.pipeline.MutableRequest;
-import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-
 import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -23,6 +9,20 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.ft.up.apipolicy.configuration.Policy;
+import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
+import com.ft.up.apipolicy.pipeline.MutableRequest;
+import com.ft.up.apipolicy.pipeline.MutableResponse;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RemoveHeaderUnlessPolicyPresentFilterTest {
@@ -40,7 +40,7 @@ public class RemoveHeaderUnlessPolicyPresentFilterTest {
     public void testFiltersHeader() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
-        final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+        final MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
         headers.add(ACCESS_LEVEL_HEADER, "subscribed");
         final MutableResponse initialResponse = new MutableResponse(headers, new byte[0]);
@@ -57,7 +57,7 @@ public class RemoveHeaderUnlessPolicyPresentFilterTest {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         when(mockedRequest.policyIs(INTERNAL_UNSTABLE)).thenReturn(true);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
-        final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+        final MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
         headers.add(ACCESS_LEVEL_HEADER, "subscribed");
         final MutableResponse initialResponse = new MutableResponse(headers, new byte[0]);
@@ -73,7 +73,7 @@ public class RemoveHeaderUnlessPolicyPresentFilterTest {
     public void testDoesNotTouchWhenHeaderIsAbsent() throws Exception {
         final MutableRequest mockedRequest = mock(MutableRequest.class);
         final HttpPipelineChain mockedChain = mock(HttpPipelineChain.class);
-        final MultivaluedMap<String, String> headers = new MultivaluedMapImpl();
+        final MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Type", MediaType.APPLICATION_JSON);
         final MutableResponse initialResponse = new MutableResponse(headers, new byte[0]);
         initialResponse.setStatus(200);

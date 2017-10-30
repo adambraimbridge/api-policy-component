@@ -10,6 +10,10 @@ import javax.validation.constraints.NotNull;
 
 public class ApiPolicyConfiguration extends Configuration {
 
+    @NotNull
+    @JsonProperty @Valid
+    private EndpointConfiguration varnish;
+
     @JsonProperty("checkingVulcanHealth")
     private boolean checkingVulcanHealth;
 
@@ -23,10 +27,9 @@ public class ApiPolicyConfiguration extends Configuration {
     @Valid
     private PolicyBrandsResolver policyBrandsResolver;
 
-    @NotNull
-    @JsonProperty("varnish")
-    @Valid
-    private VarnishConfiguration varnishConfiguration;
+    public EndpointConfiguration getVarnish() {
+        return varnish;
+    }
 
     public PipelineConfiguration getPipelineConfiguration() {
         return pipelineConfiguration;
@@ -34,11 +37,6 @@ public class ApiPolicyConfiguration extends Configuration {
 
     public PolicyBrandsResolver getPolicyBrandsResolver() {
         return policyBrandsResolver;
-    }
-
-
-    public VarnishConfiguration getVarnishConfiguration() {
-        return varnishConfiguration;
     }
 
     public boolean isCheckingVulcanHealth() {

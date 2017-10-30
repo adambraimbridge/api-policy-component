@@ -1,7 +1,7 @@
 package com.ft.up.apipolicy;
 
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import javax.ws.rs.core.MultivaluedHashMap;
 
 import org.junit.Test;
 
@@ -44,7 +44,7 @@ public class JsonConverterTest {
     public void roundTripShouldPreserveFieldOrder() {
         JsonConverter converter = JsonConverter.testConverter();
 
-        MutableResponse response = new MutableResponse(new MultivaluedMapImpl(),FIELDS_JSON.getBytes());
+        MutableResponse response = new MutableResponse(new MultivaluedHashMap<>(),FIELDS_JSON.getBytes());
 
         Map<String,Object> convertedJson = converter.readEntity(response);
         convertedJson.put("title","test");

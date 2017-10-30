@@ -21,8 +21,9 @@ EXPOSE 8080 8081
 CMD exec java $JAVA_OPTS \
          -Ddw.server.applicationConnectors[0].port=8080 \
          -Ddw.server.adminConnectors[0].port=8081 \
-         -Ddw.varnish.endpointConfiguration.primaryNodes=$READ_ENDPOINT \
-         -Ddw.varnish.endpointConfiguration.jerseyClient.timeout=$JERSEY_TIMEOUT_DURATION \
+         -Dsun.net.http.allowRestrictedHeaders=true \
+         -Ddw.varnish.primaryNodes=$READ_ENDPOINT \      
+         -Ddw.varnish.timeout=$JERSEY_TIMEOUT_DURATION \
          -Ddw.checkingVulcanHealth=$CHECKING_VULCAN_HEALTH \
          -Ddw.logging.appenders[0].logFormat="%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %replace(%m%n[%thread]%xEx){'\n', '|'}%nopex%n" \
          -Ddw.metrics.reporters[0].host=$GRAPHITE_HOST \

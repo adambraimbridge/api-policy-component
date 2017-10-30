@@ -1,47 +1,5 @@
 package com.ft.up.apipolicy;
 
-import com.ft.api.util.transactionid.TransactionIdUtils;
-import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
-import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.pipeline.HttpPipeline;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-
-import org.apache.commons.io.IOUtils;
-import org.fest.util.Strings;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.After;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
-
-import io.dropwizard.testing.junit.DropwizardAppRule;
-
 import static com.ft.up.apipolicy.JsonConverter.JSON_ARRAY_TYPE;
 import static com.ft.up.apipolicy.JsonConverter.JSON_MAP_TYPE;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -56,7 +14,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static io.dropwizard.testing.junit.ConfigOverride.config;
+import static io.dropwizard.testing.ConfigOverride.config;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
@@ -69,6 +27,51 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ft.api.util.transactionid.TransactionIdUtils;
+import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
+import com.ft.up.apipolicy.configuration.Policy;
+import com.ft.up.apipolicy.pipeline.HttpPipeline;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+
+import io.dropwizard.testing.junit.DropwizardAppRule;
+
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 /**
  * ApiPolicyComponentTest
  *
@@ -80,25 +83,27 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     public static final DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
             resourceFilePath("config-junit.yml"),
-            config("varnish.endpointConfiguration.primaryNodes", primaryNodes)
+            config("varnish.primaryNodes", primaryNodes)
     );
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiPolicyComponentHappyPathsTest.class);
     private static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
     private static final String EXAMPLE_PATH = "/example";
     private static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
-  private static final String ANNOTATIONS_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694/annotations";
+    private static final String ANNOTATIONS_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694/annotations";
     private static final String CONTENT_PATH_2 = "/content/f3b60ad0-acda-11e2-a7c4-002128161462";
     private static final String CONTENT_PATH_3 = "/content/e3b60ad0-acda-11e2-a7c4-002128161462";
     private static final String CONCEPT_PATH_REDIRECT = "/redirect/5561512e-1b45-4810-9448-961bc052a2df";
     private static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
     private static final String ENRICHED_CONTENT_PATH_2 = "/enrichedcontent/285a3560-33df-11e7-bce4-9023f8c0fd2e";
 	private static final String CONTENT_PREVIEW_PATH = "/content-preview/285a3560-33df-11e7-bce4-9023f8c0fd2e";
-    private static final String BASE_NOTIFICATION_PATH = "/content/notifications?since=2014-10-15&type=article";
+    private static final String NOTIFICATIONS_PATH = "/content/notifications";
 	private static final String INTERNAL_CONTENT_PATH = "/internalcontent/c333574c-4993-11e6-8072-e46b2152f259";
 	private static final String INTERNAL_CONTENT_PREVIEW_PATH = "/internalcontent-preview/c333574c-4993-11e6-8072-e46b2152f259";
-    private static final String FOR_BRAND = "&forBrand=";
-    private static final String NOT_FOR_BRAND = "&notForBrand=";
+    private static final String TYPE = "type";
+    private static final String SINCE = "since";
+    private static final String FOR_BRAND = "forBrand";
+    private static final String NOT_FOR_BRAND = "notForBrand";
     private static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
     private static final String SUGGEST_PATH = "/suggest";
     private static final String QUERY_PARAM_NAME = "curatedTopStoriesFor";
@@ -330,10 +335,10 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 			"}";
 	private static final String INTERNAL_CONTENT_EXPANDED_IMAGES_JSON  ="{\"id\":\"http://www.ft.com/thing/c333574c-4993-11e6-8072-e46b2152f259\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"leadImages\":[{\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"pixelHeight\":2612,\"pixelWidth\":2612,\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"square\",\"canBeSyndicated\":\"verify\"},{\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"canBeDistributed\":\"verify\",\"copyright\":{\"notice\":\"© EPA\"},\"firstPublishedDate\":\"2017-03-28T13:42:00.000Z\",\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"pixelHeight\":1152,\"pixelWidth\":2048,\"publishedDate\":\"2017-03-28T13:42:00.000Z\",\"title\":\"Leader of the PVV party Gert Wilders reacts to the election result\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"standard\",\"canBeSyndicated\":\"verify\"},{\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"pixelHeight\":1548,\"pixelWidth\":4645,\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"wide\",\"canBeSyndicated\":\"verify\"}],\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}},\"canBeSyndicated\":\"verify\",\"webUrl\":\"http://www.ft.com/cms/s/273563f3-95a0-4f00-8966-6973c0111923.html\"}";
 	private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", NOTIFICATIONS);
-    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, FOR_BRAND + FASTFT_BRAND, "");
-    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, NOT_FOR_BRAND + FASTFT_BRAND, "");
+    private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "&" + FOR_BRAND + "=" + FASTFT_BRAND, "");
+    private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "&" + NOT_FOR_BRAND + "=" + FASTFT_BRAND, "");
     private static final String FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE,
-            FOR_BRAND + FASTFT_BRAND + NOT_FOR_BRAND + FASTFT_BRAND, "");
+            "&" + FOR_BRAND + "=" + FASTFT_BRAND + "&" + NOT_FOR_BRAND + "=" + FASTFT_BRAND, "");
 
     private static final String LIST_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", LIST_NOTIFICATION_JSON);
 
@@ -341,15 +346,13 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     @Rule
     public final WireMockClassRule wireMockForVarnish = WIRE_MOCK_1;
 
-    private int leasedConnectionsBeforeForContent = 0;
-    private int leasedConnectionsBeforeForNotifications = 0;
-    private int leasedConnectionsBeforeForEnrichedContent = 0;
-    private int leasedConnectionsBeforeForOther = 0;
     private final Client client = getClient();
 
     private Client getClient() {
-        final Client tmpClient = Client.create();
-        tmpClient.setFollowRedirects(false);
+        final Client tmpClient = JerseyClientBuilder.newBuilder()
+            .property(ClientProperties.FOLLOW_REDIRECTS, false)
+            .build();
+      
         return tmpClient;
     }
 
@@ -359,19 +362,6 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlPathEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(get(urlPathEqualTo(ANNOTATIONS_PATH)).willReturn(aResponse().withBody(ANNOTATIONS_RESPONSE_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
         stubFor(get(urlPathEqualTo(CONTENT_PATH_3)).willReturn(aResponse().withBody(CONTENT_JSON_3).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
-
-//        leasedConnectionsBeforeForContent = getLeasedConnections("content");
-//        leasedConnectionsBeforeForNotifications = getLeasedConnections("notifications");
-//        leasedConnectionsBeforeForEnrichedContent = getLeasedConnections("enrichedcontent");
-//        leasedConnectionsBeforeForOther = getLeasedConnections("other");
-    }
-
-    @After
-    public void checkThatNumberOfLeasedConnectionsHaveNotChanged() {
-//        assertThat(leasedConnectionsBeforeForContent, equalTo(getLeasedConnections("content")));
-//        assertThat(leasedConnectionsBeforeForNotifications, equalTo(getLeasedConnections("notifications")));
-//        assertThat(leasedConnectionsBeforeForEnrichedContent, equalTo(getLeasedConnections("enrichedcontent")));
-//        assertThat(leasedConnectionsBeforeForOther, equalTo(getLeasedConnections("other")));
     }
 
     @Test
@@ -379,13 +369,13 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)));
 
             assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), is(EXAMPLE_JSON));
+            assertThat(response.readEntity(String.class), is(EXAMPLE_JSON));
 
         } finally {
             response.close();
@@ -397,15 +387,14 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         URI uri = fromFacade(SUGGEST_PATH).build();
 
-        ClientResponse response = client.resource(uri)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .post(ClientResponse.class, SUGGEST_REQUEST_JSON);
+        Response response = client.target(uri).request()
+                                  .post(Entity.json(SUGGEST_REQUEST_JSON));
 
         try {
             verify(postRequestedFor(urlEqualTo(SUGGEST_PATH)));
 
             assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), is(SUGGEST_RESPONSE_JSON));
+            assertThat(response.readEntity(String.class), is(SUGGEST_RESPONSE_JSON));
 
         } finally {
             response.close();
@@ -417,7 +406,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri).header("Arbitrary", "Example").get(ClientResponse.class);
+        Response response = client.target(uri).request().header("Arbitrary", "Example").get();
 
         try {
             verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader("Arbitrary", equalTo("Example")));
@@ -431,7 +420,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri).header(TransactionIdUtils.TRANSACTION_ID_HEADER, EXAMPLE_TRANSACTION_ID).get(ClientResponse.class);
+        Response response = client.target(uri).request().header(TransactionIdUtils.TRANSACTION_ID_HEADER, EXAMPLE_TRANSACTION_ID).get();
 
         try {
             verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER, equalTo("010101")));
@@ -445,7 +434,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         URI uri = fromFacade(EXAMPLE_PATH).build();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlEqualTo(EXAMPLE_PATH)).withHeader(TransactionIdUtils.TRANSACTION_ID_HEADER, containing("tid_")));
@@ -459,7 +448,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     givenEverythingSetup();
     URI uri = fromFacade(ANNOTATIONS_PATH).build();
 
-    ClientResponse response = client.resource(uri).get(ClientResponse.class);
+    Response response = client.target(uri).request().get();
 
     try {
       verify(getRequestedFor(urlEqualTo(ANNOTATIONS_PATH)));
@@ -477,7 +466,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         URI uri = fromFacade(CONTENT_PATH).build();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
@@ -495,10 +484,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     public void shouldGetTheContentWithExtraSyndicationField() throws IOException {
         URI uri  = fromFacade(CONTENT_PATH_3).build();
         givenEverythingSetup();
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
-                .get(ClientResponse.class);
+                .get();
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
             Map<String, Object> result = expectOKResponseWithJSON(response);
@@ -512,7 +500,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     public void shouldGetTheContentWithSyndicationField() throws IOException {
         URI uri  = fromFacade(CONTENT_PATH_3).build();
         givenEverythingSetup();
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
             Map<String, Object> result = expectOKResponseWithJSON(response);
@@ -530,7 +518,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
         URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH)));
@@ -549,11 +537,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
+        String sinceDate = "2014-10-15";
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8")
-                + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
-
-        stubForNotifications(url, FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
+        stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), Collections.singletonList(FASTFT_BRAND), FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
 
         /*
 
@@ -600,7 +586,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         }
 
         // after all that, we're only really interested in whether the app called the varnish layer with the same parameters.
-        verify(getRequestedFor(urlEqualTo(url)));
+        verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate)));
 
     }
 
@@ -610,14 +596,12 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
 
-        String url = BASE_NOTIFICATION_PATH;
+        stubForNotifications("2014-10-15", null, null, null, ALL_NOTIFICATIONS_JSON);
 
-        stubForNotifications(url, ALL_NOTIFICATIONS_JSON);
-
-        ClientResponse response = client.resource(facadeUri)
-                .get(ClientResponse.class);
+        Response response = client.target(facadeUri).request().get();
+        
         try {
-            verify(getRequestedFor(urlEqualTo(url)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)));
 
             String requestUrl = expectRequestUrl(response);
 
@@ -633,16 +617,17 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
+        String sinceDate = "2014-10-15";
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
+        stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), null, FASTFT_NOTIFICATIONS_JSON);
 
-        stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
-
-        ClientResponse response = client.resource(facadeUri)
+        Response response = client.target(facadeUri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY")
-                .get(ClientResponse.class);
+                .get();
         try {
-            verify(getRequestedFor(urlEqualTo(url)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH))
+                .withQueryParam(SINCE, equalTo(sinceDate))
+                .withQueryParam(FOR_BRAND, equalTo(FASTFT_BRAND)));
 
             String requestUrl = expectRequestUrl(response);
 
@@ -657,16 +642,17 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
+        String sinceDate = "2014-10-15";
 
-        String url = BASE_NOTIFICATION_PATH + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
+        stubForNotifications(sinceDate, null, null, Collections.singletonList(FASTFT_BRAND), NOT_FASTFT_NOTIFICATIONS_JSON);
 
-        stubForNotifications(url, NOT_FASTFT_NOTIFICATIONS_JSON);
-
-        ClientResponse response = client.resource(facadeUri)
+        Response response = client.target(facadeUri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, "EXCLUDE_FASTFT_CONTENT")
-                .get(ClientResponse.class);
+                .get();
         try {
-            verify(getRequestedFor(urlEqualTo(url)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH))
+                .withQueryParam(SINCE, equalTo(sinceDate))
+                .withQueryParam(NOT_FOR_BRAND, equalTo(FASTFT_BRAND)));
 
             String requestUrl = expectRequestUrl(response);
 
@@ -682,19 +668,20 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
+        String sinceDate = "2014-10-15";
 
-        String url = BASE_NOTIFICATION_PATH + FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8")
-                + NOT_FOR_BRAND + URLEncoder.encode(FASTFT_BRAND, "UTF-8");
+        stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), Collections.singletonList(FASTFT_BRAND), FASTFT_NOTIFICATIONS_JSON);
 
-        stubForNotifications(url, FASTFT_NOTIFICATIONS_JSON);
-
-        ClientResponse response = client.resource(facadeUri)
+        Response response = client.target(facadeUri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, "FASTFT_CONTENT_ONLY, EXCLUDE_FASTFT_CONTENT")
-                .get(ClientResponse.class);
+                .get();
 
 
         try {
-            verify(getRequestedFor(urlEqualTo(url)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH))
+                .withQueryParam(SINCE, equalTo(sinceDate))
+                .withQueryParam(FOR_BRAND, equalTo(FASTFT_BRAND))
+                .withQueryParam(NOT_FOR_BRAND, equalTo(FASTFT_BRAND)));
 
             String requestUrl = expectRequestUrl(response);
 
@@ -710,11 +697,11 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
         stubFor(get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
-        final ClientResponse response = client.resource(uri).header(HttpPipeline.POLICY_HEADER_NAME,  Policy.INTERNAL_UNSTABLE.getHeaderValue()).get(ClientResponse.class);
+        final Response response = client.target(uri).request().header(HttpPipeline.POLICY_HEADER_NAME,  Policy.INTERNAL_UNSTABLE.getHeaderValue()).get();
         try {
             verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
-            String jsonPayload = response.getEntity(String.class);
+            String jsonPayload = response.readEntity(String.class);
             assertThat(jsonPayload, containsJsonProperty("containedIn"));
             assertThat(jsonPayload, containsJsonProperty("contains"));
         } finally {
@@ -727,11 +714,11 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         final URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
         stubFor(get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
-        final ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
         try {
             verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
-            String jsonPayload = response.getEntity(String.class);
+            String jsonPayload = response.readEntity(String.class);
             assertThat(jsonPayload, not(containsJsonProperty("containedIn")));
             assertThat(jsonPayload, not(containsJsonProperty("contains")));
         } finally {
@@ -746,13 +733,12 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
         stubFor(get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200).withHeader("Vary", "Accept")));
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_2)));
 
             assertThat(response.getStatus(), is(200));
-            assertThat(response.getHeaders().get("Vary").size(), is(1));
 
             List<String> varyHeaderValue = atomise(response.getHeaders().get("Vary"));
             assertThat(varyHeaderValue, hasItems("Accept", HttpPipeline.POLICY_HEADER_NAME));
@@ -768,17 +754,32 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .build();
     }
 
-    private void stubForNotifications(String url, String responseBody) {
-        stubFor(get(urlEqualTo(url))
+    private void stubForNotifications(String sinceDate, String type, Collection<String> forBrands, Collection<String> notForBrands, String responseBody) throws IOException {
+        MappingBuilder request = get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate));
+        if (type != null) {
+            request = request.withQueryParam(TYPE, equalTo(type));
+        }
+        if (forBrands != null) {
+            for (String brand : forBrands) {
+                request = request.withQueryParam(FOR_BRAND, equalTo(URLEncoder.encode(brand, "UTF-8")));
+            }
+        }
+        if (notForBrands != null) {
+            for (String brand : notForBrands) {
+                request = request.withQueryParam(NOT_FOR_BRAND, equalTo(URLEncoder.encode(brand, "UTF-8")));
+            }
+        }
+        
+        stubFor(request
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(responseBody)));
     }
 
-    private List<String> atomise(List<String> varyHeaderValues) {
+    private List<String> atomise(List<Object> varyHeaderValues) {
         List<String> result = Lists.newArrayList();
-        for (String varyHeaderValue : varyHeaderValues) {
-            result.addAll(Arrays.asList(varyHeaderValue.split("[ ,]")));
+        for (Object varyHeaderValue : varyHeaderValues) {
+            result.addAll(Arrays.asList(String.valueOf(varyHeaderValue).split("[ ,]")));
         }
 
         return result;
@@ -791,16 +792,15 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
         stubFor(get(urlEqualTo(CONTENT_PATH_2)).willReturn(aResponse().withBody(CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_2)));
 
             assertThat(response.getStatus(), is(200));
 
-            List<String> varyHeaderValue = response.getHeaders().get("Vary");
+            List<Object> varyHeaderValue = response.getHeaders().get("Vary");
 
-            assertThat(varyHeaderValue.size(), is(1));
             assertThat(varyHeaderValue, hasItems(HttpPipeline.POLICY_HEADER_NAME));
 
         } finally {
@@ -823,7 +823,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                         .withHeader("Accept-Encoding", "test") // out of place for a response, but this is a test
         ));
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_2)));
@@ -844,9 +844,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
         stubForRichContentWithYouTubeVideo();
 
-        ClientResponse response = client.resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, RICH_CONTENT_KEY)
-                .get(ClientResponse.class);
+                .get();
 
         try {
             verify(
@@ -855,7 +855,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
             assertThat(response.getStatus(), is(200));
 
-            String json = response.getEntity(String.class);
+            String json = response.readEntity(String.class);
 
             assertThat(json, containsString("youtube.com"));
 
@@ -872,14 +872,14 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
         stubForRichContentWithYouTubeVideo();
 
-        ClientResponse response = client.resource(uri).get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_2)));
 
             assertThat(response.getStatus(), is(200));
 
-            String json = response.getEntity(String.class);
+            String json = response.readEntity(String.class);
 
             assertThat(json, not(containsString("youtube.com")));
 
@@ -896,13 +896,13 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlEqualTo(LISTS_PATH)).willReturn(aResponse().withBody(LISTS_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
+        final Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
-                .get(ClientResponse.class);
+                .get();
         try {
             verify(getRequestedFor(urlEqualTo(LISTS_PATH)));
             assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), containsJsonProperty("lastModified"));
+            assertThat(response.readEntity(String.class), containsJsonProperty("lastModified"));
         } finally {
             response.close();
         }
@@ -918,12 +918,11 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .willReturn(aResponse().withBody(LISTS_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                         .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
         try {
             verify(getRequestedFor(urlPathMatching(LISTS_BASE_PATH)));
             assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
+            assertThat(response.readEntity(String.class), not(containsJsonProperty("lastModified")));
         } finally {
             response.close();
         }
@@ -938,11 +937,10 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .willReturn(aResponse().withBody(LIST_NOTIFICATIONS_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                         .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
         try {
             verify(getRequestedFor(urlPathMatching(LISTS_BASE_PATH + "/notifications")));
-            String entity = response.getEntity(String.class);
+            String entity = response.readEntity(String.class);
 
             assertThat(response.getStatus(), is(200));
             assertThat(entity, not(containsJsonProperty("lastModified")));
@@ -959,12 +957,11 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlEqualTo(LISTS_PATH)).willReturn(aResponse().withBody(LISTS_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
         try {
             verify(getRequestedFor(urlEqualTo(LISTS_PATH)));
             assertThat(response.getStatus(), is(200));
-            assertThat(response.getEntity(String.class), not(containsJsonProperty("lastModified")));
+            assertThat(response.readEntity(String.class), not(containsJsonProperty("lastModified")));
         } finally {
             response.close();
         }
@@ -977,12 +974,11 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlEqualTo(CONTENT_PATH)).willReturn(aResponse().withBody(CONTENT_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
-            String jsonPayload = response.getEntity(String.class);
+            String jsonPayload = response.readEntity(String.class);
             assertThat(jsonPayload, containsJsonProperty("webUrl"));
         } finally {
             response.close();
@@ -996,12 +992,11 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(ENRICHED_CONTENT_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
         try {
             verify(getRequestedFor(urlEqualTo(ENRICHED_CONTENT_PATH)));
             assertThat(response.getStatus(), is(200));
-            String jsonPayload = response.getEntity(String.class);
+            String jsonPayload = response.readEntity(String.class);
             assertThat(jsonPayload, containsJsonProperty("webUrl"));
         } finally {
             response.close();
@@ -1015,13 +1010,12 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubFor(get(urlEqualTo(LISTS_PATH)).willReturn(aResponse().withBody(LISTS_JSON)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlEqualTo(LISTS_PATH)));
             assertThat(response.getStatus(), is(200));
-            String jsonPayload = response.getEntity(String.class);
+            String jsonPayload = response.readEntity(String.class);
             assertThat(jsonPayload, not(containsJsonProperty("publishReference")));
             assertThat(jsonPayload, containsJsonProperty("id"));
             assertThat(jsonPayload, containsJsonProperty("title"));
@@ -1036,21 +1030,21 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     @Test
     public void shouldRemovePublishReferenceAndLastModifiedAndLeaveAllOthersInJSONForNotifications() {
         givenEverythingSetup();
-        final URI uri = fromFacade("/content/notifications")
-                .queryParam("since", "2014-10-15")
+        String sinceDate = "2014-10-15";
+        final URI uri = fromFacade(NOTIFICATIONS_PATH)
+                .queryParam(SINCE, sinceDate)
                 .build();
-        stubFor(get(urlEqualTo(BASE_NOTIFICATION_PATH))
+        stubFor(get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate))
                 .willReturn(aResponse()
                         .withBody(ALL_NOTIFICATIONS_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                         .withStatus(200))
         );
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
         try {
-            verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate)));
             assertThat(response.getStatus(), is(200));
-            String jsonPayload = response.getEntity(String.class);
+            String jsonPayload = response.readEntity(String.class);
             assertThat(jsonPayload, not(containsNestedJsonProperty("notifications", "publishReference")));
             assertThat(jsonPayload, not(containsNestedJsonProperty("notifications", "lastModified")));
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "type"));
@@ -1065,22 +1059,24 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     @Test
     public void shouldLeaveLastModifiedAndLeaveAllOthersInJSONForNotifications() {
         givenEverythingSetup();
-        final URI uri = fromFacade("/content/notifications")
-                .queryParam("since", "2014-10-15")
+        String sinceDate = "2014-10-15";
+        final URI uri = fromFacade(NOTIFICATIONS_PATH)
+                .queryParam(SINCE, sinceDate)
                 .build();
-        stubFor(get(urlEqualTo(BASE_NOTIFICATION_PATH))
+        stubFor(get(urlPathEqualTo(NOTIFICATIONS_PATH))
+            .withQueryParam(SINCE, equalTo(sinceDate))
                 .willReturn(aResponse()
                         .withBody(ALL_NOTIFICATIONS_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                         .withStatus(200))
         );
-        final ClientResponse response = client.resource(uri)
+        final Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INCLUDE_LAST_MODIFIED_DATE.getHeaderValue())
-                .get(ClientResponse.class);
+                .get();
         try {
-            verify(getRequestedFor(urlEqualTo(BASE_NOTIFICATION_PATH)));
+            verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate)));
             assertThat(response.getStatus(), is(200));
-            String jsonPayload = response.getEntity(String.class);
+            String jsonPayload = response.readEntity(String.class);
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "lastModified"));
             assertThat(jsonPayload, not(containsNestedJsonProperty("notifications", "publishReference")));
             assertThat(jsonPayload, containsNestedJsonProperty("notifications", "type"));
@@ -1098,8 +1094,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         final URI uri = fromFacade(CONCEPT_PATH_REDIRECT).build();
         stubFor(get(urlEqualTo(CONCEPT_PATH_REDIRECT)).willReturn(aResponse().withStatus(301).withHeader("Location", CONCEPT_PATH_REDIRECT + "-redirect")));
 
-        final ClientResponse response = client.resource(uri)
-                .get(ClientResponse.class);
+        final Response response = client.target(uri).request().get();
         try {
             assertThat(response.getStatus(), equalTo(301));
         } finally {
@@ -1118,10 +1113,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
         URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
 
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
-                .get(ClientResponse.class);
+                .get();
 
         try {
             verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH)));
@@ -1146,9 +1140,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
         URI uri = fromFacade(ENRICHED_CONTENT_PATH).build();
 
-        ClientResponse response = client
-                .resource(uri)
-                .get(ClientResponse.class);
+        Response response = client.target(uri).request().get();
 
         try {
             verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH)));
@@ -1166,10 +1158,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     public void givenAnyPolicyShouldNotGetAccessLevelFieldForContent() throws IOException {
         givenEverythingSetup();
         URI uri  = fromFacade(CONTENT_PATH_3).build();
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, Policy.INTERNAL_UNSTABLE.getHeaderValue())
-                .get(ClientResponse.class);
+                .get();
         try {
             verify(getRequestedFor(urlEqualTo(CONTENT_PATH_3)));
             Map<String, Object> result = expectOKResponseWithJSON(response);
@@ -1193,10 +1184,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue()
                 + "," + Policy.EXPAND_RICH_CONTENT.getHeaderValue();
 
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
-                .get(ClientResponse.class);
+                .get();
 
         try {
             verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("expandImages", equalTo("true")));
@@ -1222,10 +1212,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue()
                 + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue();
 
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
-                .get(ClientResponse.class);
+                .get();
 
         try {
             verify(0, getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("expandImages", equalTo("true")));
@@ -1248,8 +1237,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 		String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue() + ","
 				+ Policy.INCLUDE_RICH_CONTENT.getHeaderValue() + "," + Policy.EXPAND_RICH_CONTENT.getHeaderValue();
 
-		ClientResponse response = client.resource(uri).header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
-				.get(ClientResponse.class);
+		Response response = client.target(uri).request()
+		        .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
+				.get();
 
 		try {
 			verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).withQueryParam("expandImages",
@@ -1280,8 +1270,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 		String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue() + ","
 				+ Policy.INCLUDE_RICH_CONTENT.getHeaderValue();
 
-		ClientResponse response = client.resource(uri).header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
-				.get(ClientResponse.class);
+		Response response = client.target(uri).request()
+		        .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
+				.get();
 
 		try {
 			verify(0,
@@ -1309,10 +1300,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue()
                 + "," + Policy.EXPAND_RICH_CONTENT.getHeaderValue();
 
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
-                .get(ClientResponse.class);
+                .get();
 
         try {
             verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH_2)).withQueryParam("expandImages", equalTo("true")));
@@ -1338,10 +1328,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue()
                 + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue();
 
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
-                .get(ClientResponse.class);
+                .get();
 
         try {
             verify(0, getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH_2)).withQueryParam("expandImages", equalTo("true")));
@@ -1368,10 +1357,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue()
                 + "," + Policy.EXPAND_RICH_CONTENT.getHeaderValue();
 
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
-                .get(ClientResponse.class);
+                .get();
 
         try {
             verify(getRequestedFor(urlPathEqualTo(CONTENT_PREVIEW_PATH)).withQueryParam("expandImages", equalTo("true")));
@@ -1397,10 +1385,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         String policyHeader = Policy.INTERNAL_UNSTABLE.getHeaderValue()
                 + "," + Policy.INCLUDE_RICH_CONTENT.getHeaderValue();
 
-        ClientResponse response = client
-                .resource(uri)
+        Response response = client.target(uri).request()
                 .header(HttpPipeline.POLICY_HEADER_NAME, policyHeader)
-                .get(ClientResponse.class);
+                .get();
 
         try {
             verify(0, getRequestedFor(urlPathEqualTo(CONTENT_PREVIEW_PATH)).withQueryParam("expandImages", equalTo("true")));
@@ -1450,7 +1437,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         ));
     }
 
-    private String expectRequestUrl(ClientResponse response) throws IOException {
+    private String expectRequestUrl(Response response) throws IOException {
         Map<String, Object> result = expectOKResponseWithJSON(response);
 
         return (String) result.get("requestUrl");
@@ -1475,16 +1462,16 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         assertThat((String) result.get("webUrl"), is(webUrl));
     }
 
-    private Map<String, Object> expectOKResponseWithJSON(ClientResponse response) throws IOException {
+    private Map<String, Object> expectOKResponseWithJSON(Response response) throws IOException {
         assertThat(response.getStatus(), is(200));
-        String bodyString = response.getEntity(String.class);
+        String bodyString = response.readEntity(String.class);
 
         return OBJECT_MAPPER.readValue(bodyString, JSON_MAP_TYPE);
     }
 
-    private Map<String, Object>[] expectOKResponseWithJSONArray(ClientResponse response) throws IOException {
+    private Map<String, Object>[] expectOKResponseWithJSONArray(Response response) throws IOException {
       assertThat(response.getStatus(), is(200));
-      String bodyString = response.getEntity(String.class);
+      String bodyString = response.readEntity(String.class);
 
       return OBJECT_MAPPER.readValue(bodyString, JSON_ARRAY_TYPE);
     }
@@ -1508,15 +1495,4 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             }
         };
     }
-
-    private int getLeasedConnections(String name) {
-        return client.resource("http://localhost:" + 21082).path("/metrics") //hardcoded because we have no access to getAdminPort() on the app rule
-                .get(JsonNode.class)
-                .get("gauges")
-                .get("org.apache.http.conn.ClientConnectionManager." + name + ".leased-connections")
-                .get("value").asInt();
-
-    }
-
-
 }

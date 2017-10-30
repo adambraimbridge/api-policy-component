@@ -6,21 +6,22 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.ft.up.apipolicy.JsonConverter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebUrlCalculatorTest {
@@ -86,26 +87,26 @@ public class WebUrlCalculatorTest {
         WEB_URL_TEMPLATES.put("http://www.ft.com/ontology/origin/FT-LABS-WP-1-[0-9]+", "WP{{identifierValue}}");
         WEB_URL_TEMPLATES.put("http://api.ft.com/system/NEXT-VIDEO-EDITOR", "NVE{{identifierValue}}");
 
-        exampleErrorResponse = new MutableResponse(new MultivaluedMapImpl(), ERROR_RESPONSE.getBytes());
+        exampleErrorResponse = new MutableResponse(new MultivaluedHashMap<>(), ERROR_RESPONSE.getBytes());
         exampleErrorResponse.setStatus(500);
 
-        webUrlNonEligibleIdentifierResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_NON_ELIGIBLE_IDENTIFIER_RESPONSE);
+        webUrlNonEligibleIdentifierResponse = new MutableResponse(new MultivaluedHashMap<>(), WEB_URL_NON_ELIGIBLE_IDENTIFIER_RESPONSE);
         webUrlNonEligibleIdentifierResponse.setStatus(200);
         webUrlNonEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        minimalPartialExampleResponse = new MutableResponse(new MultivaluedMapImpl(), MINIMAL_PARTIAL_EXAMPLE_IDENTIFIER_RESPONSE.getBytes());
+        minimalPartialExampleResponse = new MutableResponse(new MultivaluedHashMap<>(), MINIMAL_PARTIAL_EXAMPLE_IDENTIFIER_RESPONSE.getBytes());
         minimalPartialExampleResponse.setStatus(200);
         minimalPartialExampleResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        webUrlEligibleIdentifierResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_ELIGIBLE_IDENTIFIER_RESPONSE);
+        webUrlEligibleIdentifierResponse = new MutableResponse(new MultivaluedHashMap<>(), WEB_URL_ELIGIBLE_IDENTIFIER_RESPONSE);
         webUrlEligibleIdentifierResponse.setStatus(200);
         webUrlEligibleIdentifierResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        webUrlPresentInContentResponse = new MutableResponse(new MultivaluedMapImpl(), WEB_URL_PRESENT_IN_RESPONSE);
+        webUrlPresentInContentResponse = new MutableResponse(new MultivaluedHashMap<>(), WEB_URL_PRESENT_IN_RESPONSE);
         webUrlPresentInContentResponse.setStatus(200);
         webUrlPresentInContentResponse.getHeaders().putSingle("Content-Type", "application/json");
 
-        originatingSystemIsNullResponse = new MutableResponse(new MultivaluedMapImpl(), NO_IDENTIFIERS_RESPONSE.getBytes());
+        originatingSystemIsNullResponse = new MutableResponse(new MultivaluedHashMap<>(), NO_IDENTIFIERS_RESPONSE.getBytes());
         originatingSystemIsNullResponse.setStatus(200);
         originatingSystemIsNullResponse.getHeaders().putSingle("Content-Type", "application/json");
 
@@ -154,7 +155,7 @@ public class WebUrlCalculatorTest {
     }
 
     private void shouldAddWebUrlToSuccessResponse(byte[] successResponseWithEligibleWebUrl, final String expectedWebUrl) {
-        MutableResponse liveBlogResponse = new MutableResponse(new MultivaluedMapImpl(), successResponseWithEligibleWebUrl);
+        MutableResponse liveBlogResponse = new MutableResponse(new MultivaluedHashMap<>(), successResponseWithEligibleWebUrl);
         liveBlogResponse.setStatus(200);
         liveBlogResponse.getHeaders().putSingle("Content-Type", "application/json");
 
