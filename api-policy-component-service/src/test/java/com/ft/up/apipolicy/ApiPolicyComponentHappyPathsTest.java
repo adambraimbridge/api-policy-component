@@ -1097,6 +1097,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         final Response response = client.target(uri).request().get();
         try {
             assertThat(response.getStatus(), equalTo(301));
+            assertThat(response.getHeaders().getFirst("Location"), is(CONCEPT_PATH_REDIRECT + "-redirect"));
         } finally {
             response.close();
         }

@@ -47,6 +47,7 @@ import io.dropwizard.setup.Environment;
 
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.server.ServerProperties;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.client.Client;
@@ -110,6 +111,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
     @Override
     public void run(final ApiPolicyConfiguration configuration, final Environment environment) throws Exception {
+        environment.jersey().property(ServerProperties.LOCATION_HEADER_RELATIVE_URI_RESOLUTION_DISABLED,true);
         environment.jersey().register(new BuildInfoResource());
         environment.jersey().register(new ApiPolicyExceptionMapper());
         setFilters(configuration, environment);
