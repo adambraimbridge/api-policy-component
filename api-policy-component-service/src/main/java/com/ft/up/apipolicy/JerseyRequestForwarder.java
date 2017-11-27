@@ -46,15 +46,11 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
         for (String parameterName : request.getQueryParameters().keySet()) {
             for (String value : request.getQueryParameters().get(parameterName)) {
-                try {
-                    builder.queryParam(parameterName, URLEncoder.encode(value, "UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    throw new ForwarderException(e);
-                }
-                LOGGER.debug("Sending Parameter: {}={}", parameterName, value);
+                builder.queryParam(parameterName, value);
+                LOGGER.debug("Sending query parameter: {}={}", parameterName, value);
             }
         }
-
+        
         Invocation.Builder resource = client.target(builder.build()).request();
 
         MultivaluedMap<String, String> headers = request.getHeaders();
@@ -64,8 +60,8 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 LOGGER.debug("Sending Header: {}={}", headerName, value);
             }
         }
-
-        Response clientResponse = null;
+        
+        Response clientResponse;
 
         String requestEntity = request.getRequestEntityAsString();
 
