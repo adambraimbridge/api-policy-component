@@ -18,9 +18,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 /**
  * JerseyRequestForwarder
  *
@@ -29,8 +26,8 @@ import java.net.URLEncoder;
 public class JerseyRequestForwarder implements RequestForwarder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JerseyRequestForwarder.class);
-    private Client client;
-    private EndpointConfiguration varnish;
+    private final Client client;
+    private final EndpointConfiguration varnish;
 
     public JerseyRequestForwarder(Client client, EndpointConfiguration varnish) {
         this.client = client;

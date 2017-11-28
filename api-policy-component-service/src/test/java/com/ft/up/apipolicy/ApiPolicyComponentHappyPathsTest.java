@@ -62,6 +62,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -96,15 +97,16 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     private static final String CONCEPT_PATH_REDIRECT = "/redirect/5561512e-1b45-4810-9448-961bc052a2df";
     private static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
     private static final String ENRICHED_CONTENT_PATH_2 = "/enrichedcontent/285a3560-33df-11e7-bce4-9023f8c0fd2e";
-	private static final String CONTENT_PREVIEW_PATH = "/content-preview/285a3560-33df-11e7-bce4-9023f8c0fd2e";
+    private static final String CONTENT_PREVIEW_PATH = "/content-preview/285a3560-33df-11e7-bce4-9023f8c0fd2e";
     private static final String NOTIFICATIONS_PATH = "/content/notifications";
-	private static final String INTERNAL_CONTENT_PATH = "/internalcontent/c333574c-4993-11e6-8072-e46b2152f259";
-	private static final String INTERNAL_CONTENT_PREVIEW_PATH = "/internalcontent-preview/c333574c-4993-11e6-8072-e46b2152f259";
+    private static final String INTERNAL_CONTENT_PATH = "/internalcontent/c333574c-4993-11e6-8072-e46b2152f259";
+    private static final String INTERNAL_CONTENT_PREVIEW_PATH = "/internalcontent-preview/c333574c-4993-11e6-8072-e46b2152f259";
     private static final String TYPE = "type";
     private static final String SINCE = "since";
     private static final String FOR_BRAND = "forBrand";
     private static final String NOT_FOR_BRAND = "notForBrand";
-    private static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since=2014-10-15";
+    private static final String NOTIFICATIONS_SINCE_DATE = "2017-10-17T15:22:49.804Z";
+    private static final String PLAIN_NOTIFICATIONS_FEED_URI = "http://contentapi2.ft.com/content/notifications?since="+ NOTIFICATIONS_SINCE_DATE;
     private static final String SUGGEST_PATH = "/suggest";
     private static final String QUERY_PARAM_NAME = "curatedTopStoriesFor";
     private static final String QUERY_PARAM_VALUE = "f9c5eaed-d7e1-47f1-b6a0-470c9e26ab0e";
@@ -262,7 +264,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "}";
 
     private static final String NOTIFICATIONS_RESPONSE_TEMPLATE = "{" +
-            "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since=2014-10-15%s\", " +
+            "\"requestUrl\": \"http://contentapi2.ft.com/content/notifications?since="+NOTIFICATIONS_SINCE_DATE+"%s\", " +
             "\"notifications\": [ %s ], " +
             "\"links\": [] " +
             "}";
@@ -537,7 +539,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
-        String sinceDate = "2014-10-15";
+        String sinceDate = NOTIFICATIONS_SINCE_DATE;
 
         stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), Collections.singletonList(FASTFT_BRAND), FASTFT_AND_NOT_FASTFT_NOTIFICATIONS_JSON);
 
@@ -562,7 +564,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream())); // the buffer enables readLine()
 
 
-            writer.println("GET /content/notifications?since=2014-10-15 HTTP/1.1");
+            writer.println("GET /content/notifications?since=2017-10-17T15:22:49.804Z HTTP/1.1");
             writer.println("Host: " + facadeUri.getAuthority()); // I think we want the port number so "authority" not "host"
             writer.println("X-Policy: FASTFT_CONTENT_ONLY");
             writer.println("X-Policy: EXCLUDE_FASTFT_CONTENT");
@@ -596,7 +598,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
 
-        stubForNotifications("2014-10-15", null, null, null, ALL_NOTIFICATIONS_JSON);
+        stubForNotifications(NOTIFICATIONS_SINCE_DATE, null, null, null, ALL_NOTIFICATIONS_JSON);
 
         Response response = client.target(facadeUri).request().get();
         
@@ -617,7 +619,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
-        String sinceDate = "2014-10-15";
+        String sinceDate = NOTIFICATIONS_SINCE_DATE;
 
         stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), null, FASTFT_NOTIFICATIONS_JSON);
 
@@ -642,7 +644,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
-        String sinceDate = "2014-10-15";
+        String sinceDate = NOTIFICATIONS_SINCE_DATE;
 
         stubForNotifications(sinceDate, null, null, Collections.singletonList(FASTFT_BRAND), NOT_FASTFT_NOTIFICATIONS_JSON);
 
@@ -668,7 +670,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         givenEverythingSetup();
         // build a URL on localhost corresponding to PLAIN_NOTIFICATIONS_FEED_URI
         URI facadeUri = sinceSomeDateFromFacade();
-        String sinceDate = "2014-10-15";
+        String sinceDate = NOTIFICATIONS_SINCE_DATE;
 
         stubForNotifications(sinceDate, null, Collections.singletonList(FASTFT_BRAND), Collections.singletonList(FASTFT_BRAND), FASTFT_NOTIFICATIONS_JSON);
 
@@ -750,12 +752,12 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
     private URI sinceSomeDateFromFacade() {
         return fromFacade("/content/notifications")
-                .queryParam("since", "2014-10-15")
+                .queryParam("since", "2017-10-17T15:22:49.804Z")
                 .build();
     }
 
     private void stubForNotifications(String sinceDate, String type, Collection<String> forBrands, Collection<String> notForBrands, String responseBody) throws IOException {
-        MappingBuilder request = get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate));
+        MappingBuilder request = get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(URLEncoder.encode(sinceDate, "UTF-8")));
         if (type != null) {
             request = request.withQueryParam(TYPE, equalTo(type));
         }
@@ -1030,11 +1032,11 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     @Test
     public void shouldRemovePublishReferenceAndLastModifiedAndLeaveAllOthersInJSONForNotifications() {
         givenEverythingSetup();
-        String sinceDate = "2014-10-15";
+        String sinceDate = NOTIFICATIONS_SINCE_DATE;
         final URI uri = fromFacade(NOTIFICATIONS_PATH)
                 .queryParam(SINCE, sinceDate)
                 .build();
-        stubFor(get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(sinceDate))
+        stubFor(get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(encode(sinceDate)))
                 .willReturn(aResponse()
                         .withBody(ALL_NOTIFICATIONS_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -1057,14 +1059,14 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     }
 
     @Test
-    public void shouldLeaveLastModifiedAndLeaveAllOthersInJSONForNotifications() {
+    public void shouldLeaveLastModifiedAndLeaveAllOthersInJSONForNotifications() throws UnsupportedEncodingException {
         givenEverythingSetup();
-        String sinceDate = "2014-10-15";
+        String sinceDate = NOTIFICATIONS_SINCE_DATE;
         final URI uri = fromFacade(NOTIFICATIONS_PATH)
                 .queryParam(SINCE, sinceDate)
                 .build();
         stubFor(get(urlPathEqualTo(NOTIFICATIONS_PATH))
-            .withQueryParam(SINCE, equalTo(sinceDate))
+            .withQueryParam(SINCE, equalTo(encode(sinceDate)))
                 .willReturn(aResponse()
                         .withBody(ALL_NOTIFICATIONS_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -1086,6 +1088,15 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         } finally {
             response.close();
         }
+    }
+    
+    private String encode(String toEncode){
+        try {
+            return URLEncoder.encode(toEncode, "UTF-8");
+        } catch (UnsupportedEncodingException ex){
+            LOGGER.error("Failed to encode {}", toEncode, ex); // this shouldn't happen
+        }
+        return toEncode; 
     }
 
     @Test
