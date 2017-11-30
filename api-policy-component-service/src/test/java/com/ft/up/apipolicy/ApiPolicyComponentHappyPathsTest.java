@@ -354,7 +354,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         final Client tmpClient = JerseyClientBuilder.newBuilder()
             .property(ClientProperties.FOLLOW_REDIRECTS, false)
             .build();
-      
+
         return tmpClient;
     }
 
@@ -564,7 +564,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream())); // the buffer enables readLine()
 
 
-            writer.println("GET /content/notifications?since=2017-10-17T15:22:49.804Z HTTP/1.1");
+            writer.println("GET /content/notifications?since="+NOTIFICATIONS_SINCE_DATE+" HTTP/1.1");
             writer.println("Host: " + facadeUri.getAuthority()); // I think we want the port number so "authority" not "host"
             writer.println("X-Policy: FASTFT_CONTENT_ONLY");
             writer.println("X-Policy: EXCLUDE_FASTFT_CONTENT");
@@ -601,7 +601,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
         stubForNotifications(NOTIFICATIONS_SINCE_DATE, null, null, null, ALL_NOTIFICATIONS_JSON);
 
         Response response = client.target(facadeUri).request().get();
-        
+
         try {
             verify(getRequestedFor(urlPathEqualTo(NOTIFICATIONS_PATH)));
 
@@ -752,26 +752,26 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
     private URI sinceSomeDateFromFacade() {
         return fromFacade("/content/notifications")
-                .queryParam("since", "2017-10-17T15:22:49.804Z")
+                .queryParam("since", NOTIFICATIONS_SINCE_DATE)
                 .build();
     }
 
     private void stubForNotifications(String sinceDate, String type, Collection<String> forBrands, Collection<String> notForBrands, String responseBody) throws IOException {
-        MappingBuilder request = get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(URLEncoder.encode(sinceDate, "UTF-8")));
+        MappingBuilder request = get(urlPathEqualTo(NOTIFICATIONS_PATH)).withQueryParam(SINCE, equalTo(encode(sinceDate)));
         if (type != null) {
             request = request.withQueryParam(TYPE, equalTo(type));
         }
         if (forBrands != null) {
             for (String brand : forBrands) {
-                request = request.withQueryParam(FOR_BRAND, equalTo(URLEncoder.encode(brand, "UTF-8")));
+                request = request.withQueryParam(FOR_BRAND, equalTo(encode(brand)));
             }
         }
         if (notForBrands != null) {
             for (String brand : notForBrands) {
-                request = request.withQueryParam(NOT_FOR_BRAND, equalTo(URLEncoder.encode(brand, "UTF-8")));
+                request = request.withQueryParam(NOT_FOR_BRAND, equalTo(encode(brand)));
             }
         }
-        
+
         stubFor(request
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
@@ -1089,14 +1089,14 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             response.close();
         }
     }
-    
+
     private String encode(String toEncode){
         try {
             return URLEncoder.encode(toEncode, "UTF-8");
         } catch (UnsupportedEncodingException ex){
             LOGGER.error("Failed to encode {}", toEncode, ex); // this shouldn't happen
         }
-        return toEncode; 
+        return toEncode;
     }
 
     @Test
