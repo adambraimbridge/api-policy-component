@@ -53,6 +53,9 @@ public class MutableRequest {
     }
 
     public String getRequestEntityAsString() {
+        if(requestEntity == null){
+            return null;
+        }
         return new String(requestEntity);
     }
 

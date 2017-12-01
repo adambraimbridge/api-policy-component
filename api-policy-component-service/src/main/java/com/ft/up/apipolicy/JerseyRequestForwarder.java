@@ -18,9 +18,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 /**
  * JerseyRequestForwarder
  *
@@ -29,8 +26,8 @@ import java.net.URLEncoder;
 public class JerseyRequestForwarder implements RequestForwarder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JerseyRequestForwarder.class);
-    private Client client;
-    private EndpointConfiguration varnish;
+    private final Client client;
+    private final EndpointConfiguration varnish;
 
     public JerseyRequestForwarder(Client client, EndpointConfiguration varnish) {
         this.client = client;
@@ -46,15 +43,11 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
         for (String parameterName : request.getQueryParameters().keySet()) {
             for (String value : request.getQueryParameters().get(parameterName)) {
-                try {
-                    builder.queryParam(parameterName, URLEncoder.encode(value, "UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    throw new ForwarderException(e);
-                }
-                LOGGER.debug("Sending Parameter: {}={}", parameterName, value);
+                builder.queryParam(parameterName, value);
+                LOGGER.debug("Sending query parameter: {}={}", parameterName, value);
             }
         }
-
+        
         Invocation.Builder resource = client.target(builder.build()).request();
 
         MultivaluedMap<String, String> headers = request.getHeaders();
@@ -64,8 +57,8 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 LOGGER.debug("Sending Header: {}={}", headerName, value);
             }
         }
-
-        Response clientResponse = null;
+        
+        Response clientResponse;
 
         String requestEntity = request.getRequestEntityAsString();
 
