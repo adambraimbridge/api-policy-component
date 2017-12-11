@@ -1,15 +1,18 @@
 package com.ft.up.apipolicy.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ft.platform.dropwizard.ConfigWithAppInfo;
 import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.pipeline.PipelineConfiguration;
+import com.ft.platform.dropwizard.AppInfo;
 import io.dropwizard.Configuration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-public class ApiPolicyConfiguration extends Configuration {
-
+public class ApiPolicyConfiguration extends Configuration implements ConfigWithAppInfo {
+    @JsonProperty
+    private AppInfo appInfo = new AppInfo();
     @NotNull
     @JsonProperty @Valid
     private EndpointConfiguration varnish;
@@ -41,5 +44,10 @@ public class ApiPolicyConfiguration extends Configuration {
 
     public boolean isCheckingVulcanHealth() {
         return checkingVulcanHealth;
+    }
+
+    @Override
+    public AppInfo getAppInfo() {
+        return appInfo;
     }
 }
