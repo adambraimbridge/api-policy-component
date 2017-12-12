@@ -242,7 +242,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         Client healthcheckClient = JerseyClientBuilder.newClient();
         environment.healthChecks()
                 .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity ", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
+                        new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
     }
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
