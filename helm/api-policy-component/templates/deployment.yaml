@@ -34,7 +34,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env: 
         - name: JAVA_OPTS
-          value: "-Xms384m -Xmx384m -XX:+UseG1GC -server"
+          value: "-Xms450m -Xmx450m -XX:+UseG1GC -server"
         - name: CHECKING_VULCAN_HEALTH
           value: "false"
         - name: GRAPHITE_HOST
