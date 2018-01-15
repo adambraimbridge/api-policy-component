@@ -1,23 +1,16 @@
 package com.ft.up.apipolicy;
 
-import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
-import static com.ft.up.apipolicy.configuration.Policy.RESTRICT_NON_SYNDICATABLE_CONTENT;
-
 import com.ft.api.util.buildinfo.BuildInfoResource;
 import com.ft.api.util.transactionid.TransactionIdFilter;
 import com.ft.platform.dropwizard.AdvancedHealthCheckBundle;
-import com.ft.platform.dropwizard.DefaultGoodToGoChecker;
 import com.ft.platform.dropwizard.GoodToGoBundle;
+import com.ft.platform.dropwizard.GoodToGoResult;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.AddSyndication;
+import com.ft.up.apipolicy.filters.CanBeDistributedAccessFilter;
+import com.ft.up.apipolicy.filters.CanBeSyndicatedAccessFilter;
 import com.ft.up.apipolicy.filters.ExpandedImagesFilter;
 import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
 import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
@@ -27,8 +20,6 @@ import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
 import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
-import com.ft.up.apipolicy.filters.CanBeDistributedAccessFilter;
-import com.ft.up.apipolicy.filters.CanBeSyndicatedAccessFilter;
 import com.ft.up.apipolicy.filters.WebUrlCalculator;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
@@ -40,23 +31,29 @@ import com.ft.up.apipolicy.resources.RequestHandler;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
-
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.server.ServerProperties;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.client.Client;
-
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
+import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
+import static com.ft.up.apipolicy.configuration.Policy.RESTRICT_NON_SYNDICATABLE_CONTENT;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
@@ -106,7 +103,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     @Override
     public void initialize(final Bootstrap<ApiPolicyConfiguration> bootstrap) {
         bootstrap.addBundle(new AdvancedHealthCheckBundle());
-        bootstrap.addBundle(new GoodToGoBundle(new DefaultGoodToGoChecker()));
+        bootstrap.addBundle(new GoodToGoBundle(environment -> new GoodToGoResult(true, "")));
     }
 
     @Override
@@ -245,7 +242,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         Client healthcheckClient = JerseyClientBuilder.newClient();
         environment.healthChecks()
                 .register("Reader API Connectivity",
-                        new ReaderNodesHealthCheck("Reader API Connectivity ", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
+                        new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
     }
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {

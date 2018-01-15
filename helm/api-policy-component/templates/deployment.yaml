@@ -18,13 +18,23 @@ spec:
         app: {{ .Values.service.name }}
         visualize: "true" 
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ .Values.service.name }}
+            topologyKey: "kubernetes.io/hostname"
       containers: 
       - name: {{ .Chart.Name }} 
         image: "{{ .Values.image.repository }}:{{ .Chart.Version }}" 
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env: 
         - name: JAVA_OPTS
-          value: "-Xms384m -Xmx384m -XX:+UseG1GC -server"
+          value: "-Xms450m -Xmx450m -XX:+UseG1GC -server"
         - name: CHECKING_VULCAN_HEALTH
           value: "false"
         - name: GRAPHITE_HOST
