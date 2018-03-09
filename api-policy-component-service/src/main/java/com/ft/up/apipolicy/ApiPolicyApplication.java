@@ -52,6 +52,7 @@ import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
 import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_ANALYTICS;
 import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
 import static com.ft.up.apipolicy.configuration.Policy.RESTRICT_NON_SYNDICATABLE_CONTENT;
 
@@ -71,7 +72,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private static final String CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY = "containedIn";
     private static final String ACCESS_LEVEL_HEADER = "X-FT-Access-Level";
     private static final String MASTER_SOURCE_JSON_PROPERTY = "masterSource";
-
+    private static final String EDITORIAL_DESK_JSON_PROPERTY = "editorialDesk";
+    
     private ApiFilter mainImageFilter;
     private ApiFilter identifiersFilter;
     private ApiFilter alternativeTitlesFilter;
@@ -95,6 +97,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter canBeSyndicatedAccessFilter;
     private ApiFilter contentPackageFilter;
     private ApiFilter expandedImagesFilter;
+    private ApiFilter editorialDeskFilter;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -142,7 +145,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 contentPackageFilter,
-                expandedImagesFilter));
+                expandedImagesFilter,
+                editorialDeskFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
                 addSyndication,
@@ -158,7 +162,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate,
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
-                expandedImagesFilter));
+                expandedImagesFilter,
+                editorialDeskFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
                 canBeDistributedAccessFilter,
@@ -179,7 +184,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 contentPackageFilter,
-                expandedImagesFilter));
+                expandedImagesFilter,
+                editorialDeskFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
                 mediaResourceNotificationsFilter,
@@ -206,7 +212,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripProvenance,
                 stripLastModifiedDate,
                 stripOpeningXml,
-                removeAccessFieldRegardlessOfPolicy));
+                removeAccessFieldRegardlessOfPolicy,
+                editorialDeskFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
                 addSyndication,
@@ -223,7 +230,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate,
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
-                expandedImagesFilter));
+                expandedImagesFilter,
+                editorialDeskFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/concordances.*", "concordances", new ApiFilter[]{}));
 
@@ -276,6 +284,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         canBeSyndicatedAccessFilter = new CanBeSyndicatedAccessFilter(jsonTweaker, RESTRICT_NON_SYNDICATABLE_CONTENT);
         contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY);
         expandedImagesFilter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, EXPAND_RICH_CONTENT);
+        editorialDeskFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_ANALYTICS, EDITORIAL_DESK_JSON_PROPERTY);
     }
     
     private ApiFilter notificationsFilter() {
