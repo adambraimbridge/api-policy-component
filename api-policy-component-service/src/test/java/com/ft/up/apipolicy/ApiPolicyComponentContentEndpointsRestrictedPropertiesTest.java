@@ -51,8 +51,10 @@ import java.util.Map;
 public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends AbstractApiComponentTest {
     private static final String CONTENT_PATH = "/content/bcafca32-5bc7-343f-851f-fd6d3514e694";
     private static final String ENRICHED_CONTENT_PATH = "/enrichedcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
+    private static final String INTERNAL_CONTENT_PATH = "/internalcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
 
-
+    private static final String EDITORIAL_DESK = "/FT/TestDesk";
+    
     @ClassRule
     public static final DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
@@ -80,7 +82,8 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                     "},\n" +
                     "\"comments\": {\n" +
                     "\"enabled\": true\n" +
-                    "}\n";
+                    "},\n" +
+                    "\"editorialDesk\":\"" + EDITORIAL_DESK + "\"";
 
     private static final String CONTENT_JSON = "{" + ARTICLE_JSON + "}";
 
@@ -90,6 +93,8 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                     "\"brands\": [ ],\n" +
                     "\"annotations\": [ ]" +
                     "}";
+
+    private static final String INTERNAL_CONTENT_JSON = ENRICHED_CONTENT_JSON;
 
     private static final String IMAGE_JSON = "{" +
             "\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\"," +
@@ -111,6 +116,8 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                     "\"annotations\": [ ]" +
                     "}";
 
+    private static final String IMAGE_INTERNAL_CONTENT_JSON = IMAGE_ENRICHED_CONTENT_JSON;
+
     @Parameters
     public static Collection<Object[]> data() {
       /* Elements in each array are as follows:
@@ -119,18 +126,20 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
        * - Expect value to be present in /content endpoint when allowed by policy
        * - Expect value to be present in /content-preview endpoint when allowed by policy
        * - Expect value to be present in /enrichedcontent endpoint when allowed by policy
+       * - Expect value to be present in /internalcontent endpoint when allowed by policy
        */
         return Arrays.asList(new Object[][]{
-                {"comments", Policy.INCLUDE_COMMENTS, false, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
-                {"identifiers", Policy.INCLUDE_IDENTIFIERS, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
-                {"lastModified", Policy.INCLUDE_LAST_MODIFIED_DATE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
-                {"publishReference", Policy.INCLUDE_PROVENANCE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
-                {"masterSource", Policy.INCLUDE_PROVENANCE, true, true, true,IMAGE_CONTENT_JSON,IMAGE_ENRICHED_CONTENT_JSON},
-                {"mainImage", Policy.INCLUDE_RICH_CONTENT, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
-                {"openingXML", Policy.INTERNAL_UNSTABLE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
-                {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
-                {"alternativeImages", Policy.INTERNAL_UNSTABLE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON},
-                {"alternativeStandfirsts", Policy.INTERNAL_UNSTABLE, true, true, true,CONTENT_JSON,ENRICHED_CONTENT_JSON}
+                {"comments", Policy.INCLUDE_COMMENTS, false, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"identifiers", Policy.INCLUDE_IDENTIFIERS, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"lastModified", Policy.INCLUDE_LAST_MODIFIED_DATE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"publishReference", Policy.INCLUDE_PROVENANCE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"masterSource", Policy.INCLUDE_PROVENANCE, true, true, true, true, IMAGE_CONTENT_JSON, IMAGE_ENRICHED_CONTENT_JSON, IMAGE_INTERNAL_CONTENT_JSON},
+                {"mainImage", Policy.INCLUDE_RICH_CONTENT, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"openingXML", Policy.INTERNAL_UNSTABLE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"alternativeImages", Policy.INTERNAL_UNSTABLE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"alternativeStandfirsts", Policy.INTERNAL_UNSTABLE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"editorialDesk", Policy.INTERNAL_ANALYTICS, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON}
         });
     }
 
@@ -143,22 +152,27 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     private final boolean allowForContentEndpoint;
     private final boolean allowForContentPreviewEndpoint;
     private final boolean allowForEnrichedContentEndpoint;
+    private final boolean allowForInternalContentEndpoint;
     private final String jsonResponseForContent;
     private final String jsonResponseForEnrichedContent;
+    private final String jsonResponseForInternalContent;
 
     private final Client client = JerseyClientBuilder.newClient();
     private Response response;
 
     public ApiPolicyComponentContentEndpointsRestrictedPropertiesTest(String propertyName, Policy requiredPolicy,
-                                                                      boolean allowForContent, boolean allowForContentPreview, boolean allowForEnrichedContent, String jsonResponseForContent, String jsonResponseForEnrichedContent) {
+                                                                      boolean allowForContent, boolean allowForContentPreview, boolean allowForEnrichedContent, boolean allowForInternalContent,
+                                                                      String jsonResponseForContent, String jsonResponseForEnrichedContent, String jsonResponseForInternalContent) {
 
         this.propertyName = propertyName;
         this.requiredPolicy = requiredPolicy;
         this.allowForContentEndpoint = allowForContent;
         this.allowForContentPreviewEndpoint = allowForContentPreview;
         this.allowForEnrichedContentEndpoint = allowForEnrichedContent;
+        this.allowForInternalContentEndpoint = allowForInternalContent;
         this.jsonResponseForContent = jsonResponseForContent;
         this.jsonResponseForEnrichedContent = jsonResponseForEnrichedContent;
+        this.jsonResponseForInternalContent = jsonResponseForInternalContent;
     }
 
     @Before
@@ -172,7 +186,7 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
         stubFor(WireMock.get(urlPathEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(jsonResponseForEnrichedContent)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
-        stubFor(WireMock.get(urlPathEqualTo(ENRICHED_CONTENT_PATH)).willReturn(aResponse().withBody(jsonResponseForEnrichedContent)
+        stubFor(WireMock.get(urlPathEqualTo(INTERNAL_CONTENT_PATH)).willReturn(aResponse().withBody(jsonResponseForInternalContent)
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .withStatus(200)));
     }
@@ -247,6 +261,16 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     }
 
     @Test
+    public void shouldAllowPropertyForInternalContentWhenPolicyIsPresent() throws Exception {
+        final URI uri = fromFacade(INTERNAL_CONTENT_PATH).build();
+        response = client.target(uri).request()
+                .header(HttpPipeline.POLICY_HEADER_NAME, requiredPolicy.getHeaderValue())
+                .get();
+
+        checkResponse(INTERNAL_CONTENT_PATH, allowForInternalContentEndpoint);
+    }
+
+    @Test
     public void shouldRemovePropertyForContentWhenPolicyIsNotPresent() throws Exception {
         final URI uri = fromFacade(CONTENT_PATH).build();
         response = client.target(uri).request().get();
@@ -268,5 +292,13 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
         response = client.target(uri).request().get();
 
         checkResponse(ENRICHED_CONTENT_PATH, false);
+    }
+
+    @Test
+    public void shouldRemovePropertyForInternalContentWhenPolicyIsNotPresent() throws Exception {
+        final URI uri = fromFacade(INTERNAL_CONTENT_PATH).build();
+        response = client.target(uri).request().get();
+
+        checkResponse(INTERNAL_CONTENT_PATH, false);
     }
 }

@@ -1,6 +1,6 @@
-[![CircleCI](https://circleci.com/gh/Financial-Times/api-policy-component.svg?style=shield)](https://circleci.com/gh/Financial-Times/api-policy-component)
 Api Policy Component
 ====================
+[![CircleCI](https://circleci.com/gh/Financial-Times/api-policy-component.svg?style=shield)](https://circleci.com/gh/Financial-Times/api-policy-component)
 
 An HTTP service provides a facade over the reader endpoint for use by licenced partners.
 
@@ -8,15 +8,13 @@ An HTTP service provides a facade over the reader endpoint for use by licenced p
 * blocks or hides content that is not permitted to the partner
 * rewrites queries according to account configuration
 
-This component is generally deployed with a proxy (Varnish/Vulcan) between it and the actual reader endpoints. Therefore, for clarity, the reader endpoint
-configuration options are called the proxy configuration options.
+This component is generally deployed with a proxy (Varnish) between it and the actual reader endpoints. Therefore, for clarity, the reader endpoint configuration options are called the proxy configuration options.
 
 Interface
 =========
 
-This facade deliberately does not define its own set of endpoints or interface contracts
-instead it makes specific modifications to the interface of the Reader API and has
-minimal knowledge of them.
+This facade deliberately does not define its own set of endpoints or interface contracts.
+Instead it makes specific modifications to the interface of the Reader API and has minimal knowledge of them.
 
 Filters and Policies
 ====================
@@ -40,7 +38,7 @@ Note that one policy might be used by many filters and filters might work with m
 | stripOpeningXml                       | Removes the `openingXML` field from the response unless the INTERNAL_UNSTABLE policy is present                                                                                                                    | /content, /content-preview, /internalcontent-preview, /enrichedcontent, /internalcontent         |
 | removeAccessFieldRegardlessOfPolicy   | Removes the `accessLevel` field from the response                                                                                                                                                                  | /content, /content-preview, /internalcontent-preview                                             |
 | canBeDistributedAccessFilter          | Returns HTTP 403 "Access denied" response for content without `canBeDistributed=yes` field unless the INTERNAL_UNSTABLE policy is present                                                                          | /content, /enrichedcontent, /internalcontent                                                     |
-| canBeSyndicatedAccessFilter           | Returns HTTP 403 "Access denied" response for content without `canBeSyndicated=yes` field when the RESTRICT_NON_SYNDICATABLE_CONTENT policy is present                                                             | /content, /content-preview, /internalcontent-preview, /enrichedcontent, /internalcontent                                                     |
+| canBeSyndicatedAccessFilter           | Returns HTTP 403 "Access denied" response for content without `canBeSyndicated=yes` field when the RESTRICT_NON_SYNDICATABLE_CONTENT policy is present                                                             | /content, /content-preview, /internalcontent-preview, /enrichedcontent, /internalcontent         |
 | expandedImagesFilter                  | Adds `expandImages=true` to the request query if the INCLUDE_RICH_CONTENT and EXPAND_RICH_CONTENT policies are present                                                                                             | /content-preview, /internalcontent-preview, /enrichedcontent, /internalcontent                   |
 | stripCommentsFields                   | Removes the `comments` field from the response unless the INCLUDE_COMMENTS policy is present                                                                                                                       | /content-preview, /internalcontent-preview, /enrichedcontent, /internalcontent                   |
 | brandFilter                           | Adds `forBrand=XXX` to the request query if FASTFT_CONTENT_ONLY policy is present or adds `notForBrand=XXX` to the request query if EXCLUDE_FASTFT_CONTENT policy is present, where XXX is the brand id for FastFT | /content/notifications                                                                           |
@@ -48,6 +46,7 @@ Note that one policy might be used by many filters and filters might work with m
 | accessLevelPropertyFilter             | Removes the `accessLevel` field from the response unless the INTERNAL_UNSTABLE policy is present                                                                                                                   | /enrichedcontent, /internalcontent                                                               |
 | accessLevelHeaderFilter               | Removes the `X-FT-Access-Level` header from the response unless the INTERNAL_UNSTABLE policy is present                                                                                                            | /enrichedcontent, /internalcontent                                                               |
 | contentPackageFilter                  | Removes the `contains` and `containedIn` fields from the response unless the INTERNAL_UNSTABLE policy is present                                                                                                   | /enrichedcontent, /internalcontent                                                               |
+| editorialDeskFilter                   | Removes the `editorialDesk` field from the response unless the INTERNAL_ANALYTICS policy is present                                                                                                                | /content, /enrichedcontent, /internalcontent                                                     |
 
 | Policy                            | Description                                                                                                                       | Affected fields                                                                                              |
 |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
@@ -59,6 +58,7 @@ Note that one policy might be used by many filters and filters might work with m
 | FASTFT_CONTENT_ONLY               | Includes events only for FastFT branded content into notification response                                                        | *                                                                                                            |
 | EXCLUDE_FASTFT_CONTENT            | Excludes events for content with FastFT brand from notification response                                                          | *                                                                                                            |
 | INTERNAL_UNSTABLE                 | Allows including fields considered as "unstable" for internal usage                                                               | alternativeTitles, alternativeImages, alternativeStandfirsts, openingXML, accessLevel, contains, containedIn |
+| INTERNAL_ANALYTICS                | Allows fields for internal analytics usage                                                                                        | editorialDesk                                                                                                |
 | EXPAND_RICH_CONTENT               | If present along with INCLUDE_RICH_CONTENT it allows expanding rich content related fields in the response                        | mainImage, embeds, alternativeImages, promotionalImage, members, leadImages, image                           |
 | RESTRICT_NON_SYNDICATABLE_CONTENT | If present non-syndicatable content will throw a 403 Forbidden HTTP error as a response                                           | canBeSyndicated                                                                                              |
 
