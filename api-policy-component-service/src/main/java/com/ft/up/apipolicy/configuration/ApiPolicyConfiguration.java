@@ -30,6 +30,10 @@ public class ApiPolicyConfiguration extends Configuration implements ConfigWithA
     @Valid
     private PolicyBrandsResolver policyBrandsResolver;
 
+    @NotNull
+    @JsonProperty("canonicalWebUrlTemplate")
+    private String canonicalWebUrlTemplate;
+
     public EndpointConfiguration getVarnish() {
         return varnish;
     }
@@ -44,6 +48,10 @@ public class ApiPolicyConfiguration extends Configuration implements ConfigWithA
 
     public boolean isCheckingVulcanHealth() {
         return checkingVulcanHealth;
+    }
+
+    public String getCanonicalWebUrlTemplate() {
+        return canonicalWebUrlTemplate;
     }
 
     @Override

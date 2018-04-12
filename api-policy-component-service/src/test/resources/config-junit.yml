@@ -53,3 +53,4 @@ logging:
 
     - type: console
 
+canonicalWebUrlTemplate: "https://www.ft.com/content/%s"

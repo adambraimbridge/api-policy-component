@@ -72,3 +72,5 @@ metrics:
 appInfo:
     systemCode: "APIPolicyComponent"
     description: "ApiPolicyApplication"
+
+canonicalWebUrlTemplate: "https://www.ft.com/content/%s"

@@ -8,6 +8,7 @@ import com.ft.platform.dropwizard.GoodToGoResult;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
 import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
+import com.ft.up.apipolicy.filters.AddCanonicalWebUrl;
 import com.ft.up.apipolicy.filters.AddSyndication;
 import com.ft.up.apipolicy.filters.CanBeDistributedAccessFilter;
 import com.ft.up.apipolicy.filters.CanBeSyndicatedAccessFilter;
@@ -84,6 +85,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter stripProvenance;
     private ApiFilter suppressMarkup;
     private ApiFilter webUrlAdder;
+    private ApiFilter canonicalWebUrlAdder;
     private ApiFilter addSyndication;
     private ApiFilter brandFilter;
     private ApiFilter stripLastModifiedDate;
@@ -133,6 +135,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
+                canonicalWebUrlAdder,
                 linkValidationFilter,
                 mainImageFilter,
                 alternativeTitlesFilter,
@@ -153,6 +156,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
+                canonicalWebUrlAdder,
                 mainImageFilter,
                 alternativeTitlesFilter,
                 alternativeImagesFilter,
@@ -171,6 +175,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
+                canonicalWebUrlAdder,
                 linkValidationFilter,
                 suppressMarkup,
                 mainImageFilter,
@@ -195,13 +200,14 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         // no filters needed for public-annotations-api
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/annotations", "public-annotations-api", new ApiFilter[]{}));
 
-        //identifiersFilter needs to be added before webUrlAdder in the pipeline since webUrlAdder's logic is based on the json property that identifiersFilter might remove
+        //identifiersFilter needs to be added before webUrlAdder & canonicalWebUrlAdder in the pipeline since webUrlAdder's & canonicalWebUrlAdder's logic is based on the json property that identifiersFilter might remove
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/.*", "content",
                 canBeDistributedAccessFilter,
                 addSyndication,
                 canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
+                canonicalWebUrlAdder,
                 linkValidationFilter,
                 suppressMarkup,
                 mainImageFilter,
@@ -220,6 +226,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 canBeSyndicatedAccessFilter,
                 identifiersFilter,
                 webUrlAdder,
+                canonicalWebUrlAdder,
                 suppressMarkup,
                 mainImageFilter,
                 alternativeTitlesFilter,
@@ -273,6 +280,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         stripOpeningXml = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, OPENING_XML_JSON_PROPERTY);
         suppressMarkup = new SuppressRichContentMarkupFilter(jsonTweaker, getBodyProcessingFieldTransformer());
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(), jsonTweaker);
+        canonicalWebUrlAdder = new AddCanonicalWebUrl(configuration.getCanonicalWebUrlTemplate(), jsonTweaker);
         addSyndication = new AddSyndication(jsonTweaker);
         brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
         linkValidationFilter = new LinkedContentValidationFilter();
