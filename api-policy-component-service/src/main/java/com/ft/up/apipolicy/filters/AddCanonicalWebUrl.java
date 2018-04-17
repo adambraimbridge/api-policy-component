@@ -99,11 +99,8 @@ public class AddCanonicalWebUrl implements ApiFilter {
             final MutableResponse response,
             final Map<String, Object> content) {
         Object uuid = content.get(UUID_KEY);
-        String canonicalWebUrl = String.format(canonicalWebUrlTemplate, uuid);
-        if (canonicalWebUrl != null) {
-            content.put(CANONICAL_WEB_URL_KEY, canonicalWebUrl);
-            jsonConverter.replaceEntity(response, content);
-        }
+        content.put(CANONICAL_WEB_URL_KEY, String.format(canonicalWebUrlTemplate, uuid));
+        jsonConverter.replaceEntity(response, content);
         return response;
     }
 }
