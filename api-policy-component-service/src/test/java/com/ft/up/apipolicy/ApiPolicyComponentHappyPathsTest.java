@@ -122,7 +122,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     private static final String EXAMPLE_JSON = "{ fieldA: \"A\" , fieldB : \"B\" }";
     private static final String CONTENT_JSON =
             "{" +
-                    "\"uuid\": \"bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
+                    "\"id\": \"http://www.ft.com/thing/bcafca32-5bc7-343f-851f-fd6d3514e694\", " +
                     "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +
@@ -136,7 +136,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                     "}";
     private static final String CONTENT_JSON_WITH_WEB_URL_AND_CANONICAL_WEB_URL =
             "{" +
-                    "\"uuid\": \"3a9acf48-3dc3-11e8-b7e0-52972418fec4\", " +
+                    "\"id\": \"http://www.ft.com/thing/3a9acf48-3dc3-11e8-b7e0-52972418fec4\", " +
                     "\"bodyXML\" : \"<body>a video: <a href=\\\"https://www.youtube.com/watch?v=dfvLde-FOXw\\\"></a>.</body>\",\n" +
                     "\"openingXML\" : \"<body>a video</body>\",\n" +
                     "\"alternativeTitles\" : {},\n" +

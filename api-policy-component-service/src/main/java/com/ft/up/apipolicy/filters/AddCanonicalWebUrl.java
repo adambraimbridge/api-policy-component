@@ -10,6 +10,8 @@ import javax.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AddCanonicalWebUrl implements ApiFilter {
 
@@ -20,8 +22,10 @@ public class AddCanonicalWebUrl implements ApiFilter {
     private static final String IDENTIFIERS_KEY = "identifiers";
     private static final String AUTHORITY_KEY = "authority";
     private static final String NEXT_VIDEO_EDITOR_AUTHORITY = "http://api.ft.com/system/NEXT-VIDEO-EDITOR";
-    private static final String UUID_KEY = "uuid";
+    private static final String ID_KEY = "id";
     private static final String CANONICAL_WEB_URL_KEY = "canonicalWebUrl";
+    private static final String UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+    private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
 
     private final String canonicalWebUrlTemplate;
     private JsonConverter jsonConverter;
@@ -98,9 +102,24 @@ public class AddCanonicalWebUrl implements ApiFilter {
     private MutableResponse createResponseWithCanonicalWebUrlCompleted(
             final MutableResponse response,
             final Map<String, Object> content) {
-        Object uuid = content.get(UUID_KEY);
+        Object id = content.get(ID_KEY);
+        if (id == null) {
+            return response;
+        }
+        String uuid = extractUuid((String) id);
+        if (uuid == null) {
+            return response;
+        }
         content.put(CANONICAL_WEB_URL_KEY, String.format(canonicalWebUrlTemplate, uuid));
         jsonConverter.replaceEntity(response, content);
         return response;
+    }
+
+    private String extractUuid(String id) {
+        Matcher uuidMatcher = UUID_PATTERN.matcher(id);
+        if (uuidMatcher.find()) {
+            return uuidMatcher.group();
+        }
+        return null;
     }
 }
