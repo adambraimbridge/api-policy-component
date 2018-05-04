@@ -10,7 +10,7 @@ jobs:
           name: Maven integration Tests
           command: mvn integration-test
   dockerfile:
-    working_directory: /api-policy-component
+    working_directory: ~/api-policy-component
     docker:
       - image: docker:18.03
     steps:
