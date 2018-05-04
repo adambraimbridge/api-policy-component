@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/Financial-Times/api-policy-component
+    working_directory: ~/api-policy-component
     docker:
       - image: maven
     steps:
