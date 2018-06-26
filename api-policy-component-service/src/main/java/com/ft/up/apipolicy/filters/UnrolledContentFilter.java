@@ -6,20 +6,20 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 
-public class ExpandedImagesFilter implements ApiFilter {
+public class UnrolledContentFilter implements ApiFilter {
 
-    private static final String EXPAND_IMAGES = "expandImages";
+    private static final String UNROLL_CONTENT = "unrollContent";
 
     private final Policy[] policies;
 
-    public ExpandedImagesFilter(Policy... policies) {
+    public UnrolledContentFilter(Policy... policies) {
         this.policies = policies;
     }
 
     @Override
     public MutableResponse processRequest(MutableRequest request, HttpPipelineChain chain) {
         if (policies.length > 0 && shouldAddParameter(request)) {
-            request.getQueryParameters().putSingle(EXPAND_IMAGES, Boolean.TRUE.toString());
+            request.getQueryParameters().putSingle(UNROLL_CONTENT, Boolean.TRUE.toString());
         }
         return chain.callNextFilter(request);
     }
