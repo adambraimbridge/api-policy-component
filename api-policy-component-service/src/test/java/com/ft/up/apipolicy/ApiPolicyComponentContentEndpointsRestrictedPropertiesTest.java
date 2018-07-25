@@ -54,7 +54,8 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     private static final String INTERNAL_CONTENT_PATH = "/internalcontent/bcafca32-5bc7-343f-851f-fd6d3514e694";
 
     private static final String EDITORIAL_DESK = "/FT/TestDesk";
-    
+    private static final String INTERNAL_ANALYTICS_TAGS = "some-tag, another-tag";
+
     @ClassRule
     public static final DropwizardAppRule<ApiPolicyConfiguration> policyComponent = new DropwizardAppRule<>(
             ApiPolicyApplication.class,
@@ -83,7 +84,9 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                     "\"comments\": {\n" +
                     "\"enabled\": true\n" +
                     "},\n" +
-                    "\"editorialDesk\":\"" + EDITORIAL_DESK + "\"";
+                    "\"editorialDesk\":\"" + EDITORIAL_DESK + "\", \n" +
+                    "\"internalAnalyticsTags\":\"" + INTERNAL_ANALYTICS_TAGS + "\"";
+
 
     private static final String CONTENT_JSON = "{" + ARTICLE_JSON + "}";
 
@@ -139,7 +142,8 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
                 {"alternativeTitles", Policy.INTERNAL_UNSTABLE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
                 {"alternativeImages", Policy.INTERNAL_UNSTABLE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
                 {"alternativeStandfirsts", Policy.INTERNAL_UNSTABLE, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
-                {"editorialDesk", Policy.INTERNAL_ANALYTICS, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON}
+                {"editorialDesk", Policy.INTERNAL_ANALYTICS, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON},
+                {"internalAnalyticsTags", Policy.INTERNAL_ANALYTICS, true, true, true, true, CONTENT_JSON, ENRICHED_CONTENT_JSON, INTERNAL_CONTENT_JSON}
         });
     }
 
