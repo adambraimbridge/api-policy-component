@@ -74,7 +74,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private static final String ACCESS_LEVEL_HEADER = "X-FT-Access-Level";
     private static final String MASTER_SOURCE_JSON_PROPERTY = "masterSource";
     private static final String EDITORIAL_DESK_JSON_PROPERTY = "editorialDesk";
-    
+    private static final String INTERNAL_ANALYTICS_TAG_FILTER = "internalAnalyticsTags";
+
     private ApiFilter mainImageFilter;
     private ApiFilter identifiersFilter;
     private ApiFilter alternativeTitlesFilter;
@@ -100,6 +101,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter contentPackageFilter;
     private ApiFilter expandedImagesFilter;
     private ApiFilter editorialDeskFilter;
+    private ApiFilter internalAnalyticsTagsFilter;
 
     public static void main(final String[] args) throws Exception {
         new ApiPolicyApplication().run(args);
@@ -149,7 +151,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelHeaderFilter,
                 contentPackageFilter,
                 expandedImagesFilter,
-                editorialDeskFilter));
+                editorialDeskFilter,
+                internalAnalyticsTagsFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent-preview/.*", "internalcontent-preview",
                 addSyndication,
@@ -167,7 +170,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
                 expandedImagesFilter,
-                editorialDeskFilter));
+                editorialDeskFilter,
+                internalAnalyticsTagsFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/enrichedcontent/.*", "enrichedcontent",
                 canBeDistributedAccessFilter,
@@ -190,7 +194,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelHeaderFilter,
                 contentPackageFilter,
                 expandedImagesFilter,
-                editorialDeskFilter));
+                editorialDeskFilter,
+                internalAnalyticsTagsFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
                 mediaResourceNotificationsFilter,
@@ -219,7 +224,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate,
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
-                editorialDeskFilter));
+                editorialDeskFilter,
+                internalAnalyticsTagsFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content-preview/.*", "content-preview",
                 addSyndication,
@@ -238,7 +244,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
                 expandedImagesFilter,
-                editorialDeskFilter));
+                editorialDeskFilter,
+                internalAnalyticsTagsFilter));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/concordances.*", "concordances", new ApiFilter[]{}));
 
@@ -293,6 +300,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY);
         expandedImagesFilter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, EXPAND_RICH_CONTENT);
         editorialDeskFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_ANALYTICS, EDITORIAL_DESK_JSON_PROPERTY);
+        internalAnalyticsTagsFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_ANALYTICS, INTERNAL_ANALYTICS_TAG_FILTER);
     }
     
     private ApiFilter notificationsFilter() {
