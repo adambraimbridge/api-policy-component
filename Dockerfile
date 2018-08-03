@@ -1,4 +1,5 @@
-FROM openjdk:8-alpine
+FROM openjdk:8u171-jdk-alpine3.8
+
 ADD .git/ /.git/
 ADD api-policy-component-service/ /api-policy-component-service/
 RUN apk --update add git maven \
