@@ -11,5 +11,6 @@ image:
 resources:
   requests:
     memory: 512Mi
+    cpu: "450m"
   limits:
     memory: 1.3Gi
