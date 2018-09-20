@@ -109,4 +109,4 @@ Building with docker:
 
 Running as a docker container:
 
-```docker run --rm -p 8080 -p 8081 --env "JAVA_OPTS=-Xms384m -Xmx384m -XX:+UseG1GC -server" --env "READ_ENDPOINT=localhost:8080:8080" --env "GRAPHITE_HOST=localhost" --env "GRAPHITE_PORT=2003" --env "JERSEY_TIMEOUT_DURATION=10000ms" --env "GRAPHITE_PREFIX=coco.services.local.api-policy-component.1" coco/api-policy-component:your-version```
+```docker run --rm -p 8080 -p 8081 --env "JAVA_OPTS=-Xms384m -Xmx384m -XX:+UseG1GC -server" --env "READ_ENDPOINT=localhost:8080:8080" --env "JERSEY_TIMEOUT_DURATION=10000ms" coco/api-policy-component:your-version```
