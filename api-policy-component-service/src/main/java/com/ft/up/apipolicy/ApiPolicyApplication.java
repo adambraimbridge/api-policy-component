@@ -12,7 +12,7 @@ import com.ft.up.apipolicy.filters.AddCanonicalWebUrl;
 import com.ft.up.apipolicy.filters.AddSyndication;
 import com.ft.up.apipolicy.filters.CanBeDistributedAccessFilter;
 import com.ft.up.apipolicy.filters.CanBeSyndicatedAccessFilter;
-import com.ft.up.apipolicy.filters.ExpandedImagesFilter;
+import com.ft.up.apipolicy.filters.UnrolledContentFilter;
 import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
 import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
 import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
@@ -99,7 +99,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter canBeDistributedAccessFilter;
     private ApiFilter canBeSyndicatedAccessFilter;
     private ApiFilter contentPackageFilter;
-    private ApiFilter expandedImagesFilter;
+    private ApiFilter unrolledContentFilter;
     private ApiFilter editorialDeskFilter;
     private ApiFilter internalAnalyticsTagsFilter;
 
@@ -150,7 +150,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 contentPackageFilter,
-                expandedImagesFilter,
+                unrolledContentFilter,
                 editorialDeskFilter,
                 internalAnalyticsTagsFilter));
 
@@ -169,7 +169,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate,
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
-                expandedImagesFilter,
+                unrolledContentFilter,
                 editorialDeskFilter,
                 internalAnalyticsTagsFilter));
 
@@ -193,7 +193,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 accessLevelPropertyFilter,
                 accessLevelHeaderFilter,
                 contentPackageFilter,
-                expandedImagesFilter,
+                unrolledContentFilter,
                 editorialDeskFilter,
                 internalAnalyticsTagsFilter));
 
@@ -243,7 +243,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 stripLastModifiedDate,
                 stripOpeningXml,
                 removeAccessFieldRegardlessOfPolicy,
-                expandedImagesFilter,
+                unrolledContentFilter,
                 editorialDeskFilter,
                 internalAnalyticsTagsFilter));
 
@@ -298,7 +298,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         canBeDistributedAccessFilter = new CanBeDistributedAccessFilter(jsonTweaker, INTERNAL_UNSTABLE);
         canBeSyndicatedAccessFilter = new CanBeSyndicatedAccessFilter(jsonTweaker, RESTRICT_NON_SYNDICATABLE_CONTENT);
         contentPackageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, CONTENT_PACKAGE_CONTAINS_JSON_PROPERTY, CONTENT_PACKAGE_CONTAINED_IN_JSON_PROPERTY);
-        expandedImagesFilter = new ExpandedImagesFilter(INCLUDE_RICH_CONTENT, EXPAND_RICH_CONTENT);
+        unrolledContentFilter = new UnrolledContentFilter(INCLUDE_RICH_CONTENT, EXPAND_RICH_CONTENT);
         editorialDeskFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_ANALYTICS, EDITORIAL_DESK_JSON_PROPERTY);
         internalAnalyticsTagsFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_ANALYTICS, INTERNAL_ANALYTICS_TAG_FILTER);
     }

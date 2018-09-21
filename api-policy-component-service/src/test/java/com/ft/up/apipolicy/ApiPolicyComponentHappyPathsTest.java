@@ -235,9 +235,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
             "\"identifierValue\": \"220322\"\n" +
             "}]" +
             "}";
-    private static final String ENRICHED_CONTENT_EXPANDED_IMAGES_JSON = "{\"id\":\"http://www.ft.com/thing/273563f3-95a0-4f00-8966-6973c0111923\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"identifiers\":[{\"authority\":\"http://www.ft.com/ontology/origin/FTComMethode\",\"identifierValue\":\"273563f3-95a0-4f00-8966-6973c0111923\"}],\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}},\"comments\":{\"enabled\":true},\"canBeSyndicated\":\"verify\"}";
+    private static final String ENRICHED_CONTENT_UNROLLED_CONTENT_JSON = "{\"id\":\"http://www.ft.com/thing/273563f3-95a0-4f00-8966-6973c0111923\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"identifiers\":[{\"authority\":\"http://www.ft.com/ontology/origin/FTComMethode\",\"identifierValue\":\"273563f3-95a0-4f00-8966-6973c0111923\"}],\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}},\"comments\":{\"enabled\":true},\"canBeSyndicated\":\"verify\"}";
 
-	private static final String CONTENT_PREVIEW_EXPANDED_IMAGES_JSON = "{\"id\":\"http://www.ft.com/thing/22c0d426-1466-11e7-b0c1-37e417ee6c76\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Brexit begins as Theresa May triggers Article50\",\"alternativeTitles\": {\"promotionalTitle\": \"Brexit begins as Theresa May triggers Article50\"},\"lastModified\":\"2017-03-31T15:42:35.266Z\",\"identifiers\":[{\"authority\":\"http://www.ft.com/ontology/origin/FTComMethode\",\"identifierValue\":\"273563f3-95a0-4f00-8966-6973c0111923\"}],\"requestUrl\":\"http://test.api.ft.com/content/22c0d426-1466-11e7-b0c1-37e417ee6c76\",\"brands\":[\"http://test.api.ft.com/content/22c0d426-1466-11e7-b0c1-37e417ee6c76\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}},\"comments\":{\"enabled\":true},\"canBeDistributed\": \"yes\",\"canBeSyndicated\":\"yes\", \"accessLevel\":\"subscribed\"}";
+	private static final String CONTENT_PREVIEW_UNROLLED_CONTENT_JSON = "{\"id\":\"http://www.ft.com/thing/22c0d426-1466-11e7-b0c1-37e417ee6c76\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Brexit begins as Theresa May triggers Article50\",\"alternativeTitles\": {\"promotionalTitle\": \"Brexit begins as Theresa May triggers Article50\"},\"lastModified\":\"2017-03-31T15:42:35.266Z\",\"identifiers\":[{\"authority\":\"http://www.ft.com/ontology/origin/FTComMethode\",\"identifierValue\":\"273563f3-95a0-4f00-8966-6973c0111923\"}],\"requestUrl\":\"http://test.api.ft.com/content/22c0d426-1466-11e7-b0c1-37e417ee6c76\",\"brands\":[\"http://test.api.ft.com/content/22c0d426-1466-11e7-b0c1-37e417ee6c76\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"lastModified\":\"2017-02-13T17:51:57.723Z\",\"canBeSyndicated\":\"verify\"}},\"comments\":{\"enabled\":true},\"canBeDistributed\": \"yes\",\"canBeSyndicated\":\"yes\", \"accessLevel\":\"subscribed\"}";
 
     private static final String SUGGEST_REQUEST_JSON =
             "{"
@@ -352,7 +352,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 			"    \"http://www.ft.com/ontology/content/Article\"\n" +
 			"  ]\n" +
 			"}";
-	private static final String INTERNAL_CONTENT_EXPANDED_IMAGES_JSON  ="{\"id\":\"http://www.ft.com/thing/c333574c-4993-11e6-8072-e46b2152f259\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"leadImages\":[{\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"pixelHeight\":2612,\"pixelWidth\":2612,\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"square\",\"canBeSyndicated\":\"verify\"},{\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"canBeDistributed\":\"verify\",\"copyright\":{\"notice\":\"© EPA\"},\"firstPublishedDate\":\"2017-03-28T13:42:00.000Z\",\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"pixelHeight\":1152,\"pixelWidth\":2048,\"publishedDate\":\"2017-03-28T13:42:00.000Z\",\"title\":\"Leader of the PVV party Gert Wilders reacts to the election result\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"standard\",\"canBeSyndicated\":\"verify\"},{\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"pixelHeight\":1548,\"pixelWidth\":4645,\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"wide\",\"canBeSyndicated\":\"verify\"}],\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}},\"canBeSyndicated\":\"verify\",\"webUrl\":\"https://www.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\", \"canonicalWebUrl\":\"https://www.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\"}";
+	private static final String INTERNAL_CONTENT_UNROLLED_CONTENT_JSON ="{\"id\":\"http://www.ft.com/thing/c333574c-4993-11e6-8072-e46b2152f259\",\"type\":\"http://www.ft.com/ontology/content/Article\",\"bodyXML\":\"<body><p>Test body</p></body>\",\"title\":\"Ring\",\"byline\":\"Testarticle\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"requestUrl\":\"http://localhost:9090/content/273563f3-95a0-4f00-8966-6973c0111923\",\"brands\":[\"http://api.ft.com/things/273563f3-95a0-4f00-8966-6973c0111923\"],\"mainImage\":{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"},\"leadImages\":[{\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/89f194c8-13bc-11e7-80f4-13e067d5072c\",\"pixelHeight\":2612,\"pixelWidth\":2612,\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"square\",\"canBeSyndicated\":\"verify\"},{\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"canBeDistributed\":\"verify\",\"copyright\":{\"notice\":\"© EPA\"},\"firstPublishedDate\":\"2017-03-28T13:42:00.000Z\",\"id\":\"http://test.api.ft.com/content/3e96c818-13bc-11e7-b0c1-37e417ee6c76\",\"pixelHeight\":1152,\"pixelWidth\":2048,\"publishedDate\":\"2017-03-28T13:42:00.000Z\",\"title\":\"Leader of the PVV party Gert Wilders reacts to the election result\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"standard\",\"canBeSyndicated\":\"verify\"},{\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"image\":{\"apiUrl\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"binaryUrl\":\"http://com.ft.coco-imagepublish.pre-prod.s3.amazonaws.com/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"canBeDistributed\":\"verify\",\"firstPublishedDate\":\"2017-03-28T13:45:00.000Z\",\"id\":\"http://test.api.ft.com/content/8d7b4e22-13bc-11e7-80f4-13e067d5072c\",\"pixelHeight\":1548,\"pixelWidth\":4645,\"publishedDate\":\"2017-03-28T13:45:00.000Z\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"canBeSyndicated\":\"verify\"},\"type\":\"wide\",\"canBeSyndicated\":\"verify\"}],\"embeds\":[{\"id\":\"http://api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"type\":\"http://www.ft.com/ontology/content/ImageSet\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-0b88-66d48f259d41\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"members\":[{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}],\"canBeSyndicated\":\"verify\"}],\"alternativeImages\":{\"promotionalImage\":{\"id\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"type\":\"http://www.ft.com/ontology/content/MediaResource\",\"apiUrl\":\"http://test.api.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\",\"publishedDate\":\"2015-02-03T12:58:00.000Z\",\"canBeSyndicated\":\"verify\"}},\"canBeSyndicated\":\"verify\",\"webUrl\":\"https://www.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\", \"canonicalWebUrl\":\"https://www.ft.com/content/5991fb44-f1eb-11e6-95ee-f14e55513608\"}";
 	private static final String ALL_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "", NOTIFICATIONS);
     private static final String FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "&" + FOR_BRAND + "=" + FASTFT_BRAND, "");
     private static final String NOT_FASTFT_NOTIFICATIONS_JSON = String.format(NOTIFICATIONS_RESPONSE_TEMPLATE, "&" + NOT_FOR_BRAND + "=" + FASTFT_BRAND, "");
@@ -1256,10 +1256,10 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     }
 
 	@Test
-    public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForInternalContent() throws IOException {
+    public void givenPolicyEXPAND_RICH_CONTENTShouldReturnUnrolledContentForInternalContent() throws IOException {
         stubFor(get(urlPathEqualTo(INTERNAL_CONTENT_PATH))
                 .willReturn(aResponse()
-                        .withBody(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON)
+                        .withBody(INTERNAL_CONTENT_UNROLLED_CONTENT_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                         .withStatus(200)));
 
@@ -1274,9 +1274,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .get();
 
         try {
-            verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("expandImages", equalTo("true")));
+            verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("unrollContent", equalTo("true")));
             Map<String, Object> result = expectOKResponseWithJSON(response);
-			Map<String, Object> jsonExpected = OBJECT_MAPPER.readValue(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON, JSON_MAP_TYPE);
+			Map<String, Object> jsonExpected = OBJECT_MAPPER.readValue(INTERNAL_CONTENT_UNROLLED_CONTENT_JSON, JSON_MAP_TYPE);
 			assertTrue(result.equals(jsonExpected));
         } finally {
             response.close();
@@ -1285,7 +1285,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
 
 	@Test
-    public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnExpandedImagesForInternalContent() throws IOException {
+    public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnUnrolledContentForInternalContent() throws IOException {
         stubFor(get(urlPathEqualTo(INTERNAL_CONTENT_PATH))
                 .willReturn(aResponse()
                         .withBody(INTERNAL_CONTENT_JSON)
@@ -1302,7 +1302,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .get();
 
         try {
-            verify(0, getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("expandImages", equalTo("true")));
+            verify(0, getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PATH)).withQueryParam("unrollContent", equalTo("true")));
             Map<String, Object> result = expectOKResponseWithJSON(response);
             assertTrue(((Map)result.get("mainImage")).size() == 1);
             assertNull(result.get("embeds"));
@@ -1312,9 +1312,9 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     }
 
 	@Test
-	public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForInternalContentPreview() throws IOException {
+	public void givenPolicyEXPAND_RICH_CONTENTShouldReturnUnrolledContentForInternalContentPreview() throws IOException {
 		stubFor(get(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).willReturn(
-				aResponse().withBody(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON)
+				aResponse().withBody(INTERNAL_CONTENT_UNROLLED_CONTENT_JSON)
 						.withHeader("Content-Type", MediaType.APPLICATION_JSON).withStatus(200)));
 
 		URI uri = fromFacade(INTERNAL_CONTENT_PREVIEW_PATH).build();
@@ -1327,10 +1327,10 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 				.get();
 
 		try {
-			verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).withQueryParam("expandImages",
+			verify(getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).withQueryParam("unrollContent",
 					equalTo("true")));
 			Map<String, Object> result = expectOKResponseWithJSON(response);
-			Map<String, Object> jsonExpected = OBJECT_MAPPER.readValue(INTERNAL_CONTENT_EXPANDED_IMAGES_JSON,
+			Map<String, Object> jsonExpected = OBJECT_MAPPER.readValue(INTERNAL_CONTENT_UNROLLED_CONTENT_JSON,
 					JSON_MAP_TYPE);
 			assertTrue(result.equals(jsonExpected));
 			ArrayList leadImages = (ArrayList) result.get("leadImages");
@@ -1344,7 +1344,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 	}
 
 	@Test
-	public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnExpandedImagesForInternalContentPreview()
+	public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnUnrolledContentForInternalContentPreview()
 			throws IOException {
 		stubFor(get(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).willReturn(
 				aResponse().withBody(INTERNAL_CONTENT_JSON).withHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -1361,7 +1361,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 
 		try {
 			verify(0,
-					getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).withQueryParam("expandImages",
+					getRequestedFor(urlPathEqualTo(INTERNAL_CONTENT_PREVIEW_PATH)).withQueryParam("unrollContent",
 							equalTo("true")));
 			Map<String, Object> result = expectOKResponseWithJSON(response);
 			assertTrue(((Map) result.get("mainImage")).size() == 1);
@@ -1372,10 +1372,10 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
 	}
 
 	@Test
-	public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForEnrichedContent() throws IOException {
+	public void givenPolicyEXPAND_RICH_CONTENTShouldReturnUnrolledContentForEnrichedContent() throws IOException {
         stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH_2))
                 .willReturn(aResponse()
-                        .withBody(ENRICHED_CONTENT_EXPANDED_IMAGES_JSON)
+                        .withBody(ENRICHED_CONTENT_UNROLLED_CONTENT_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                         .withStatus(200)));
 
@@ -1390,7 +1390,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .get();
 
         try {
-            verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH_2)).withQueryParam("expandImages", equalTo("true")));
+            verify(getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH_2)).withQueryParam("unrollContent", equalTo("true")));
             Map<String, Object> result = expectOKResponseWithJSON(response);
             assertTrue(((Map)result.get("mainImage")).size() > 1);
             assertFalse(((List)result.get("embeds")).isEmpty());
@@ -1401,7 +1401,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     }
 
     @Test
-    public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnExpandedImagesForEnrichedContent() throws IOException {
+    public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnUnrolledContentForEnrichedContent() throws IOException {
         stubFor(get(urlPathEqualTo(ENRICHED_CONTENT_PATH_2))
                 .willReturn(aResponse()
                         .withBody(ENRICHED_CONTENT_JSON)
@@ -1418,7 +1418,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .get();
 
         try {
-            verify(0, getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH_2)).withQueryParam("expandImages", equalTo("true")));
+            verify(0, getRequestedFor(urlPathEqualTo(ENRICHED_CONTENT_PATH_2)).withQueryParam("unrollContent", equalTo("true")));
             Map<String, Object> result = expectOKResponseWithJSON(response);
             assertTrue(((Map)result.get("mainImage")).size() == 1);
             assertNull(result.get("embeds"));
@@ -1429,10 +1429,10 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     }
 
 	@Test
-    public void givenPolicyEXPAND_RICH_CONTENTShouldReturnExpandedImagesForContentPreview() throws IOException {
+    public void givenPolicyEXPAND_RICH_CONTENTShouldReturnUnrolledContentForContentPreview() throws IOException {
         stubFor(get(urlPathEqualTo(CONTENT_PREVIEW_PATH))
                 .willReturn(aResponse()
-                        .withBody(CONTENT_PREVIEW_EXPANDED_IMAGES_JSON)
+                        .withBody(CONTENT_PREVIEW_UNROLLED_CONTENT_JSON)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
                         .withStatus(200)));
 
@@ -1447,7 +1447,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .get();
 
         try {
-            verify(getRequestedFor(urlPathEqualTo(CONTENT_PREVIEW_PATH)).withQueryParam("expandImages", equalTo("true")));
+            verify(getRequestedFor(urlPathEqualTo(CONTENT_PREVIEW_PATH)).withQueryParam("unrollContent", equalTo("true")));
             Map<String, Object> result = expectOKResponseWithJSON(response);
             assertTrue(((Map)result.get("mainImage")).size() > 1);
             assertFalse(((List)result.get("embeds")).isEmpty());
@@ -1458,7 +1458,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
     }
 
 	@Test
-    public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnExpandedImagesForContent() throws IOException {
+    public void givenPolicyEXPAND_RICH_CONTENTIsNotActiveShouldNotReturnUnrolledContentForContent() throws IOException {
         stubFor(get(urlPathEqualTo(CONTENT_PREVIEW_PATH))
                 .willReturn(aResponse()
                         .withBody(CONTENT_PREVIEW_JSON)
@@ -1475,7 +1475,7 @@ public class ApiPolicyComponentHappyPathsTest extends AbstractApiComponentTest {
                 .get();
 
         try {
-            verify(0, getRequestedFor(urlPathEqualTo(CONTENT_PREVIEW_PATH)).withQueryParam("expandImages", equalTo("true")));
+            verify(0, getRequestedFor(urlPathEqualTo(CONTENT_PREVIEW_PATH)).withQueryParam("unrollContent", equalTo("true")));
             Map<String, Object> result = expectOKResponseWithJSON(response);
             assertTrue(((Map)result.get("mainImage")).size() == 1);
             assertNull(result.get("embeds"));
