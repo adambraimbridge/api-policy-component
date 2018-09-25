@@ -59,16 +59,6 @@ logging:
     - type: console
       logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
 
-metrics:
-  reporters:
-  - type: graphite
-    frequency: 1 minute
-    durationUnit: milliseconds
-    rateUnit: seconds
-    host: localhost
-    port: 2003
-    prefix: content.local.api-policy-component.1
-
 appInfo:
     systemCode: "APIPolicyComponent"
     description: "ApiPolicyApplication"

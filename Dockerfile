@@ -27,7 +27,4 @@ CMD exec java $JAVA_OPTS \
          -Ddw.varnish.timeout=$JERSEY_TIMEOUT_DURATION \
          -Ddw.checkingVulcanHealth=$CHECKING_VULCAN_HEALTH \
          -Ddw.logging.appenders[0].logFormat="%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %replace(%m%n[%thread]%xEx){'\n', '|'}%nopex%n" \
-         -Ddw.metrics.reporters[0].host=$GRAPHITE_HOST \
-         -Ddw.metrics.reporters[0].port=$GRAPHITE_PORT \
-         -Ddw.metrics.reporters[0].prefix=$GRAPHITE_PREFIX \
          -jar api-policy-component-service.jar server config.yml

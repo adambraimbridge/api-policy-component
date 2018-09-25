@@ -37,22 +37,10 @@ spec:
           value: "-Xms450m -Xmx450m -XX:+UseG1GC -server"
         - name: CHECKING_VULCAN_HEALTH
           value: "false"
-        - name: GRAPHITE_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: global-config
-              key: graphite.host
-        - name: GRAPHITE_PORT
-          valueFrom:
-            configMapKeyRef:
-              name: global-config
-              key: graphite.port
         - name: READ_ENDPOINT
           value: "path-routing-varnish:80"
         - name: JERSEY_TIMEOUT_DURATION
           value: "10000ms"
-        - name: GRAPHITE_PREFIX
-          value: 'coco.services.{{required "The target_env value is required for this app. Use helm upgrade ... --set target_env=... when installing." .Values.target_env}}.api-policy-component'
         ports:
         - containerPort: 8080
         - containerPort: 8081
