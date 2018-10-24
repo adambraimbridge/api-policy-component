@@ -15,7 +15,7 @@ public abstract class AbstractImageFilter implements ApiFilter {
         Object mainImageSet = content.get(MAIN_IMAGE);
         if (mainImageSet instanceof Map) {
             Map mainImageSetAsMap = (Map) mainImageSet;
-            if (mainImageSetAsMap.size() > 1) {
+            if (mainImageSetAsMap.size() > 2) {
                 try {
                     applyFilterToFromImageSet(jsonProperty, modifier, mainImageSetAsMap);
                 } catch (WebApplicationClientException e) {

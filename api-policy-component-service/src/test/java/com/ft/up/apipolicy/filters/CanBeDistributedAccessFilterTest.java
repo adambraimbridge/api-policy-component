@@ -113,8 +113,8 @@ public class CanBeDistributedAccessFilterTest {
 
     @Test
     public void shouldStripNestedImageWhenNotPolicyAndCanBeDistributedFieldNotYesForNestedImageContent() {
-        MutableRequest request = new MutableRequest(Collections.<String>emptySet(), getClass().getSimpleName());
-        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"yes\",\"mainImage\":{\"id\":\"sampleId\",\"canBeDistributed\":\"verify\"}}");
+        MutableRequest request = new MutableRequest(Collections.emptySet(), getClass().getSimpleName());
+        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeDistributed\":\"yes\",\"mainImage\":{\"id\":\"sampleId\",\"apiUrl\":\"sampleApiUrl\",\"canBeDistributed\":\"verify\"}}");
 
         when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
 

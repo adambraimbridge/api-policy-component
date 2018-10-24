@@ -104,7 +104,7 @@ public class CanBeSyndicatedAccessFilterTest {
         final Set<String> policies = new HashSet<>();
         policies.add(Policy.RESTRICT_NON_SYNDICATABLE_CONTENT.getHeaderValue());
         final MutableRequest request = new MutableRequest(policies, getClass().getSimpleName());
-        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"yes\",\"mainImage\":{\"id\":\"sampleId\",\"canBeSyndicated\":\"verify\"}}");
+        MutableResponse chainedResponse = createSuccessfulResponse("{\"bodyXML\":\"<body>Testing.</body>\",\"canBeSyndicated\":\"yes\",\"mainImage\":{\"id\":\"sampleId\",\"apiUrl\":\"sampleApiUrl\",\"canBeSyndicated\":\"verify\"}}");
 
         when(mockChain.callNextFilter(request)).thenReturn(chainedResponse);
 
