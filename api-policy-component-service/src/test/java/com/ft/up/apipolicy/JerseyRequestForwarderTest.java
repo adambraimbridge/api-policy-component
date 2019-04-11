@@ -106,16 +106,16 @@ public class JerseyRequestForwarderTest {
         request.setHeaders(headers);
 
         
-        URI notificationsForBrand = URI.create("http://hostname:8080/content/notifications?since=2017-10-17T15%3A22%3A49.804Z");
+        URI notifications = URI.create("http://hostname:8080/content/notifications?since=2017-10-17T15%3A22%3A49.804Z");
 
-        when(client.target(notificationsForBrand)).thenReturn(target);
+        when(client.target(notifications)).thenReturn(target);
         when(response.getHeaders()).thenReturn(new MultivaluedHashMap());
         when(response.getStatus()).thenReturn(200);
 
         MutableResponse actualResponse = forwarder.forwardRequest(request);
         assertEquals(HttpServletResponse.SC_OK, actualResponse.getStatus());
 
-        verify(client).target(notificationsForBrand);
+        verify(client).target(notifications);
         verifyMocks();
     }
 
