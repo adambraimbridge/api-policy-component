@@ -17,16 +17,6 @@ pipeline:
     "http://api.ft.com/system/FT-LABS-WP-1-[0-9]+" : "{{identifierValue}}"
     "http://api.ft.com/system/NEXT-VIDEO-EDITOR" : "https://www.ft.com/content/{{identifierValue}}"
 
-
-policyBrandsMapper:
-  policyFilterParameterList:
-       - policy: FASTFT_CONTENT_ONLY
-         forBrand:
-                  - http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54
-       - policy: EXCLUDE_FASTFT_CONTENT
-         notForBrand:
-                  - http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54
-
 server:
 
   applicationConnectors:

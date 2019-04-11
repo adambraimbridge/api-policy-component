@@ -12,10 +12,6 @@
    ],
    "webUrl": "http://www.ft.com/fastft?post=226322",
    "requestUrl": "http://api.ft.com/content/9efae9bb-d785-342b-a84b-990de44f8fbb",
-   "brands": [
-      "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54",
-      "http://api.ft.com/things/dbb0bdae-1f0c-11e4-b0cb-b2227cce2b54"
-   ],
    "aNewProperty": "Hello",
    "anotherNewProperty": "Hello"
 

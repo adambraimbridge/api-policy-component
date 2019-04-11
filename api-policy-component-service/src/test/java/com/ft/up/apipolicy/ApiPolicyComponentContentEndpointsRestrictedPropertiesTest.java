@@ -93,7 +93,6 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
     private static final String ENRICHED_CONTENT_JSON =
             "{" +
                     ARTICLE_JSON + ",\n" +
-                    "\"brands\": [ ],\n" +
                     "\"annotations\": [ ]" +
                     "}";
 
@@ -115,7 +114,6 @@ public class ApiPolicyComponentContentEndpointsRestrictedPropertiesTest extends 
 
     private static final String IMAGE_ENRICHED_CONTENT_JSON =
                     IMAGE_JSON + ",\n" +
-                    "\"brands\": [ ],\n" +
                     "\"annotations\": [ ]" +
                     "}";
 

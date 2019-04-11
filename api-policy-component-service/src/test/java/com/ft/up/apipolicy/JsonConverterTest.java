@@ -25,8 +25,7 @@ public class JsonConverterTest {
             "\"publishedDate\":\"\",\n" +
             "\"identifiers\":\"\",\n" +
             "\"webUrl\":\"\",\n" +
-            "\"requestUrl\":\"\",\n" +
-            "\"brands\":\"\"\n" +
+            "\"requestUrl\":\"\"\n" +
             "}";
 
     public static String[] FIELDS_ORDER = new String[] {"id",
@@ -36,8 +35,7 @@ public class JsonConverterTest {
         "publishedDate",
         "identifiers",
         "webUrl",
-        "requestUrl",
-        "brands"
+        "requestUrl"
     };
 
     @Test

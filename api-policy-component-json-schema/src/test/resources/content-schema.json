@@ -72,18 +72,6 @@
          "description": "The request made to generate this json response",
          "type": "string",
          "minLength": 0
-      },
-      "brands": {
-         "title": "Brands",
-         "description": "The brands associated with this content",
-         "type": "array",
-         "additionalProperties": true,
-         "items": [
-            {
-               "type": "string",
-               "minLength": 0
-            }
-         ]
       }
    },
    "required": ["id"],

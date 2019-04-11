@@ -7,7 +7,6 @@ import com.ft.platform.dropwizard.GoodToGoBundle;
 import com.ft.platform.dropwizard.GoodToGoResult;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
 import com.ft.up.apipolicy.filters.AddCanonicalWebUrl;
 import com.ft.up.apipolicy.filters.AddSyndication;
 import com.ft.up.apipolicy.filters.CanBeDistributedAccessFilter;
@@ -16,7 +15,6 @@ import com.ft.up.apipolicy.filters.UnrolledContentFilter;
 import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
 import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
 import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
-import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
 import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
 import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
@@ -88,7 +86,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
     private ApiFilter webUrlAdder;
     private ApiFilter canonicalWebUrlAdder;
     private ApiFilter addSyndication;
-    private ApiFilter brandFilter;
     private ApiFilter stripLastModifiedDate;
     private ApiFilter stripOpeningXml;
     private ApiFilter linkValidationFilter;
@@ -199,7 +196,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/content/notifications.*", "notifications",
                 mediaResourceNotificationsFilter,
-                brandFilter,
                 notificationsFilter()));
 
         // no filters needed for public-annotations-api
@@ -273,7 +269,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
     private void setFilters(ApiPolicyConfiguration configuration, Environment environment) {
         JsonConverter jsonTweaker = new JsonConverter(environment.getObjectMapper());
-        PolicyBrandsResolver resolver = configuration.getPolicyBrandsResolver();
 
         mainImageFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_RICH_CONTENT, MAIN_IMAGE_JSON_PROPERTY);
         identifiersFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INCLUDE_IDENTIFIERS, IDENTIFIERS_JSON_PROPERTY);
@@ -289,7 +284,6 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         webUrlAdder = new WebUrlCalculator(configuration.getPipelineConfiguration().getWebUrlTemplates(), jsonTweaker);
         canonicalWebUrlAdder = new AddCanonicalWebUrl(configuration.getCanonicalWebUrlTemplate(), jsonTweaker);
         addSyndication = new AddSyndication(jsonTweaker);
-        brandFilter = new AddBrandFilterParameters(jsonTweaker, resolver);
         linkValidationFilter = new LinkedContentValidationFilter();
         mediaResourceNotificationsFilter = new NotificationsTypeFilter(jsonTweaker, INTERNAL_UNSTABLE);
         accessLevelPropertyFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_UNSTABLE, ACCESS_LEVEL_JSON_PROPERTY);

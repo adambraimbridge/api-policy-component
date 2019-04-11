@@ -33,8 +33,6 @@ public class JerseyRequestForwarderTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(JerseyRequestForwarderTest.class);
 
-    private static final String FASTFT_BRAND = "http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54";
-
     @Mock private Client client;
     @Mock private WebTarget target;
     @Mock private Invocation.Builder builder;
@@ -53,7 +51,8 @@ public class JerseyRequestForwarderTest {
         when(invocation.invoke()).thenReturn(response);
     }
 
-    @Test
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
     public void testForwardConceptSearchRequest() {
         JerseyRequestForwarder forwarder = new JerseyRequestForwarder(client, endpointConfiguration);
 
@@ -88,7 +87,8 @@ public class JerseyRequestForwarderTest {
         verifyMocks();
     }
 
-    @Test
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	@Test
     public void testForwardNotificationsRequest() {
         JerseyRequestForwarder forwarder = new JerseyRequestForwarder(client, endpointConfiguration);
 
@@ -97,8 +97,6 @@ public class JerseyRequestForwarderTest {
         request.setHttpMethod("GET");
 
         MultivaluedMap queryParams = new MultivaluedHashMap();
-        queryParams.add("forBrand", FASTFT_BRAND);
-        queryParams.add("notForBrand", FASTFT_BRAND);
         queryParams.add("since", "2017-10-17T15:22:49.804Z");
 
         request.setQueryParameters(queryParams);
@@ -107,7 +105,8 @@ public class JerseyRequestForwarderTest {
         headers.add("X-Test-Header", "EXAMPLE");
         request.setHeaders(headers);
 
-        URI notificationsForBrand = URI.create("http://hostname:8080/content/notifications?forBrand=http%3A%2F%2Fapi.ft.com%2Fthings%2F5c7592a8-1f0c-11e4-b0cb-b2227cce2b54&notForBrand=http%3A%2F%2Fapi.ft.com%2Fthings%2F5c7592a8-1f0c-11e4-b0cb-b2227cce2b54&since=2017-10-17T15%3A22%3A49.804Z");
+        
+        URI notificationsForBrand = URI.create("http://hostname:8080/content/notifications?since=2017-10-17T15%3A22%3A49.804Z");
 
         when(client.target(notificationsForBrand)).thenReturn(target);
         when(response.getHeaders()).thenReturn(new MultivaluedHashMap());
