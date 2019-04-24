@@ -94,7 +94,6 @@ public class AddSyndicationTest {
 
         MutableResponse filteredResponse = filter.processRequest(request, mockChain);
 
-        boolean bool = new String(filteredResponse.getEntity()).contentEquals(new String(responseBody));
         assertThat(new String(filteredResponse.getEntity()), is(new String(responseBody)));
     }
 
