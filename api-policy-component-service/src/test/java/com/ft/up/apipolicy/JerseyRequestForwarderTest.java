@@ -17,8 +17,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -30,8 +28,6 @@ import static org.mockito.Mockito.anyString;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class JerseyRequestForwarderTest {
-
-    private static final Logger LOG = LoggerFactory.getLogger(JerseyRequestForwarderTest.class);
 
     @Mock private Client client;
     @Mock private WebTarget target;
@@ -51,7 +47,6 @@ public class JerseyRequestForwarderTest {
         when(invocation.invoke()).thenReturn(response);
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
     public void testForwardConceptSearchRequest() {
         JerseyRequestForwarder forwarder = new JerseyRequestForwarder(client, endpointConfiguration);
@@ -60,7 +55,7 @@ public class JerseyRequestForwarderTest {
         request.setAbsolutePath("/concepts");
         request.setHttpMethod("GET");
 
-        MultivaluedMap queryParams = new MultivaluedHashMap();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("mode", "search");
         queryParams.add("type", "http://www.ft.com/ontology/person/Person");
         queryParams.add("type", "http://www.ft.com/ontology/organisation/Organisation");
@@ -70,14 +65,14 @@ public class JerseyRequestForwarderTest {
 
         request.setQueryParameters(queryParams);
 
-        MultivaluedMap headers = new MultivaluedHashMap();
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         headers.add("X-Test-Header", "EXAMPLE");
         request.setHeaders(headers);
 
         URI conceptSearch = URI.create("http://hostname:8080/concepts?mode=search&q=new+york&type=http%3A%2F%2Fwww.ft.com%2Fontology%2Fperson%2FPerson&type=http%3A%2F%2Fwww.ft.com%2Fontology%2Forganisation%2FOrganisation&type=http%3A%2F%2Fwww.ft.com%2Fontology%2FLocation&type=http%3A%2F%2Fwww.ft.com%2Fontology%2FTopic");
 
         when(client.target(conceptSearch)).thenReturn(target);
-        when(response.getHeaders()).thenReturn(new MultivaluedHashMap());
+        when(response.getHeaders()).thenReturn(new MultivaluedHashMap<>());
         when(response.getStatus()).thenReturn(200);
 
         MutableResponse actualResponse = forwarder.forwardRequest(request);
@@ -87,7 +82,6 @@ public class JerseyRequestForwarderTest {
         verifyMocks();
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
     public void testForwardNotificationsRequest() {
         JerseyRequestForwarder forwarder = new JerseyRequestForwarder(client, endpointConfiguration);
@@ -96,12 +90,12 @@ public class JerseyRequestForwarderTest {
         request.setAbsolutePath("/content/notifications");
         request.setHttpMethod("GET");
 
-        MultivaluedMap queryParams = new MultivaluedHashMap();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.add("since", "2017-10-17T15:22:49.804Z");
 
         request.setQueryParameters(queryParams);
 
-        MultivaluedMap headers = new MultivaluedHashMap();
+        MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         headers.add("X-Test-Header", "EXAMPLE");
         request.setHeaders(headers);
 
@@ -109,7 +103,7 @@ public class JerseyRequestForwarderTest {
         URI notifications = URI.create("http://hostname:8080/content/notifications?since=2017-10-17T15%3A22%3A49.804Z");
 
         when(client.target(notifications)).thenReturn(target);
-        when(response.getHeaders()).thenReturn(new MultivaluedHashMap());
+        when(response.getHeaders()).thenReturn(new MultivaluedHashMap<>());
         when(response.getStatus()).thenReturn(200);
 
         MutableResponse actualResponse = forwarder.forwardRequest(request);
