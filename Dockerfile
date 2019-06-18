@@ -1,4 +1,4 @@
-FROM openjdk:8u171-jdk-alpine3.8
+FROM openjdk:8u212-jdk-alpine3.9
 
 ADD .git/ /.git/
 ADD api-policy-component-service/ /api-policy-component-service/

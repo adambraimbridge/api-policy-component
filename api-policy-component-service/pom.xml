@@ -43,9 +43,9 @@
         <!-- Plugins -->
         <findbugs.version>2.5.2</findbugs.version>
         <checkstyle.version>2.10</checkstyle.version>
-        <surefire.reportplugin.version>2.12.4</surefire.reportplugin.version>
+        <surefire.reportplugin.version>2.22.2</surefire.reportplugin.version>
         <maven-pmd-plugin.version>3.0.1</maven-pmd-plugin.version>
-        <jacoco-maven-plugin.version>0.7.2.201409121644</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.7.4.201502262128</jacoco-maven-plugin.version>
         <maven-jxr-plugin.version>2.3</maven-jxr-plugin.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
@@ -380,7 +380,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>${surefire.reportplugin.version}</version>
+				<configuration>
+					<useSystemClassLoader>false</useSystemClassLoader>
+				</configuration>                
+				<version>${surefire.reportplugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
