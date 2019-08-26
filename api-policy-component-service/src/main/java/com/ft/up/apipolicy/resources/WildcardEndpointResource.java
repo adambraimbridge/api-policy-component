@@ -31,7 +31,7 @@ public class WildcardEndpointResource {
     }
     
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes({MediaType.APPLICATION_JSON, "application/vnd.ft-upp-list+json"})
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     public final Response post(@Context final HttpServletRequest request, @Context final UriInfo uriInfo) {
         return nonIdempotentRequestHandler.handleRequest(request, uriInfo);   

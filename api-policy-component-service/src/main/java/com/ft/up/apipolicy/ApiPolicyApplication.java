@@ -254,6 +254,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         // Must specifically list any POST, PUT etc endpoint you want access to
         knownWhitelistedPostEndpoints.add(createEndpoint(environment, configuration, "^/suggest", "suggest", new ApiFilter[]{}));
+        knownWhitelistedPostEndpoints.add(createEndpoint(environment, configuration, "^/content", "content", new ApiFilter[]{}));
 
         environment.jersey().register(new WildcardEndpointResource(new RequestHandler(new MutableHttpTranslator(), knownWildcardEndpoints),
                 new RequestHandler(new MutableHttpTranslator(), knownWhitelistedPostEndpoints)));

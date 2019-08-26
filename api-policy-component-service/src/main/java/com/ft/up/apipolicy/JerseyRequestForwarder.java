@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -50,9 +51,13 @@ public class JerseyRequestForwarder implements RequestForwarder {
         
         Invocation.Builder resource = client.target(builder.build()).request();
 
+        String contentType = null;
         MultivaluedMap<String, String> headers = request.getHeaders();
         for (String headerName : headers.keySet()) {
             for (String value : headers.get(headerName)) {
+                if (contentType == null && headerName.toLowerCase().equals("content-type")) {
+                    contentType = value;
+                }
                 resource = resource.header(headerName, value);
                 LOGGER.debug("Sending Header: {}={}", headerName, value);
             }
@@ -62,8 +67,18 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
         String requestEntity = request.getRequestEntityAsString();
 
+
         if (StringUtils.isNotEmpty(requestEntity)) {
-            clientResponse = resource.build(request.getHttpMethod(), Entity.json(requestEntity)).invoke();
+            Entity entity;  
+            if (contentType != null) {
+                entity = Entity.entity(requestEntity, contentType);
+            } else {
+                entity = Entity.json(requestEntity);
+            }
+
+            String method = request.getHttpMethod();
+            Invocation invocation = resource.build(method, entity);
+            clientResponse = invocation.invoke();
         } else {
             clientResponse = resource.build(request.getHttpMethod()).invoke();
         }
