@@ -15,6 +15,7 @@ import javax.ws.rs.core.UriInfo;
 
 @Path("/{path:.*}")
 public class WildcardEndpointResource {
+    public static final String MEDIA_TYPE_LIST = "application/vnd.ft-upp-list+json";
 
     private RequestHandler requestHandler;
     private RequestHandler nonIdempotentRequestHandler;
@@ -31,7 +32,7 @@ public class WildcardEndpointResource {
     }
     
     @POST
-    @Consumes({MediaType.APPLICATION_JSON, "application/vnd.ft-upp-list+json"})
+    @Consumes({MediaType.APPLICATION_JSON, MEDIA_TYPE_LIST})
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     public final Response post(@Context final HttpServletRequest request, @Context final UriInfo uriInfo) {
         return nonIdempotentRequestHandler.handleRequest(request, uriInfo);   

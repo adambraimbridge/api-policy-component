@@ -27,6 +27,7 @@ import javax.ws.rs.core.UriBuilder;
 public class JerseyRequestForwarder implements RequestForwarder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JerseyRequestForwarder.class);
+    public static final String CONTENT_TYPE = "content-type";
     private final Client client;
     private final EndpointConfiguration varnish;
 
@@ -55,7 +56,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
         MultivaluedMap<String, String> headers = request.getHeaders();
         for (String headerName : headers.keySet()) {
             for (String value : headers.get(headerName)) {
-                if (contentType == null && headerName.toLowerCase().equals("content-type")) {
+                if (contentType == null && headerName.toLowerCase().equals(CONTENT_TYPE)) {
                     contentType = value;
                 }
                 resource = resource.header(headerName, value);
@@ -67,14 +68,9 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
         String requestEntity = request.getRequestEntityAsString();
 
-
         if (StringUtils.isNotEmpty(requestEntity)) {
-            Entity entity;  
-            if (contentType != null) {
-                entity = Entity.entity(requestEntity, contentType);
-            } else {
-                entity = Entity.json(requestEntity);
-            }
+            Entity entity = contentType != null ? Entity.entity(requestEntity, contentType) :
+                    Entity.json(requestEntity);
 
             String method = request.getHttpMethod();
             Invocation invocation = resource.build(method, entity);
