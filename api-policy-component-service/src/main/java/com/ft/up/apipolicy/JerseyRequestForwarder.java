@@ -1,22 +1,25 @@
 package com.ft.up.apipolicy;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.ft.up.apipolicy.configuration.EndpointConfiguration;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
-
+import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * JerseyRequestForwarder
@@ -25,39 +28,38 @@ import javax.ws.rs.core.UriBuilder;
  */
 public class JerseyRequestForwarder implements RequestForwarder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JerseyRequestForwarder.class);
     private final Client client;
     private final EndpointConfiguration varnish;
+
+    private FluentLoggingWrapper log;
 
     public JerseyRequestForwarder(Client client, EndpointConfiguration varnish) {
         this.client = client;
         this.varnish = varnish;
+        log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString());
     }
 
     @Override
     public MutableResponse forwardRequest(MutableRequest request) {
+        log.withMethodName("forwardRequest")
+                .withTransactionId(request.getTransactionId());
+
         UriBuilder builder = UriBuilder.fromPath(request.getAbsolutePath())
                 .scheme("http")
                 .host(varnish.getHost())
                 .port(varnish.getPort());
 
-        for (String parameterName : request.getQueryParameters().keySet()) {
-            for (String value : request.getQueryParameters().get(parameterName)) {
-                builder.queryParam(parameterName, value);
-                LOGGER.debug("Sending query parameter: {}={}", parameterName, value);
-            }
-        }
-        
-        Invocation.Builder resource = client.target(builder.build()).request();
+        extractQueryParameters(request, log, builder);
 
-        MultivaluedMap<String, String> headers = request.getHeaders();
-        for (String headerName : headers.keySet()) {
-            for (String value : headers.get(headerName)) {
-                resource = resource.header(headerName, value);
-                LOGGER.debug("Sending Header: {}={}", headerName, value);
-            }
-        }
-        
+        Builder resource = client.target(builder.build()).request();
+
+        resource = extractHeaders(request, log, resource);
+
+        return constructMutableResponse(request, log, resource);
+    }
+
+    private MutableResponse constructMutableResponse(MutableRequest request, FluentLoggingWrapper log, Builder resource) {
         Response clientResponse;
 
         String requestEntity = request.getRequestEntityAsString();
@@ -77,20 +79,13 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 }
             } catch (IllegalStateException e) {
                 // thrown if there is an IOException in hasEntity()
-                LOGGER.error("unable to obtain a response entity", e);
+                log.withMethodName("constructMutableResponse")
+                        .withField(MESSAGE, "unable to obtain a response entity")
+                        .withException(e)
+                        .build().logError();
             }
 
-            int responseStatus = clientResponse.getStatus();
-            if ((responseStatus >= 500)
-                    && ((responseEntity == null) || (responseEntity.length == 0))) {
-
-                LOGGER.debug("server error response has no entity");
-                responseEntity = "{\"message\":\"server error\"}".getBytes(UTF_8);
-            }
-
-            if (responseEntity != null) {
-                result.setEntity(responseEntity);
-            }
+            int responseStatus = handleResponseStatus(log, clientResponse, result, responseEntity);
 
             result.setStatus(responseStatus);
             result.setHeaders(clientResponse.getHeaders());
@@ -99,5 +94,63 @@ public class JerseyRequestForwarder implements RequestForwarder {
         }
 
         return result;
+    }
+
+    private int handleResponseStatus(FluentLoggingWrapper log, Response clientResponse, MutableResponse result, byte[] responseEntity) {
+        int responseStatus = clientResponse.getStatus();
+        if ((responseStatus >= 500)
+                && ((responseEntity == null) || (responseEntity.length == 0))) {
+
+            log.withMethodName("handleResponseStatus")
+                    .withField(MESSAGE, "server error response has no entity")
+                    .build().logDebug();
+
+            responseEntity = "{\"message\":\"server error\"}" .getBytes(UTF_8);
+        }
+
+        if (responseEntity != null) {
+            result.setEntity(responseEntity);
+        }
+        return responseStatus;
+    }
+
+    private Builder extractHeaders(MutableRequest request, FluentLoggingWrapper log, Builder resource) {
+        Map<String, List<String>> headerParameters = new HashMap<>();
+        List<String> headerParameterValues = new ArrayList<>();
+
+        MultivaluedMap<String, String> headers = request.getHeaders();
+        for (String headerName : headers.keySet()) {
+            for (String value : headers.get(headerName)) {
+                resource = resource.header(headerName, value);
+                headerParameterValues.add(value);
+            }
+            headerParameters.put(headerName, headerParameterValues);
+        }
+        log.withMethodName("extractHeaders");
+        logForwarderCustomMessage(log, "Sending Header: ", headerParameters);
+
+        return resource;
+    }
+
+    private void extractQueryParameters(MutableRequest request, FluentLoggingWrapper log, UriBuilder builder) {
+        Map<String, List<String>> queryParameters = new HashMap<>();
+        List<String> queryParameterValues = new ArrayList<>();
+
+        for (String parameterName : request.getQueryParameters().keySet()) {
+            for (String value : request.getQueryParameters().get(parameterName)) {
+                builder.queryParam(parameterName, value);
+                queryParameterValues.add(value);
+            }
+            queryParameters.put(parameterName, queryParameterValues);
+        }
+        log.withMethodName("extractQueryParameters");
+        logForwarderCustomMessage(log, "Sending query parameters: ", queryParameters);
+    }
+
+    private void logForwarderCustomMessage(FluentLoggingWrapper log, String customMessage,
+                                           Map<String, List<String>> logArguments) {
+        log.withField(MESSAGE, customMessage + logArguments.keySet().toString() +
+                        " : " + logArguments.values().toString())
+                .build().logDebug();
     }
 }

@@ -80,7 +80,7 @@ public class ReaderNodesHealthCheck extends AdvancedHealthCheck {
 
     @Override
     protected String panicGuideUrl() {
-        return "https://dewey.ft.com/APIPolicyComponent.html";
+        return "https://runbooks.in.ft.com/api-policy-component";
     }
 
 }

@@ -1,99 +1,119 @@
 package com.ft.up.apipolicy;
 
-import com.google.common.base.MoreObjects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 
-import java.net.SocketTimeoutException;
-import java.util.Collections;
-
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
+import java.net.SocketTimeoutException;
+
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static java.lang.String.format;
+import static javax.servlet.http.HttpServletResponse.*;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static org.slf4j.MDC.get;
 
 /**
  * RuntimeExceptionMapper
- *
+ * <p>
  * Converts any RuntimeException including those that result in a response code of
  * - 415
  * - 500
  * - 503
  * to a sensible response with a human-readable error message
- *
+ * <p>
  * Some other exceptional scenarios like requests that result in a response code of
  * - 400
  * are not handled because Jersey constructs error responses.
  *
  * @author Simon.Gibbs
  */
-public class ApiPolicyExceptionMapper  implements ExceptionMapper<Exception> {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ApiPolicyExceptionMapper.class);
+public class ApiPolicyExceptionMapper implements ExceptionMapper<Exception> {
 
     public static final String GENERIC_MESSAGE = "server error";
 
+    private FluentLoggingWrapper log;
+
     @Override
     public Response toResponse(Exception exception) {
+
+        String message = "";
+
         if (exception instanceof NotFoundException) {
-            String message = "404 Not Found";
-            LOG.debug(message);
-            return Response.status(HttpServletResponse.SC_NOT_FOUND).type(MediaType.APPLICATION_JSON)
-                .entity(Collections.singletonMap("message", message))
-                .build();
+            message = "404 Not Found";
+
+            return respondWith(SC_NOT_FOUND, message, exception);
         }
 
         if (exception instanceof WebApplicationException) {
             Response response = ((WebApplicationException) exception).getResponse();
 
             // skip processing of responses that are already present.
-            if(response.getEntity() != null) {
+            if (response.getEntity() != null) {
                 return response;
             }
 
             // fill out null responses
-            String message = MoreObjects.firstNonNull(exception.getMessage(), GENERIC_MESSAGE);
+            message = firstNonNull(exception.getMessage(), GENERIC_MESSAGE);
 
-            if(!GENERIC_MESSAGE.equals(message)) {
+            if (!GENERIC_MESSAGE.equals(message)) {
                 // Don't turn this off. You should be using ServerError and ClientError builders.
-                LOG.warn("Surfaced exception message from unknown tier. Expected ErrorEntity from web tier.");
-            }
-            
-            if (response.getStatus()<500) {
-            	if (GENERIC_MESSAGE.equals(message)) { // if we didn't get a specific message from the exception
-                	message = "client error";
-            	}
-            }
-            else {
-                // ensure server error exceptions are logged!
-                LOG.error("Server error: ", exception);
+                logResponse(response,
+                        "Surfaced exception message from unknown tier. Expected ErrorEntity from web tier.", exception);
             }
 
-            return Response.status(response.getStatus()).type(MediaType.APPLICATION_JSON)
-                .entity(Collections.singletonMap("message", message))
-                .build();
+            if (response.getStatus() < 500) {
+                if (GENERIC_MESSAGE.equals(message)) { // if we didn't get a specific message from the exception
+                    message = "client error";
+                    logResponse(response, message, exception);
+                }
+            } else {
+                // ensure server error exceptions are logged!
+                logResponse(response, GENERIC_MESSAGE, exception);
+            }
+
+            return respondWith(response.getStatus(), message, exception);
         }
-        
-        // ensure server error exceptions are logged!
-        LOG.error("Server error: ", exception);
-        
+
         // unless we know otherwise
-        int status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-        String message = GENERIC_MESSAGE;
-        
+        int status = SC_INTERNAL_SERVER_ERROR;
+        message = GENERIC_MESSAGE;
+
         if (exception instanceof ProcessingException) {
             message = exception.getMessage();
             if (exception.getCause() instanceof SocketTimeoutException) {
-                status = HttpServletResponse.SC_GATEWAY_TIMEOUT;
+                status = SC_GATEWAY_TIMEOUT;
             }
         }
-        
-        return Response.status(status).type(MediaType.APPLICATION_JSON)
-                .entity(Collections.singletonMap("message", message))
-                .build();
 
+        return respondWith(status, message, exception);
     }
+
+    private Response respondWith(int status, String reason, Throwable t) {
+        String responseMessage = format("{\"message\":\"%s\"}", reason);
+        Response response =  Response.status(status).entity(responseMessage).type(APPLICATION_JSON_TYPE).build();
+        logResponse(response, reason, t);
+
+        return response;
+    }
+
+    private void logResponse(Response response, String reason, Throwable t) {
+        log = new FluentLoggingWrapper()
+                .withClassName(this.getClass().toString())
+                .withMethodName("toResponse")
+                .withTransactionId(get("transaction_id"))
+                .withResponse(response)
+                .withField(MESSAGE, reason)
+                .withException((Exception)t);
+
+        if (400 <= response.getStatus() && response.getStatus() < 500) {
+            log.build().logWarn();
+        } else {
+            log.build().logError();
+        }
+    }
+
 }
