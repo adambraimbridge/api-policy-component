@@ -32,25 +32,31 @@ server:
         port: 21082
 
   requestLog:
-
-    appenders:
-
-      - type: console
-
-        # The timezone used to format dates. HINT: USE THE DEFAULT, UTC.
-        timeZone: UTC
+    appenders: []
+    type: external
 
 
 logging:
-
+  type: external
   level: INFO
-
   loggers:
     io.dropwizard: DEBUG
-    com.ft.jerseyhttpwrapper.AttemptLogger: WARN
+    io.dropwizard.jersey: "OFF"
+    io.dropwizard.lifecycle: "OFF"
+    io.dropwizard.servlets: "OFF"
+    com.ft.platform.dropwizard.HealthCheckPageData: "OFF"
+    com.ft.platform.dropwizard.metrics: "OFF"
+    org.eclipse.jetty: "OFF"
+    org.glassfish.jersey.client: "OFF"
+    sun.net.www.protocol.http: "OFF"
+    com.ft.jerseyhttpwrapper.AttemptLogger: "OFF"
+    com.ft.api.util.transactionid: "OFF"
+    #    Switch this to INFO instead of "OFF" if you want to see stack traces NOT in JSON format
+    com.ft.api.jaxrs.errors: "OFF"
 
   appenders:
-
     - type: console
+      logFormat: "%m%n"
+      timeZone: UTC
 
 canonicalWebUrlTemplate: "https://www.ft.com/content/%s"

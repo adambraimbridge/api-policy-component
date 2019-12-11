@@ -1,7 +1,7 @@
 package com.ft.up.apipolicy.pipeline;
 
 import com.ft.api.jaxrs.errors.ServerError;
-import com.ft.api.util.transactionid.TransactionIdUtils;
+import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,16 +10,19 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+
+import static com.ft.api.util.transactionid.TransactionIdUtils.TRANSACTION_ID_HEADER;
+import static com.ft.up.apipolicy.pipeline.HttpPipeline.POLICY_HEADER_NAME;
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.flattenHeaderToString;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.list;
+import static java.util.stream.Collectors.toList;
+import static javax.ws.rs.core.Response.status;
+
 
 /**
  * MutableHttpTranslator
@@ -28,8 +31,9 @@ import java.util.TreeSet;
  */
 public class MutableHttpTranslator {
 
-
     private static final Logger LOGGER = LoggerFactory.getLogger(MutableHttpTranslator.class);
+
+    private FluentLoggingWrapper log;
 
     // So we don't blindly pass on headers that should be set by THIS application on the request/response
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList(
@@ -39,78 +43,86 @@ public class MutableHttpTranslator {
             "Transfer-Encoding",
             "Content-Encoding",
             "Date",
-            HttpPipeline.POLICY_HEADER_NAME
+            POLICY_HEADER_NAME
     ));
+
+    public MutableHttpTranslator() {
+        log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString());
+    }
 
 
     public MutableRequest translateFrom(HttpServletRequest realRequest) {
-
+        log.withMethodName("translateFrom")
+                .withRequest(realRequest)
+                .withField(FluentLoggingWrapper.URI, realRequest.getRequestURI())
+                .withField(FluentLoggingWrapper.PATH, realRequest.getContextPath());
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
-        Set<String> policies = Collections.emptySet();
-
+        Set<String> policies = emptySet();
         String transactionId = null;
-
         Enumeration<String> headerNames = realRequest.getHeaderNames();
-        if(headerNames!=null) {
-            boolean hasXPolicyHeaders = false;
-            while(headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
 
+        if (headerNames != null) {
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
                 Enumeration<String> values = realRequest.getHeaders(headerName);
-                if(HttpPipeline.POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
-                    if(values!=null) {
-                        hasXPolicyHeaders = true;
-                        policies = new LinkedHashSet<>();
-                        StringBuilder sb = new StringBuilder();
-                        while(values.hasMoreElements()) {
-                            String value = values.nextElement();
-                            sb.append(value).append(",");
-                            policies.addAll(Arrays.asList(value.split("[ ,]")));
-                        }
-                        LOGGER.info("Processed {} : {}", HttpPipeline.POLICY_HEADER_NAME, sb);
-                    }
-                } else if(HEADER_BLACKLIST.contains(headerName)) {
-                    if(LOGGER.isDebugEnabled()) {
-                        while(values.hasMoreElements()) {
-                            String value = values.nextElement();
-                            LOGGER.debug("Not Processed: {}={}", headerName, value);
-                        }
-                    }
-                } else if(("Host").equals(headerName)) { // for Containerisation
+
+                if (POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
+                    policies = getPolicies(values);
+                } else if (HEADER_BLACKLIST.contains(headerName)) {
+                    logBlacklistedHeader(headerName, list(values), log);
+                } else if (("Host").equals(headerName)) { // for Containerisation
                     headers.add(headerName, "public-services");
-                } else if(TransactionIdUtils.TRANSACTION_ID_HEADER.equals(headerName)) {
+                } else if (TRANSACTION_ID_HEADER.equals(headerName)) {
                     transactionId = values.nextElement();
-                }
-                 else {
-                    while(values.hasMoreElements()) {
-                        String value = values.nextElement();
-                        headers.add(headerName, value);
-                        LOGGER.debug("Passed Up: {}={}", headerName, value);
-                    }
+                } else {
+                    logPassed(headerName, list(values), headers, null, "Passed Up: ", log);
                 }
             }
 
             // Always add the transaction ID including the default random one if it was missing
-            headers.add(TransactionIdUtils.TRANSACTION_ID_HEADER, transactionId);
+            headers.add(TRANSACTION_ID_HEADER, transactionId);
+            log.withTransactionId(transactionId);
 
-            if (!hasXPolicyHeaders) {
-                LOGGER.info("No X-Policy Headers");
+            if (!policies.isEmpty()) {
+                log.withField(MESSAGE, "Processed " + POLICY_HEADER_NAME + " : " + policies.toString())
+                        .build().logInfo();
+            } else {
+                log.withField(MESSAGE, "No X-Policy Headers")
+                        .build().logDebug();
             }
         } else {
-            LOGGER.debug("No headers");
+            log.withField(MESSAGE, "No headers")
+                    .build().logDebug();
         }
 
+        return getMutableRequest(realRequest, headers, policies, transactionId);
+    }
+
+    private Set<String> getPolicies(Enumeration<String> values) {
+        Set<String> policies = new LinkedHashSet<>();
+        if (values != null) {
+            while (values.hasMoreElements()) {
+                String value = values.nextElement();
+                policies.addAll(Arrays.asList(value.split("[ ,]")));
+            }
+        }
+        return policies;
+    }
+
+    private MutableRequest getMutableRequest(HttpServletRequest realRequest, MultivaluedMap<String, String> headers,
+                                             Set<String> policies, String transactionId) {
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<>();
         Enumeration<String> parameterNames = realRequest.getParameterNames();
-        if(parameterNames!=null) {
-            while(parameterNames.hasMoreElements()) {
+        if (parameterNames != null) {
+            while (parameterNames.hasMoreElements()) {
                 String queryParam = parameterNames.nextElement();
                 queryParameters.put(queryParam, Arrays.asList(realRequest.getParameterMap().get(queryParam)));
             }
         }
 
-        String absolutePath = URI.create(realRequest.getRequestURL().toString()).getPath();
+        String absolutePath = java.net.URI.create(realRequest.getRequestURL().toString()).getPath();
 
         MutableRequest request = new MutableRequest(policies, transactionId);
         request.setAbsolutePath(absolutePath);
@@ -120,6 +132,29 @@ public class MutableHttpTranslator {
         request.setHttpMethod(realRequest.getMethod());
 
         return request;
+    }
+
+    private void logBlacklistedHeader(String headerName, List<String> values, FluentLoggingWrapper log) {
+        if (LOGGER.isDebugEnabled() && !values.isEmpty()) {
+            log.withField(MESSAGE, "Not Processed: " + headerName + "=" + values.toString())
+                    .build().logDebug();
+        }
+    }
+
+    private void logPassed(String headerName, List<String> values, MultivaluedMap<String, String> headers,
+                           ResponseBuilder responseBuilder, String msgParam, FluentLoggingWrapper log) {
+        List<String> headerValues = new ArrayList<>();
+        for (String value : values) {
+            if (headers != null) {
+                headers.add(headerName, value);
+            }
+            if (responseBuilder != null) {
+                responseBuilder.header(headerName, value);
+            }
+            headerValues.add(value);
+        }
+        log.withField(MESSAGE, msgParam + headerName + "=" + headerValues.toString())
+                .build().logDebug();
     }
 
     private byte[] getEntityIfSupplied(HttpServletRequest realRequest) {
@@ -135,25 +170,26 @@ public class MutableHttpTranslator {
         }
     }
 
-    public Response.ResponseBuilder translateTo(MutableResponse mutableResponse) {
+    public ResponseBuilder translateTo(MutableResponse mutableResponse) {
 
-        Response.ResponseBuilder responseBuilder = Response.status(mutableResponse.getStatus());
+        log.withMethodName("translateTo")
+                .withResponse(mutableResponse)
+                .withTransactionId(flattenHeaderToString(mutableResponse, TRANSACTION_ID_HEADER));
 
-        for(String headerName : mutableResponse.getHeaders().keySet()) {
+        ResponseBuilder responseBuilder = status(mutableResponse.getStatus());
+
+        for (String headerName : mutableResponse.getHeaders().keySet()) {
 
             List<Object> values = mutableResponse.getHeaders().get(headerName);
 
-            if(HEADER_BLACKLIST.contains(headerName)) {
-                if(LOGGER.isDebugEnabled()) {
-                    for(Object value : values) {
-                        LOGGER.debug("Not Processed: {}={}", headerName, value);
-                    }
-                }
+            List<String> valuesAsStrings = values.stream()
+                    .map(object -> Objects.toString(object, null))
+                    .collect(toList());
+
+            if (HEADER_BLACKLIST.contains(headerName)) {
+                logBlacklistedHeader(headerName, valuesAsStrings, log);
             } else {
-                for(Object value : values) {
-                    responseBuilder.header(headerName, value);
-                    LOGGER.debug("Passed Down: {}={}", headerName, value);
-                }
+                logPassed(headerName, valuesAsStrings, null, responseBuilder, "Passed Down: ", log);
             }
         }
 

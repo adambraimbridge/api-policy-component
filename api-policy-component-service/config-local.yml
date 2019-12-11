@@ -17,7 +17,6 @@ pipeline:
     "http://api.ft.com/system/FT-LABS-WP-1-[0-9]+" : "{{identifierValue}}"
     "http://api.ft.com/system/NEXT-VIDEO-EDITOR" : "https://www.ft.com/content/{{identifierValue}}"
 
-
 policyBrandsMapper:
   policyFilterParameterList:
        - policy: FASTFT_CONTENT_ONLY
@@ -28,36 +27,36 @@ policyBrandsMapper:
                   - http://api.ft.com/things/5c7592a8-1f0c-11e4-b0cb-b2227cce2b54
 
 server:
-
   applicationConnectors:
       - type: http
         port: 20080
-
   adminConnectors:
       - type: http
         port: 20082
-
   requestLog:
-    appenders:
-      - type: console
-        # Add transaction_id to the end of Dropwizard's default format, which is itself based on the "combined" log format
-        logFormat: "%h %l %u [%t] \"%r\" %s %b \"%i{Referer}\" \"%i{User-Agent}\" %D transaction_id=%i{X-Request-Id}"
-        # The timezone used to format dates. HINT: USE THE DEFAULT, UTC.
-        timeZone: UTC
+    appenders: []
+    type: external
 
 logging:
-
+  type: external
   level: INFO
-
   loggers:
-    io.dropwizard: DEBUG
-    com.ft.jerseyhttpwrapper.AttemptLogger: WARN
-    com.ft.api.util.transactionid.TransactionIdFilter: WARN
-
+    io.dropwizard: WARN
+    io.dropwizard.jersey: "OFF"
+    io.dropwizard.lifecycle: "OFF"
+    io.dropwizard.servlets: "OFF"
+    com.ft.platform.dropwizard.HealthCheckPageData: "OFF"
+    com.ft.platform.dropwizard.metrics: "OFF"
+    org.eclipse.jetty: "OFF"
+    org.glassfish.jersey.client: "OFF"
+    sun.net.www.protocol.http: "OFF"
+    com.ft.jerseyhttpwrapper.AttemptLogger: "OFF"
+    com.ft.api.util.transactionid: "OFF"
+    #    Switch this to INFO instead of "OFF" if you want to see stack traces NOT in JSON format
+    com.ft.api.jaxrs.errors: "OFF"
   appenders:
-
     - type: console
-      logFormat: "%-5p [%d{ISO8601, GMT}] %c: %X{transaction_id} %m [%thread]%n%xEx"
+      logFormat: "%m%n"
 
 appInfo:
     systemCode: "APIPolicyComponent"

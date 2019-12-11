@@ -7,21 +7,7 @@ import com.ft.platform.dropwizard.GoodToGoBundle;
 import com.ft.platform.dropwizard.GoodToGoResult;
 import com.ft.up.apipolicy.configuration.ApiPolicyConfiguration;
 import com.ft.up.apipolicy.configuration.Policy;
-import com.ft.up.apipolicy.filters.AddBrandFilterParameters;
-import com.ft.up.apipolicy.filters.AddCanonicalWebUrl;
-import com.ft.up.apipolicy.filters.AddSyndication;
-import com.ft.up.apipolicy.filters.CanBeDistributedAccessFilter;
-import com.ft.up.apipolicy.filters.CanBeSyndicatedAccessFilter;
-import com.ft.up.apipolicy.filters.UnrolledContentFilter;
-import com.ft.up.apipolicy.filters.LinkedContentValidationFilter;
-import com.ft.up.apipolicy.filters.NotificationsTypeFilter;
-import com.ft.up.apipolicy.filters.PolicyBasedJsonFilter;
-import com.ft.up.apipolicy.filters.PolicyBrandsResolver;
-import com.ft.up.apipolicy.filters.RemoveHeaderUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.RemoveJsonPropertiesUnlessPolicyPresentFilter;
-import com.ft.up.apipolicy.filters.SuppressJsonPropertiesFilter;
-import com.ft.up.apipolicy.filters.SuppressRichContentMarkupFilter;
-import com.ft.up.apipolicy.filters.WebUrlCalculator;
+import com.ft.up.apipolicy.filters.*;
 import com.ft.up.apipolicy.health.ReaderNodesHealthCheck;
 import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipeline;
@@ -32,6 +18,7 @@ import com.ft.up.apipolicy.resources.RequestHandler;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
+import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -41,21 +28,9 @@ import org.glassfish.jersey.server.ServerProperties;
 
 import javax.servlet.DispatcherType;
 import javax.ws.rs.client.Client;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static com.ft.up.apipolicy.configuration.Policy.EXPAND_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_COMMENTS;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_IDENTIFIERS;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_LAST_MODIFIED_DATE;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_PROVENANCE;
-import static com.ft.up.apipolicy.configuration.Policy.INCLUDE_RICH_CONTENT;
-import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_ANALYTICS;
-import static com.ft.up.apipolicy.configuration.Policy.INTERNAL_UNSTABLE;
-import static com.ft.up.apipolicy.configuration.Policy.RESTRICT_NON_SYNDICATABLE_CONTENT;
+import static com.ft.up.apipolicy.configuration.Policy.*;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
@@ -265,6 +240,11 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         environment.healthChecks()
                 .register("Reader API Connectivity",
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
+
+        new FluentLoggingWrapper().withClassName(this.getClass().toString())
+                .withMethodName("run")
+                .withField(FluentLoggingWrapper.MESSAGE,"Application started")
+                .build().logInfo();
     }
 
     private BodyProcessingFieldTransformer getBodyProcessingFieldTransformer() {
@@ -302,7 +282,7 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
         editorialDeskFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_ANALYTICS, EDITORIAL_DESK_JSON_PROPERTY);
         internalAnalyticsTagsFilter = new RemoveJsonPropertiesUnlessPolicyPresentFilter(jsonTweaker, INTERNAL_ANALYTICS, INTERNAL_ANALYTICS_TAG_FILTER);
     }
-    
+
     private ApiFilter notificationsFilter() {
       Map<String,Policy> notificationsJsonFilters = new HashMap<>();
       // whitelisted (no policy required)
@@ -318,15 +298,16 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
       return new PolicyBasedJsonFilter(notificationsJsonFilters);
     }
-    
+
     private KnownEndpoint createEndpoint(Environment environment, ApiPolicyConfiguration configuration,
                                          String urlPattern, String instanceName, ApiFilter... filterChain) {
-      
+
         final Client client = JerseyClientBuilder.newBuilder()
             .property(ClientProperties.FOLLOW_REDIRECTS, false)
             .property(ClientProperties.CONNECT_TIMEOUT, configuration.getVarnish().getConnectTimeoutMillis())
             .property(ClientProperties.READ_TIMEOUT, configuration.getVarnish().getReadTimeoutMillis())
             .build();
+
 
         final RequestForwarder requestForwarder = new JerseyRequestForwarder(client, configuration.getVarnish());
         return new KnownEndpoint(urlPattern, new HttpPipeline(requestForwarder, filterChain));
