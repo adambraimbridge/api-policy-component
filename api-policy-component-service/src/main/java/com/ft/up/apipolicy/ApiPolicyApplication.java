@@ -18,7 +18,7 @@ import com.ft.up.apipolicy.resources.RequestHandler;
 import com.ft.up.apipolicy.resources.WildcardEndpointResource;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformer;
 import com.ft.up.apipolicy.transformer.BodyProcessingFieldTransformerFactory;
-import com.ft.up.apipolicy.util.FluentLoggingWrapper;
+import com.ft.up.apipolicy.util.FluentLoggingBuilder;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -34,6 +34,7 @@ import static com.ft.up.apipolicy.configuration.Policy.*;
 
 public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
+    private static final String CLASS_NAME = ApiPolicyApplication.class.toString();
     private static final String MAIN_IMAGE_JSON_PROPERTY = "mainImage";
     private static final String IDENTIFIERS_JSON_PROPERTY = "identifiers";
     private static final String ALT_TITLES_JSON_PROPERTY = "alternativeTitles";
@@ -241,9 +242,8 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
                 .register("Reader API Connectivity",
                         new ReaderNodesHealthCheck("Reader API Connectivity", configuration.getVarnish(), healthcheckClient, configuration.isCheckingVulcanHealth()));
 
-        new FluentLoggingWrapper().withClassName(this.getClass().toString())
-                .withMethodName("run")
-                .withField(FluentLoggingWrapper.MESSAGE,"Application started")
+        FluentLoggingBuilder.getNewInstance(CLASS_NAME, "run")
+                .withField(FluentLoggingBuilder.MESSAGE,"Application started")
                 .build().logInfo();
     }
 

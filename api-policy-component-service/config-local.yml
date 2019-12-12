@@ -47,13 +47,16 @@ logging:
     io.dropwizard.servlets: "OFF"
     com.ft.platform.dropwizard.HealthCheckPageData: "OFF"
     com.ft.platform.dropwizard.metrics: "OFF"
+    com.ft.platform.dropwizard: WARN
     org.eclipse.jetty: "OFF"
     org.glassfish.jersey.client: "OFF"
     sun.net.www.protocol.http: "OFF"
-    com.ft.jerseyhttpwrapper.AttemptLogger: "OFF"
     com.ft.api.util.transactionid: "OFF"
-    #    Switch this to INFO instead of "OFF" if you want to see stack traces NOT in JSON format
+    com.ft.api.util.buildinfo: "OFF"
+    com.ft.bodyprocessing: WARN
+    #    Switch the two below to INFO instead of "OFF" if you want to see stack traces NOT in JSON format
     com.ft.api.jaxrs.errors: "OFF"
+    com.ft.api.jaxrs: WARN
   appenders:
     - type: console
       logFormat: "%m%n"

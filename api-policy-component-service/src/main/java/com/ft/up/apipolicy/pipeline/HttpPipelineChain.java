@@ -16,7 +16,9 @@ public class HttpPipelineChain {
     }
 
     public MutableResponse callNextFilter(final MutableRequest request) {
+
         ApiFilter nextFilter = pipeline.getFilter(pointer++);
+
         if (nextFilter == null) {
             return pipeline.forwardRequest(request);
         } else {

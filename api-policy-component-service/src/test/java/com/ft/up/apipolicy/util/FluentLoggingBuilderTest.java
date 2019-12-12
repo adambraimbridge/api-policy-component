@@ -14,19 +14,18 @@ import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.Arrays;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.*;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
-public class FluentLoggingWrapperTest {
-    private FluentLoggingWrapper log;
+public class FluentLoggingBuilderTest {
+    private static final String CLASS_NAME = FluentLoggingBuilderTest.class.toString();
+    private FluentLoggingBuilder log;
 
     @Before
     public void setup() {
-        log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString())
-                .withMethodName("testOperation");
+        log = FluentLoggingBuilder.getNewInstance(CLASS_NAME,"testOperation");
     }
 
     @Test
@@ -48,7 +47,7 @@ public class FluentLoggingWrapperTest {
                 String content = loggingEvent.getFormattedMessage();
                 return containsBasicJSONFields(content)
                         && containsFieldInJSON("\"uuid\":\"7398d82a-6e76-11dd-a80a-0000779fd18c\"", content)
-                        && containsFieldInJSON("\"transaction_id\":\"tid_test1\"", content)
+                        && containsFieldInJSON("\"transaction_id\":\"transaction_id=tid_test1\"", content)
                         && containsFieldInJSON("\"logLevel\":\"DEBUG\"", content)
                         && containsFieldInJSON("\"method\":\"GET\"", content)
                         && containsFieldInJSON("\"msg\":\"Message test 1\"", content);
@@ -154,8 +153,8 @@ public class FluentLoggingWrapperTest {
                 LoggingEvent loggingEvent = (LoggingEvent) argument;
                 String content = loggingEvent.getFormattedMessage();
                 return containsBasicJSONFields(content)
-                        && containsFieldInJSON("\"exception: \"", content)
-                        && containsFieldInJSON("\"stacktrace: \"", content);
+                        && containsFieldInJSON("\"exception_message\"", content)
+                        && containsFieldInJSON("\"stacktrace_log\"", content);
             }
         }));
     }
@@ -165,7 +164,11 @@ public class FluentLoggingWrapperTest {
     public void logVerifyUnwantedFieldsAreNotPresent() {
         final Appender mockAppender = getAppender();
 
-        log.build().logDebug();
+        log.withTransactionId(null)
+                .withField(MESSAGE, "")
+                .withField(UUID, null)
+                .withException(null)
+                .build().logDebug();
 
         verify(mockAppender).doAppend(argThat(new ArgumentMatcher() {
             @Override
@@ -174,6 +177,7 @@ public class FluentLoggingWrapperTest {
                 String content = loggingEvent.getFormattedMessage();
                 return containsBasicJSONFields(content)
                         && containsFieldInJSON("\"logLevel\":\"DEBUG\"", content)
+                        && containsFieldInJSON("\"exception_message\":\"Exception was null\"", content)
                         && !containsFieldInJSON("\"transaction_id\":\"tid_test1\"", content)
                         && !containsFieldInJSON("\"msg\":\"test message 1\"", content)
                         && !containsFieldInJSON("\"uuid\":\"7398d82a-6e76-11dd-a80a-0000779fd18c\"", content)
@@ -187,8 +191,7 @@ public class FluentLoggingWrapperTest {
                         && !containsFieldInJSON("\"client\":\"test client\"", content)
                         && !containsFieldInJSON("\"host\":\"test host\"", content)
                         && !containsFieldInJSON("\"protocol\":\"HTTP/1.1\"", content)
-                        && !containsFieldInJSON("\"exception: \"", content)
-                        && !containsFieldInJSON("\"stacktrace: \"", content);
+                        && !containsFieldInJSON("\"stacktrace_log\"", content);
             }
         }));
     }
@@ -208,7 +211,7 @@ public class FluentLoggingWrapperTest {
 
     private boolean containsBasicJSONFields(String content) {
         return content.contains("\"systemcode\":\"api-policy-component\"")
-                && content.contains("\"class\":\"class com.ft.up.apipolicy.util.FluentLoggingWrapperTest\"")
+                && content.contains("\"class\":\"class com.ft.up.apipolicy.util.FluentLoggingBuilderTest\"")
                 && content.contains("\"operation\":\"testOperation\"");
     }
 }

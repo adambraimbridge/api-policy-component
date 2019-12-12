@@ -4,7 +4,6 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import com.google.common.base.Joiner;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,27 +20,21 @@ import java.util.regex.Pattern;
 import static com.ft.api.jaxrs.errors.ServerError.status;
 import static com.ft.up.apipolicy.pipeline.HttpPipeline.POLICY_HEADER_NAME;
 import static com.ft.up.apipolicy.pipeline.MutableResponse.VARY_HEADER;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.URI;
 import static java.util.Collections.singletonMap;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.ResponseBuilder;
 import static javax.ws.rs.core.Response.serverError;
-import static org.slf4j.MDC.get;
 
 public class RequestHandler {
 
     public static final Joiner COMMA_DELIMITED = Joiner.on(", ");
     private MutableHttpTranslator translator;
     private Set<KnownEndpoint> knownEndpoints;
-    private FluentLoggingWrapper log;
 
     public RequestHandler(MutableHttpTranslator translator, Set<KnownEndpoint> knownEndpoints) {
         this.translator = translator;
         this.knownEndpoints = knownEndpoints;
-        log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
     }
 
     public Response handleRequest(HttpServletRequest request, UriInfo uriInfo) {
@@ -79,27 +72,18 @@ public class RequestHandler {
 
     private MutableResponse handleRequest(MutableRequest request, String path) {
 
-        log.withMethodName("handleRequest")
-                .withTransactionId(get("transaction_id"))
-                .withRequest(request)
-                .withField(URI, request.getAbsolutePath());
-
         List<KnownEndpoint> matchedCandidates = new ArrayList<>();
-        try {
-            for (KnownEndpoint candidate : knownEndpoints) {
-                Pattern compiledUriRegex = candidate.getUriPattern();
 
-                Matcher matcher = compiledUriRegex.matcher(path);
+        for (KnownEndpoint candidate : knownEndpoints) {
+            Pattern compiledUriRegex = candidate.getUriPattern();
 
-                if (matcher.find()) {
-                    matchedCandidates.add(candidate);
-                    HttpPipelineChain chain = new HttpPipelineChain(candidate.getPipeline());
-                    return chain.callNextFilter(request);
-                }
+            Matcher matcher = compiledUriRegex.matcher(path);
+
+            if (matcher.find()) {
+                matchedCandidates.add(candidate);
+                HttpPipelineChain chain = new HttpPipelineChain(candidate.getPipeline());
+                return chain.callNextFilter(request);
             }
-        } finally {
-            log.withField(MESSAGE, "Matched request to pipelines=" + matchedCandidates.toString())
-                    .build().logDebug();
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }

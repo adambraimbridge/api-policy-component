@@ -58,9 +58,9 @@ public class MutableHttpTranslatorTest {
     public void shouldCopyRequestHeadersToMutableRequest() {
 
         Vector<String> headersPresent = new Vector<>();
-        headersPresent.add("Foo");
-        headersPresent.add("Bar");
-        headersPresent.add("Baz");
+        headersPresent.add("foo");
+        headersPresent.add("bar");
+        headersPresent.add("baz");
 
         when(request.getHeaderNames()).thenReturn(headersPresent.elements());
 
@@ -68,11 +68,11 @@ public class MutableHttpTranslatorTest {
 
         MutableRequest result = translator.translateFrom(request);
 
-        assertThat(result.getHeaders().keySet(), hasItems("Foo","Bar","Baz"));
+        assertThat(result.getHeaders().keySet(), hasItems("foo","bar","baz"));
 
-        assertThat(result.getHeaders().getFirst("Foo"),is("Value of Foo"));
-        assertThat(result.getHeaders().getFirst("Bar"),is("Value of Bar"));
-        assertThat(result.getHeaders().getFirst("Baz"),is("Value of Baz"));
+        assertThat(result.getHeaders().getFirst("foo"),is("Value of foo"));
+        assertThat(result.getHeaders().getFirst("bar"),is("Value of bar"));
+        assertThat(result.getHeaders().getFirst("baz"),is("Value of baz"));
 
 
     }
@@ -80,8 +80,8 @@ public class MutableHttpTranslatorTest {
     @Test
     public void shouldExcludeBlacklistedRequestHeadersFromMutableRequest() {
         Vector<String> headersPresent = new Vector<>();
-        headersPresent.add("Foo");
-        headersPresent.add("Bar");
+        headersPresent.add("foo");
+        headersPresent.add("bar");
         headersPresent.add("Host");
 
         when(request.getHeaderNames()).thenReturn(headersPresent.elements());
@@ -90,11 +90,11 @@ public class MutableHttpTranslatorTest {
 
         MutableRequest result = translator.translateFrom(request);
 
-        assertThat(result.getHeaders().keySet(), hasItems("Foo","Bar"));
+        assertThat(result.getHeaders().keySet(), hasItems("foo","bar"));
         assertThat(result.getHeaders().keySet(), hasItems("Host"));
 
-        assertThat(result.getHeaders().getFirst("Foo"),is("Value of Foo"));
-        assertThat(result.getHeaders().getFirst("Bar"),is("Value of Bar"));
+        assertThat(result.getHeaders().getFirst("foo"),is("Value of foo"));
+        assertThat(result.getHeaders().getFirst("bar"),is("Value of bar"));
         assertThat(result.getHeaders().getFirst("Host"),is("public-services"));
     }
 
