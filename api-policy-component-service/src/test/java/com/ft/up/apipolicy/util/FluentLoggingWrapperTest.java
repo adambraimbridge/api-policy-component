@@ -154,8 +154,8 @@ public class FluentLoggingWrapperTest {
                 LoggingEvent loggingEvent = (LoggingEvent) argument;
                 String content = loggingEvent.getFormattedMessage();
                 return containsBasicJSONFields(content)
-                        && containsFieldInJSON("\"exception: \"", content)
-                        && containsFieldInJSON("\"stacktrace: \"", content);
+                        && containsFieldInJSON("\"exception_message\"", content)
+                        && containsFieldInJSON("\"stacktrace_log\"", content);
             }
         }));
     }
@@ -165,7 +165,11 @@ public class FluentLoggingWrapperTest {
     public void logVerifyUnwantedFieldsAreNotPresent() {
         final Appender mockAppender = getAppender();
 
-        log.build().logDebug();
+        log.withTransactionId(null)
+                .withField(MESSAGE, "")
+                .withField(UUID, null)
+                .withException(null)
+                .build().logDebug();
 
         verify(mockAppender).doAppend(argThat(new ArgumentMatcher() {
             @Override
@@ -187,8 +191,8 @@ public class FluentLoggingWrapperTest {
                         && !containsFieldInJSON("\"client\":\"test client\"", content)
                         && !containsFieldInJSON("\"host\":\"test host\"", content)
                         && !containsFieldInJSON("\"protocol\":\"HTTP/1.1\"", content)
-                        && !containsFieldInJSON("\"exception: \"", content)
-                        && !containsFieldInJSON("\"stacktrace: \"", content);
+                        && !containsFieldInJSON("\"exception_message\"", content)
+                        && !containsFieldInJSON("\"stacktrace_log\"", content);
             }
         }));
     }
