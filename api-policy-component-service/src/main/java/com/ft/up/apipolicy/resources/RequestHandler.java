@@ -99,7 +99,7 @@ public class RequestHandler {
             }
         } finally {
             log.withField(MESSAGE, "Matched request to pipelines=" + matchedCandidates.toString())
-                    .build().logDebug();
+                    .build().logInfo();
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }
