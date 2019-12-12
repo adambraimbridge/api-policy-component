@@ -116,10 +116,10 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
     private Builder extractHeaders(MutableRequest request, FluentLoggingWrapper log, Builder resource) {
         Map<String, List<String>> headerParameters = new HashMap<>();
-        List<String> headerParameterValues = new ArrayList<>();
 
         MultivaluedMap<String, String> headers = request.getHeaders();
         for (String headerName : headers.keySet()) {
+            List<String> headerParameterValues = new ArrayList<>();
             for (String value : headers.get(headerName)) {
                 resource = resource.header(headerName, value);
                 headerParameterValues.add(value);
@@ -134,9 +134,9 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
     private void extractQueryParameters(MutableRequest request, FluentLoggingWrapper log, UriBuilder builder) {
         Map<String, List<String>> queryParameters = new HashMap<>();
-        List<String> queryParameterValues = new ArrayList<>();
 
         for (String parameterName : request.getQueryParameters().keySet()) {
+            List<String> queryParameterValues = new ArrayList<>();
             for (String value : request.getQueryParameters().get(parameterName)) {
                 builder.queryParam(parameterName, value);
                 queryParameterValues.add(value);

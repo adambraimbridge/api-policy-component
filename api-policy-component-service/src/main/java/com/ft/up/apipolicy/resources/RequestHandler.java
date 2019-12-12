@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -21,8 +22,7 @@ import java.util.regex.Pattern;
 import static com.ft.api.jaxrs.errors.ServerError.status;
 import static com.ft.up.apipolicy.pipeline.HttpPipeline.POLICY_HEADER_NAME;
 import static com.ft.up.apipolicy.pipeline.MutableResponse.VARY_HEADER;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.URI;
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.*;
 import static java.util.Collections.singletonMap;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -82,7 +82,8 @@ public class RequestHandler {
         log.withMethodName("handleRequest")
                 .withTransactionId(get("transaction_id"))
                 .withRequest(request)
-                .withField(URI, request.getAbsolutePath());
+                .withField(URI, request.getAbsolutePath())
+                .withField(PATH, path);
 
         List<KnownEndpoint> matchedCandidates = new ArrayList<>();
         try {
@@ -98,8 +99,9 @@ public class RequestHandler {
                 }
             }
         } finally {
-            log.withField(MESSAGE, "Matched request to pipelines=" + matchedCandidates.toString())
-                    .build().logDebug();
+
+            log.withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
+                    .build().logInfo();
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }
