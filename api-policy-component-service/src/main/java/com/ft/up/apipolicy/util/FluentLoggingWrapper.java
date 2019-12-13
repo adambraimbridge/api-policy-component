@@ -8,10 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,12 +76,15 @@ public class FluentLoggingWrapper {
 
     public FluentLoggingWrapper withException(Throwable t) {
         if (nonNull(t)) {
-            withField(EXCEPTION, t.getLocalizedMessage());
+            withField(EXCEPTION, t.getMessage());
 
             if (logger.isDebugEnabled()) {
                 withField(STACKTRACE, getStackTrace(t));
             }
+        } else {
+            withField(EXCEPTION, "Exception was null");
         }
+
         return this;
     }
 

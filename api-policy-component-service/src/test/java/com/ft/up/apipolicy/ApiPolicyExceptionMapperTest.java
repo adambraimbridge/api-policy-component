@@ -20,6 +20,11 @@ public class ApiPolicyExceptionMapperTest {
     private final ApiPolicyExceptionMapper exceptionMapper = new ApiPolicyExceptionMapper();
 
     @Test
+    public void testExceptionMappingForNull() {
+        assertExceptionMapping(null, SC_INTERNAL_SERVER_ERROR, "server error");
+    }
+
+    @Test
     public void testExceptionMappingForErrors() {
         assertExceptionMapping(new Error(), SC_INTERNAL_SERVER_ERROR, "server error");
     }

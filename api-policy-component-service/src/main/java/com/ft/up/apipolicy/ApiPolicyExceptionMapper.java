@@ -1,5 +1,7 @@
 package com.ft.up.apipolicy;
 
+import com.ft.up.apipolicy.filters.FilterException;
+import com.ft.up.apipolicy.resources.UnsupportedRequestException;
 import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 
 import javax.ws.rs.NotFoundException;
@@ -7,6 +9,7 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
 import java.net.SocketTimeoutException;
 
 import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
@@ -31,6 +34,7 @@ import static org.slf4j.MDC.get;
  *
  * @author Simon.Gibbs
  */
+@Provider
 public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
 
     public static final String GENERIC_MESSAGE = "server error";
@@ -41,6 +45,9 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
     public Response toResponse(Throwable throwable) {
 
         String message = "";
+        // unless we know otherwise
+        int status = SC_INTERNAL_SERVER_ERROR;
+        message = GENERIC_MESSAGE;
 
         if (throwable instanceof NotFoundException) {
             message = "404 Not Found";
@@ -78,23 +85,36 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
             return respondWith(response.getStatus(), message, throwable);
         }
 
-        // unless we know otherwise
-        int status = SC_INTERNAL_SERVER_ERROR;
-        message = GENERIC_MESSAGE;
+//            // unless we know otherwise
+//            int status = SC_INTERNAL_SERVER_ERROR;
+//            status = SC_INTERNAL_SERVER_ERROR;
+//            message = GENERIC_MESSAGE;
 
         if (throwable instanceof ProcessingException) {
             message = throwable.getMessage();
             if (throwable.getCause() instanceof SocketTimeoutException) {
                 status = SC_GATEWAY_TIMEOUT;
             }
+            return respondWith(status, message, throwable);
         }
+
+        if (throwable instanceof UnsupportedRequestException) {
+            message = throwable.getMessage();
+            return respondWith(status, message, throwable);
+        }
+
+        if (throwable instanceof FilterException) {
+            message = throwable.getMessage();
+            return respondWith(status, message, throwable);
+        }
+
 
         return respondWith(status, message, throwable);
     }
 
     private Response respondWith(int status, String reason, Throwable t) {
         String responseMessage = format("{\"message\":\"%s\"}", reason);
-        Response response =  Response.status(status).entity(responseMessage).type(APPLICATION_JSON_TYPE).build();
+        Response response = Response.status(status).entity(responseMessage).type(APPLICATION_JSON_TYPE).build();
         logResponse(response, reason, t);
 
         return response;
@@ -111,7 +131,7 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
 
         int status = response.getStatus();
 
-        if(status == 404) {
+        if (status == 404) {
             log.build().logDebug();
         } else if (400 <= status && status < 500) {
             log.build().logWarn();
