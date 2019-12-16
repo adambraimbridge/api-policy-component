@@ -60,27 +60,29 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
 
             // skip processing of responses that are already present.
             if (response.getEntity() != null) {
-                return response;
+//                return response;
+                return respondWith(response.getStatus(), response.getEntity().toString(), throwable);
             }
 
             // fill out null responses
             message = firstNonNull(throwable.getMessage(), GENERIC_MESSAGE);
 
-            if (!GENERIC_MESSAGE.equals(message)) {
-                // Don't turn this off. You should be using ServerError and ClientError builders.
-                logResponse(response,
-                        "Surfaced exception message from unknown tier. Expected ErrorEntity from web tier.", throwable);
-            }
+//            if (!GENERIC_MESSAGE.equals(message)) {
+//                // Don't turn this off. You should be using ServerError and ClientError builders.
+////                logResponse(response,
+////                        "Surfaced exception message from unknown tier. Expected ErrorEntity from web tier.", throwable);
+//                return respondWith(response.getStatus(), "Surfaced exception message from unknown tier. Expected ErrorEntity from web tier.", throwable);
+//            }
 
             if (response.getStatus() < 500) {
                 if (GENERIC_MESSAGE.equals(message)) { // if we didn't get a specific message from the exception
                     message = "client error";
-                    logResponse(response, message, throwable);
                 }
-            } else {
+            }
+/*            else {
                 // ensure server error exceptions are logged!
                 logResponse(response, GENERIC_MESSAGE, throwable);
-            }
+            }*/
 
             return respondWith(response.getStatus(), message, throwable);
         }
