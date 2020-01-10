@@ -18,8 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.slf4j.MDC.get;
 
 /**
  * JerseyRequestForwarder
@@ -60,6 +61,12 @@ public class JerseyRequestForwarder implements RequestForwarder {
     }
 
     private MutableResponse constructMutableResponse(MutableRequest request, FluentLoggingWrapper log, Builder resource) {
+        log.withMethodName("constructMutableResponse")
+                .withTransactionId(get("transaction_id"))
+                .withRequest(request)
+                .withField(URI, request.getAbsolutePath());
+
+
         Response clientResponse;
 
         String requestEntity = request.getRequestEntityAsString();
@@ -79,8 +86,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 }
             } catch (IllegalStateException e) {
                 // thrown if there is an IOException in hasEntity()
-                log.withMethodName("constructMutableResponse")
-                        .withField(MESSAGE, "unable to obtain a response entity")
+                log.withField(MESSAGE, "unable to obtain a response entity")
                         .withException(e)
                         .build().logError();
             }
@@ -91,6 +97,9 @@ public class JerseyRequestForwarder implements RequestForwarder {
             result.setHeaders(clientResponse.getHeaders());
         } finally {
             clientResponse.close();
+
+            log.withField(MESSAGE, "Processing request")
+                    .build().logInfo();
         }
 
         return result;

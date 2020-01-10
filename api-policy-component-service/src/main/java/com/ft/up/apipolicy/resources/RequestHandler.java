@@ -78,7 +78,6 @@ public class RequestHandler {
     }
 
     private MutableResponse handleRequest(MutableRequest request, String path) {
-
         log.withMethodName("handleRequest")
                 .withTransactionId(get("transaction_id"))
                 .withRequest(request)
@@ -99,9 +98,8 @@ public class RequestHandler {
                 }
             }
         } finally {
-
             log.withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
-                    .build().logInfo();
+                    .build().logDebug();
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }
