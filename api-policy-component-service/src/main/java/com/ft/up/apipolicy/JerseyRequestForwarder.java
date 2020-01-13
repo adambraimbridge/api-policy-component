@@ -6,6 +6,7 @@ import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
 import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.MDC;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -91,6 +92,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
             result.setHeaders(clientResponse.getHeaders());
         } finally {
             clientResponse.close();
+//            MDC.remove("transaction_id");
         }
 
         return result;

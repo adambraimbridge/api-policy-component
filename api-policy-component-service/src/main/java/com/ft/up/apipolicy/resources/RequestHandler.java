@@ -6,6 +6,7 @@ import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import com.google.common.base.Joiner;
+import org.slf4j.MDC;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ClientErrorException;
@@ -94,17 +95,17 @@ public class RequestHandler {
                 }
             }
         } finally {
-            // Commenting out temporary to test false positive.
-//            String tid = get("transaction_id");
-//            if (!isBlank(tid)) {
-//                log.withMethodName("handleRequest")
-//                        .withTransactionId(tid)
-//                        .withRequest(request)
-//                        .withField(URI, request.getAbsolutePath())
-//                        .withField(PATH, path)
-//                        .withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
-//                        .build().logInfo();
-//            }
+            String tid = get("transaction_id");
+            if (!isBlank(tid)) {
+//                MDC.put("transaction_id", "transaction_id=" + tid);
+                log.withMethodName("handleRequest")
+                        .withTransactionId(tid)
+                        .withRequest(request)
+                        .withField(URI, request.getAbsolutePath())
+                        .withField(PATH, path)
+                        .withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
+                        .build().logInfo();
+            }
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }
