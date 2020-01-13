@@ -5,6 +5,7 @@ import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +23,8 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.list;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.status;
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.slf4j.MDC.*;
 
 
 /**
@@ -68,16 +71,19 @@ public class MutableHttpTranslator {
                 String headerName = headerNames.nextElement();
                 Enumeration<String> values = realRequest.getHeaders(headerName);
 
-                if (POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
+                if (TRANSACTION_ID_HEADER.equals(headerName)) {
+                    transactionId = values.nextElement();
+                    if (isBlank(transactionId)) {
+                        transactionId = get("transaction_id");
+                    }
+                } else if (POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
                     policies = getPolicies(values);
                 } else if (HEADER_BLACKLIST.contains(headerName)) {
-                    logBlacklistedHeader(headerName, list(values), log);
+                    logBlacklistedHeader(headerName, list(values), log, transactionId);
                 } else if (("Host").equals(headerName)) { // for Containerisation
                     headers.add(headerName, "public-services");
-                } else if (TRANSACTION_ID_HEADER.equals(headerName)) {
-                    transactionId = values.nextElement();
                 } else {
-                    logPassed(headerName, list(values), headers, null, "Passed Up: ", log);
+                    logPassed(headerName, list(values), headers, null, "Passed Up: ", log, transactionId);
                 }
             }
 
@@ -85,7 +91,7 @@ public class MutableHttpTranslator {
             headers.add(TRANSACTION_ID_HEADER, transactionId);
             log.withTransactionId(transactionId);
 
-            if (!policies.isEmpty()) {
+            if (!policies.isEmpty() && !isBlank(transactionId)) {
                 log.withField(MESSAGE, "Processed " + POLICY_HEADER_NAME + " : " + policies.toString())
                         .build().logInfo();
             } else {
@@ -134,15 +140,16 @@ public class MutableHttpTranslator {
         return request;
     }
 
-    private void logBlacklistedHeader(String headerName, List<String> values, FluentLoggingWrapper log) {
+    private void logBlacklistedHeader(String headerName, List<String> values, FluentLoggingWrapper log, String transactionId) {
         if (LOGGER.isDebugEnabled() && !values.isEmpty()) {
             log.withField(MESSAGE, "Not Processed: " + headerName + "=" + values.toString())
+                    .withTransactionId(transactionId)
                     .build().logDebug();
         }
     }
 
     private void logPassed(String headerName, List<String> values, MultivaluedMap<String, String> headers,
-                           ResponseBuilder responseBuilder, String msgParam, FluentLoggingWrapper log) {
+                           ResponseBuilder responseBuilder, String msgParam, FluentLoggingWrapper log, String transactionId) {
         List<String> headerValues = new ArrayList<>();
         for (String value : values) {
             if (headers != null) {
@@ -154,6 +161,7 @@ public class MutableHttpTranslator {
             headerValues.add(value);
         }
         log.withField(MESSAGE, msgParam + headerName + "=" + headerValues.toString())
+                .withTransactionId(transactionId)
                 .build().logDebug();
     }
 
@@ -171,10 +179,13 @@ public class MutableHttpTranslator {
     }
 
     public ResponseBuilder translateTo(MutableResponse mutableResponse) {
+        String tid = flattenHeaderToString(mutableResponse, TRANSACTION_ID_HEADER);
 
+        if (!isBlank(tid)) {
+            log.withTransactionId(tid);
+        }
         log.withMethodName("translateTo")
-                .withResponse(mutableResponse)
-                .withTransactionId(flattenHeaderToString(mutableResponse, TRANSACTION_ID_HEADER));
+                .withResponse(mutableResponse);
 
         ResponseBuilder responseBuilder = status(mutableResponse.getStatus());
 
@@ -187,9 +198,9 @@ public class MutableHttpTranslator {
                     .collect(toList());
 
             if (HEADER_BLACKLIST.contains(headerName)) {
-                logBlacklistedHeader(headerName, valuesAsStrings, log);
+                logBlacklistedHeader(headerName, valuesAsStrings, log, tid);
             } else {
-                logPassed(headerName, valuesAsStrings, null, responseBuilder, "Passed Down: ", log);
+                logPassed(headerName, valuesAsStrings, null, responseBuilder, "Passed Down: ", log, tid);
             }
         }
 

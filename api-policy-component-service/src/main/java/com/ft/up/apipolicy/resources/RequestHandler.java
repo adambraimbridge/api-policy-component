@@ -79,9 +79,7 @@ public class RequestHandler {
     }
 
     private MutableResponse handleRequest(MutableRequest request, String path) {
-
-
-
+        
         List<KnownEndpoint> matchedCandidates = new ArrayList<>();
         try {
             for (KnownEndpoint candidate : knownEndpoints) {
