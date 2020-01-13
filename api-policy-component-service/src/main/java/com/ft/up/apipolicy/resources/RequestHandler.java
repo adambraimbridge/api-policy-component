@@ -94,16 +94,17 @@ public class RequestHandler {
                 }
             }
         } finally {
-            String tid = get("transaction_id");
-            if (!isBlank(tid)) {
-                log.withMethodName("handleRequest")
-                        .withTransactionId(tid)
-                        .withRequest(request)
-                        .withField(URI, request.getAbsolutePath())
-                        .withField(PATH, path)
-                        .withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
-                        .build().logInfo();
-            }
+            // Commenting out temporary to test false positive.
+//            String tid = get("transaction_id");
+//            if (!isBlank(tid)) {
+//                log.withMethodName("handleRequest")
+//                        .withTransactionId(tid)
+//                        .withRequest(request)
+//                        .withField(URI, request.getAbsolutePath())
+//                        .withField(PATH, path)
+//                        .withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
+//                        .build().logInfo();
+//            }
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }
