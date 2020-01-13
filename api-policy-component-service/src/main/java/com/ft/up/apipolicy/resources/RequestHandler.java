@@ -79,7 +79,7 @@ public class RequestHandler {
     }
 
     private MutableResponse handleRequest(MutableRequest request, String path) {
-        
+
         List<KnownEndpoint> matchedCandidates = new ArrayList<>();
         try {
             for (KnownEndpoint candidate : knownEndpoints) {
@@ -95,14 +95,13 @@ public class RequestHandler {
             }
         } finally {
             String tid = get("transaction_id");
-            if(!isBlank(tid)) {
+            if (!isBlank(tid)) {
                 log.withMethodName("handleRequest")
                         .withTransactionId(tid)
                         .withRequest(request)
                         .withField(URI, request.getAbsolutePath())
-                        .withField(PATH, path);
-
-                log.withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
+                        .withField(PATH, path)
+                        .withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
                         .build().logInfo();
             }
         }

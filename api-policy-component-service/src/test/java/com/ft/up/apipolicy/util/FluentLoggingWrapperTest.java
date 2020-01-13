@@ -48,7 +48,7 @@ public class FluentLoggingWrapperTest {
                 String content = loggingEvent.getFormattedMessage();
                 return containsBasicJSONFields(content)
                         && containsFieldInJSON("\"uuid\":\"7398d82a-6e76-11dd-a80a-0000779fd18c\"", content)
-                        && containsFieldInJSON("\"transaction_id\":\"tid_test1\"", content)
+                        && containsFieldInJSON("\"transaction_id\":\"transaction_id=tid_test1\"", content)
                         && containsFieldInJSON("\"logLevel\":\"DEBUG\"", content)
                         && containsFieldInJSON("\"method\":\"GET\"", content)
                         && containsFieldInJSON("\"msg\":\"Message test 1\"", content);

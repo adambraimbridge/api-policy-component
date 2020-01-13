@@ -163,8 +163,14 @@ public class FluentLoggingWrapper {
     }
 
     public FluentLoggingWrapper withTransactionId(final String transactionId) {
-        withField(TRANSACTION_ID_HEADER, transactionId);
-        withField(TRANSACTION_ID, transactionId);
+        String tid = null;
+        if (!isBlank(transactionId) && transactionId.contains("transaction_id=")) {
+            tid = transactionId;
+        } else if(!isBlank(transactionId)) {
+            tid = "transaction_id=" + transactionId;
+        }
+        withField(TRANSACTION_ID_HEADER, tid);
+        withField(TRANSACTION_ID, tid);
         return this;
     }
 
