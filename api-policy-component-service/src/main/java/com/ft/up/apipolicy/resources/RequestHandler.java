@@ -28,6 +28,7 @@ import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.ResponseBuilder;
 import static javax.ws.rs.core.Response.serverError;
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.slf4j.MDC.get;
 
 public class RequestHandler {
@@ -79,11 +80,7 @@ public class RequestHandler {
 
     private MutableResponse handleRequest(MutableRequest request, String path) {
 
-        log.withMethodName("handleRequest")
-                .withTransactionId(get("transaction_id"))
-                .withRequest(request)
-                .withField(URI, request.getAbsolutePath())
-                .withField(PATH, path);
+
 
         List<KnownEndpoint> matchedCandidates = new ArrayList<>();
         try {
@@ -99,9 +96,17 @@ public class RequestHandler {
                 }
             }
         } finally {
+            String tid = get("transaction_id");
+            if(!isBlank(tid)) {
+                log.withMethodName("handleRequest")
+                        .withTransactionId(tid)
+                        .withRequest(request)
+                        .withField(URI, request.getAbsolutePath())
+                        .withField(PATH, path);
 
-            log.withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
-                    .build().logInfo();
+                log.withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
+                        .build().logInfo();
+            }
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }
