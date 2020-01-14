@@ -14,12 +14,9 @@ import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -56,6 +53,15 @@ public class JerseyRequestForwarder implements RequestForwarder {
         Builder resource = client.target(builder.build()).request();
 
         resource = extractHeaders(request, log, resource);
+
+        log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString());
+        log.withMethodName("forwardRequest")
+                .withTransactionId(request.getTransactionId())
+                .withRequest(request)
+                .withField(URI, request.getAbsolutePath())
+                .withField(MESSAGE, "Forwarding request")
+                .build().logInfo();
 
         return constructMutableResponse(request, log, resource);
     }

@@ -93,7 +93,8 @@ public class MutableHttpTranslator {
 
             if (!policies.isEmpty() && !isBlank(transactionId)) {
                 log.withField(MESSAGE, "Processed " + POLICY_HEADER_NAME + " : " + policies.toString())
-                        .build().logInfo();
+                        .build().logDebug();
+//                        .build().logInfo();
             } else {
                 log.withField(MESSAGE, "No X-Policy Headers")
                         .build().logDebug();
