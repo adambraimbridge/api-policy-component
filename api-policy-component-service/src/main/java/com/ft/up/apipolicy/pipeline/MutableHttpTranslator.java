@@ -70,20 +70,20 @@ public class MutableHttpTranslator {
             while (headerNames.hasMoreElements()) {
                 String headerName = headerNames.nextElement();
                 Enumeration<String> values = realRequest.getHeaders(headerName);
-
+                List<String> headersValuesList = list(values);
                 if (TRANSACTION_ID_HEADER.equals(headerName)) {
                     continue;
                 } else if (POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
-                    policies = getPolicies(values);
+                    policies = getPolicies(headersValuesList);
                     headers.add(POLICY_HEADER_NAME, policies.toString());
                 } else if (HEADER_BLACKLIST.contains(headerName)) {
-                    List blacklistedHeaderValues = list(values);
-                    logBlacklistedHeader(headerName, blacklistedHeaderValues, log, transactionId);
-                    blacklistedHeaders.addAll(headerName, blacklistedHeaderValues);
+                    logBlacklistedHeader(headerName, headersValuesList, log, transactionId);
+                    blacklistedHeaders.addAll(headerName, headersValuesList);
                 } else if (("Host").equals(headerName)) { // for Containerisation
                     headers.add(headerName, "public-services");
                 } else {
-                    processPassedHeaders(headerName, list(values), headers, null, "Passed Up: ", log, transactionId);
+                    headers.addAll(headerName.toLowerCase(), headersValuesList);
+                    logPassedHeaders(headerName, headersValuesList, "Passed Up: ", log, transactionId);
                 }
             }
 
@@ -106,13 +106,13 @@ public class MutableHttpTranslator {
         return getMutableRequest(realRequest, headers, blacklistedHeaders, policies, transactionId);
     }
 
-    private Set<String> getPolicies(Enumeration<String> values) {
+    private Set<String> getPolicies(List<String> values) {
         Set<String> policies = new LinkedHashSet<>();
+
         if (values != null) {
-            while (values.hasMoreElements()) {
-                String value = values.nextElement();
+            values.forEach(value -> {
                 policies.addAll(Arrays.asList(value.split("[ ,]")));
-            }
+            });
         }
         return policies;
     }
@@ -150,19 +150,8 @@ public class MutableHttpTranslator {
         }
     }
 
-    private void processPassedHeaders(String headerName, List<String> values, MultivaluedMap<String, String> headers,
-                                      ResponseBuilder responseBuilder, String msgParam, FluentLoggingWrapper log, String transactionId) {
-        List<String> headerValues = new ArrayList<>();
-        for (String value : values) {
-            if (headers != null) {
-                headers.add(headerName.toLowerCase(), value);
-            }
-            if (responseBuilder != null) {
-                responseBuilder.header(headerName, value);
-            }
-            headerValues.add(value);
-        }
-        log.withField(MESSAGE, msgParam + headerName + "=" + headerValues.toString())
+    private void logPassedHeaders(String headerName, List<String> values, String msgParam, FluentLoggingWrapper log, String transactionId) {
+        log.withField(MESSAGE, msgParam + headerName + "=" + values.toString())
                 .withTransactionId(transactionId)
                 .build().logDebug();
     }
@@ -202,10 +191,10 @@ public class MutableHttpTranslator {
             if (HEADER_BLACKLIST.contains(headerName)) {
                 logBlacklistedHeader(headerName, valuesAsStrings, log, tid);
             } else {
-                processPassedHeaders(headerName, valuesAsStrings, null, responseBuilder, "Passed Down: ", log, tid);
+                logPassedHeaders(headerName, valuesAsStrings, "Passed Down: ", log, tid);
+                valuesAsStrings.forEach(value -> responseBuilder.header(headerName.toLowerCase(), value));
             }
         }
-
         responseBuilder.entity(mutableResponse.getEntity());
 
         return responseBuilder;
