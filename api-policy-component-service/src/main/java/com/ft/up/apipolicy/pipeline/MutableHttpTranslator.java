@@ -161,7 +161,7 @@ public class MutableHttpTranslator {
         }
         log.withField(MESSAGE, msgParam + headerName + "=" + headerValues.toString())
                 .withTransactionId(transactionId)
-                .build().logInfo();
+                .build().logDebug();
     }
 
     private byte[] getEntityIfSupplied(HttpServletRequest realRequest) {

@@ -8,7 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -124,11 +127,12 @@ public class FluentLoggingWrapper {
 
     private void withHttpServletRequestHeaders(MutableRequest request) {
         MultivaluedMap<String, String> headers = request.getHeaders();
+        String policyHeaders = flattenHeaderToString(request, POLICY_HEADER_NAME);
         if (nonNull(headers)) {
             withField(USER_AGENT, headers.get("user-agent"));
             withField(ACCEPT, headers.get("accept"));
             withField(CONTENT_TYPE, headers.get("content-type"));
-            withField(POLICY_HEADER_NAME, headers.get(POLICY_HEADER_NAME));
+            withField(POLICY_HEADER_NAME, policyHeaders);
         }
     }
 
@@ -220,6 +224,15 @@ public class FluentLoggingWrapper {
             return EMPTY;
         }
         return ofNullable(response.getHeaders().get(headerKey))
+                .map(headers -> headers.stream().map(Object::toString).collect(joining(";")))
+                .orElse("");
+    }
+
+    public static String flattenHeaderToString(MutableRequest request, String headerKey) {
+        if (isNull(request) || isNull(request.getHeaders())) {
+            return EMPTY;
+        }
+        return ofNullable(request.getHeaders().get(headerKey))
                 .map(headers -> headers.stream().map(Object::toString).collect(joining(";")))
                 .orElse("");
     }

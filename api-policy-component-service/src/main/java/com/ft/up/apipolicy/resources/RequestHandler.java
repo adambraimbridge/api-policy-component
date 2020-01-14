@@ -82,31 +82,17 @@ public class RequestHandler {
     private MutableResponse handleRequest(MutableRequest request, String path) {
 
         List<KnownEndpoint> matchedCandidates = new ArrayList<>();
-        try {
-            for (KnownEndpoint candidate : knownEndpoints) {
-                Pattern compiledUriRegex = candidate.getUriPattern();
 
-                Matcher matcher = compiledUriRegex.matcher(path);
+        for (KnownEndpoint candidate : knownEndpoints) {
+            Pattern compiledUriRegex = candidate.getUriPattern();
 
-                if (matcher.find()) {
-                    matchedCandidates.add(candidate);
-                    HttpPipelineChain chain = new HttpPipelineChain(candidate.getPipeline());
-                    return chain.callNextFilter(request);
-                }
+            Matcher matcher = compiledUriRegex.matcher(path);
+
+            if (matcher.find()) {
+                matchedCandidates.add(candidate);
+                HttpPipelineChain chain = new HttpPipelineChain(candidate.getPipeline());
+                return chain.callNextFilter(request);
             }
-        } finally {
-//            String tid = get("transaction_id");
-//            String tid = request.getTransactionId();
-//            if (!isBlank(tid)) {
-//                MDC.put("transaction_id", "transaction_id=" + tid);
-//                log.withMethodName("handleRequest")
-//                        .withTransactionId(tid)
-//                        .withRequest(request)
-//                        .withField(URI, request.getAbsolutePath())
-//                        .withField(PATH, path)
-//                        .withField(MESSAGE, "Matched request to pipelines=" + Arrays.toString(matchedCandidates.toArray()))
-//                        .build().logInfo();
-//            }
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }
