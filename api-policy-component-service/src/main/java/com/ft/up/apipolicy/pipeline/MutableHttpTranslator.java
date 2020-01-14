@@ -5,7 +5,6 @@ import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +23,6 @@ import static java.util.Collections.list;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.status;
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.slf4j.MDC.*;
 
 
 /**
@@ -82,7 +80,7 @@ public class MutableHttpTranslator {
                 } else if (("Host").equals(headerName)) { // for Containerisation
                     headers.add(headerName, "public-services");
                 } else {
-                    logPassed(headerName, list(values), headers, null, "Passed Up: ", log, transactionId);
+                    processPassedHeaders(headerName, list(values), headers, null, "Passed Up: ", log, transactionId);
                 }
             }
 
@@ -147,12 +145,12 @@ public class MutableHttpTranslator {
         }
     }
 
-    private void logPassed(String headerName, List<String> values, MultivaluedMap<String, String> headers,
-                           ResponseBuilder responseBuilder, String msgParam, FluentLoggingWrapper log, String transactionId) {
+    private void processPassedHeaders(String headerName, List<String> values, MultivaluedMap<String, String> headers,
+                                      ResponseBuilder responseBuilder, String msgParam, FluentLoggingWrapper log, String transactionId) {
         List<String> headerValues = new ArrayList<>();
         for (String value : values) {
             if (headers != null) {
-                headers.add(headerName, value);
+                headers.add(headerName.toLowerCase(), value);
             }
             if (responseBuilder != null) {
                 responseBuilder.header(headerName, value);
@@ -199,7 +197,7 @@ public class MutableHttpTranslator {
             if (HEADER_BLACKLIST.contains(headerName)) {
                 logBlacklistedHeader(headerName, valuesAsStrings, log, tid);
             } else {
-                logPassed(headerName, valuesAsStrings, null, responseBuilder, "Passed Down: ", log, tid);
+                processPassedHeaders(headerName, valuesAsStrings, null, responseBuilder, "Passed Down: ", log, tid);
             }
         }
 

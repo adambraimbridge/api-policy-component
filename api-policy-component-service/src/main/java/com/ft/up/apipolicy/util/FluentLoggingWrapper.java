@@ -33,6 +33,7 @@ public class FluentLoggingWrapper {
 
     public static final String SYSTEM_CODE = "systemcode";
     public static final String CONTENT_TYPE = "content-type";
+    public static final String CACHE_CONTROL = "cache-control";
     public static final String STATUS = "status";
     public static final String USER_AGENT = "userAgent";
     public static final String EXCEPTION = "exception_message";
@@ -132,6 +133,7 @@ public class FluentLoggingWrapper {
             withField(USER_AGENT, headers.get("user-agent"));
             withField(ACCEPT, headers.get("accept"));
             withField(CONTENT_TYPE, headers.get("content-type"));
+            withField(CACHE_CONTROL, headers.get("cache-control"));
             withField(POLICY_HEADER_NAME, policyHeaders);
         }
     }

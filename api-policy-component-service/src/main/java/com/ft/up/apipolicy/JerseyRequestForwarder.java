@@ -98,7 +98,6 @@ public class JerseyRequestForwarder implements RequestForwarder {
             result.setHeaders(clientResponse.getHeaders());
         } finally {
             clientResponse.close();
-//            MDC.remove("transaction_id");
         }
 
         return result;
