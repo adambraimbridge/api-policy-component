@@ -78,6 +78,7 @@ public class MutableHttpTranslator {
 //                    }
                 } else if (POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
                     policies = getPolicies(values);
+                    headers.add(POLICY_HEADER_NAME, policies.toString());
                 } else if (HEADER_BLACKLIST.contains(headerName)) {
                     logBlacklistedHeader(headerName, list(values), log, transactionId);
                 } else if (("Host").equals(headerName)) { // for Containerisation

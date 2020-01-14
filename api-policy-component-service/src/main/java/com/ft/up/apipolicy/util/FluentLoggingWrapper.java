@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static com.ft.api.util.transactionid.TransactionIdUtils.TRANSACTION_ID_HEADER;
 import static com.ft.membership.logging.Operation.operation;
+import static com.ft.up.apipolicy.pipeline.HttpPipeline.POLICY_HEADER_NAME;
 import static java.lang.String.valueOf;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
@@ -127,6 +128,7 @@ public class FluentLoggingWrapper {
             withField(USER_AGENT, headers.get("user-agent"));
             withField(ACCEPT, headers.get("accept"));
             withField(CONTENT_TYPE, headers.get("content-type"));
+            withField(POLICY_HEADER_NAME, headers.get(POLICY_HEADER_NAME));
         }
     }
 
