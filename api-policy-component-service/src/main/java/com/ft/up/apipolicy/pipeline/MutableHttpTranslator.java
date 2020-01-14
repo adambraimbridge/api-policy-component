@@ -73,9 +73,9 @@ public class MutableHttpTranslator {
 
                 if (TRANSACTION_ID_HEADER.equals(headerName)) {
                     transactionId = values.nextElement();
-                    if (isBlank(transactionId)) {
-                        transactionId = get("transaction_id");
-                    }
+//                    if (isBlank(transactionId)) {
+//                        transactionId = get("transaction_id");
+//                    }
                 } else if (POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
                     policies = getPolicies(values);
                 } else if (HEADER_BLACKLIST.contains(headerName)) {

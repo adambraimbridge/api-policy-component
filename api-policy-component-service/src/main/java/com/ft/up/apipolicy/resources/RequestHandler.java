@@ -95,7 +95,8 @@ public class RequestHandler {
                 }
             }
         } finally {
-            String tid = get("transaction_id");
+//            String tid = get("transaction_id");
+            String tid = request.getTransactionId();
             if (!isBlank(tid)) {
 //                MDC.put("transaction_id", "transaction_id=" + tid);
                 log.withMethodName("handleRequest")
