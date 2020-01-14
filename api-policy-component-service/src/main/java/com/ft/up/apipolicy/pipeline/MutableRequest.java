@@ -15,6 +15,7 @@ import com.ft.up.apipolicy.configuration.Policy;
 public class MutableRequest {
 
     private MultivaluedMap<String, String> headers;
+    private MultivaluedMap<String, String> blacklistedHeaders;
     private MultivaluedMap<String, String> queryParameters;
     private String absolutePath;
     private String httpMethod;
@@ -80,5 +81,13 @@ public class MutableRequest {
 
     public String getTransactionId() {
         return transactionId;
+    }
+
+    public MultivaluedMap<String, String> getBlacklistedHeaders() {
+        return blacklistedHeaders;
+    }
+
+    public void setBlacklistedHeaders(MultivaluedMap<String, String> blacklistedHeaders) {
+        this.blacklistedHeaders = blacklistedHeaders;
     }
 }

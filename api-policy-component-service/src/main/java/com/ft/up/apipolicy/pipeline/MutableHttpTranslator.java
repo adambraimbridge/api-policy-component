@@ -60,6 +60,7 @@ public class MutableHttpTranslator {
                 .withField(FluentLoggingWrapper.PATH, realRequest.getContextPath());
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
+        MultivaluedMap<String, String> blacklistedHeaders = new MultivaluedHashMap<>();
         Set<String> policies = emptySet();
         String transactionId = null;
         Enumeration<String> headerNames = realRequest.getHeaderNames();
@@ -76,7 +77,9 @@ public class MutableHttpTranslator {
                     policies = getPolicies(values);
                     headers.add(POLICY_HEADER_NAME, policies.toString());
                 } else if (HEADER_BLACKLIST.contains(headerName)) {
-                    logBlacklistedHeader(headerName, list(values), log, transactionId);
+                    List blacklistedHeaderValues = list(values);
+                    logBlacklistedHeader(headerName, blacklistedHeaderValues, log, transactionId);
+                    blacklistedHeaders.addAll(headerName, blacklistedHeaderValues);
                 } else if (("Host").equals(headerName)) { // for Containerisation
                     headers.add(headerName, "public-services");
                 } else {
@@ -100,7 +103,7 @@ public class MutableHttpTranslator {
                     .build().logDebug();
         }
 
-        return getMutableRequest(realRequest, headers, policies, transactionId);
+        return getMutableRequest(realRequest, headers, blacklistedHeaders, policies, transactionId);
     }
 
     private Set<String> getPolicies(Enumeration<String> values) {
@@ -115,6 +118,7 @@ public class MutableHttpTranslator {
     }
 
     private MutableRequest getMutableRequest(HttpServletRequest realRequest, MultivaluedMap<String, String> headers,
+                                             MultivaluedMap<String, String> blacklistedHeaders,
                                              Set<String> policies, String transactionId) {
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<>();
         Enumeration<String> parameterNames = realRequest.getParameterNames();
@@ -131,6 +135,7 @@ public class MutableHttpTranslator {
         request.setAbsolutePath(absolutePath);
         request.setQueryParameters(queryParameters);
         request.setHeaders(headers);
+        request.setBlacklistedHeaders(blacklistedHeaders);
         request.setRequestEntity(getEntityIfSupplied(realRequest));
         request.setHttpMethod(realRequest.getMethod());
 

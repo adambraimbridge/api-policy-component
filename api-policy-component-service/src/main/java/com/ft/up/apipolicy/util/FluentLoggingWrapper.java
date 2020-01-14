@@ -122,6 +122,7 @@ public class FluentLoggingWrapper {
         if (nonNull(request)) {
             withField(METHOD, request.getHttpMethod());
             withHttpServletRequestHeaders(request);
+            withBlacklistedHeaders(request);
         }
         return this;
     }
@@ -135,6 +136,21 @@ public class FluentLoggingWrapper {
             withField(CONTENT_TYPE, headers.get("content-type"));
             withField(CACHE_CONTROL, headers.get("cache-control"));
             withField(POLICY_HEADER_NAME, policyHeaders);
+        }
+    }
+
+    private void withBlacklistedHeaders(MutableRequest request) {
+        MultivaluedMap<String, String> blacklistedHeaders = request.getBlacklistedHeaders();
+        StringBuilder blacklistedHeadersBuilder = new StringBuilder();
+
+        if (nonNull(blacklistedHeaders)) {
+            blacklistedHeaders.forEach((header, headerValuesList) ->
+                    blacklistedHeadersBuilder.append(header).append(":").append(headerValuesList.toString()).append(";"));
+            
+            String blacklistedHeadersString = blacklistedHeadersBuilder.toString();
+            if (nonNull(blacklistedHeadersString)) {
+                withField("blacklist_headers", blacklistedHeadersString);
+            }
         }
     }
 
@@ -174,7 +190,7 @@ public class FluentLoggingWrapper {
         String tid = null;
         if (!isBlank(transactionId) && transactionId.contains("transaction_id=")) {
             tid = transactionId;
-        } else if(!isBlank(transactionId)) {
+        } else if (!isBlank(transactionId)) {
             tid = "transaction_id=" + transactionId;
         }
         withField(TRANSACTION_ID_HEADER, tid);
