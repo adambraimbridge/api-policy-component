@@ -67,15 +67,13 @@ public class MutableHttpTranslator {
         Enumeration<String> headerNames = realRequest.getHeaderNames();
 
         if (headerNames != null) {
+            transactionId = realRequest.getHeader(TRANSACTION_ID_HEADER);
             while (headerNames.hasMoreElements()) {
                 String headerName = headerNames.nextElement();
                 Enumeration<String> values = realRequest.getHeaders(headerName);
 
                 if (TRANSACTION_ID_HEADER.equals(headerName)) {
-                    transactionId = values.nextElement();
-//                    if (isBlank(transactionId)) {
-//                        transactionId = get("transaction_id");
-//                    }
+                    continue;
                 } else if (POLICY_HEADER_NAME.equalsIgnoreCase(headerName)) {
                     policies = getPolicies(values);
                     headers.add(POLICY_HEADER_NAME, policies.toString());
@@ -95,7 +93,6 @@ public class MutableHttpTranslator {
             if (!policies.isEmpty() && !isBlank(transactionId)) {
                 log.withField(MESSAGE, "Processed " + POLICY_HEADER_NAME + " : " + policies.toString())
                         .build().logDebug();
-//                        .build().logInfo();
             } else {
                 log.withField(MESSAGE, "No X-Policy Headers")
                         .build().logDebug();
@@ -164,7 +161,7 @@ public class MutableHttpTranslator {
         }
         log.withField(MESSAGE, msgParam + headerName + "=" + headerValues.toString())
                 .withTransactionId(transactionId)
-                .build().logDebug();
+                .build().logInfo();
     }
 
     private byte[] getEntityIfSupplied(HttpServletRequest realRequest) {
