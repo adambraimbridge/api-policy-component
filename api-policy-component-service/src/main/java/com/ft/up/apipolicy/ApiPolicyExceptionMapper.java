@@ -11,8 +11,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 
 import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.STACKTRACE;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.String.format;
 import static javax.servlet.http.HttpServletResponse.*;
@@ -53,9 +55,7 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
             message = "404 Not Found";
 
             return respondWith(SC_NOT_FOUND, message, throwable);
-        }
-
-        if (throwable instanceof WebApplicationException) {
+        } else if (throwable instanceof WebApplicationException) {
             Response response = ((WebApplicationException) throwable).getResponse();
 
             // skip processing of responses that are already present.
@@ -73,22 +73,16 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
             }
 
             return respondWith(response.getStatus(), message, throwable);
-        }
-
-        if (throwable instanceof ProcessingException) {
+        } else if (throwable instanceof ProcessingException) {
             message = throwable.getMessage();
             if (throwable.getCause() instanceof SocketTimeoutException) {
                 status = SC_GATEWAY_TIMEOUT;
             }
             return respondWith(status, message, throwable);
-        }
-
-        if (throwable instanceof UnsupportedRequestException) {
+        } else if (throwable instanceof UnsupportedRequestException) {
             message = throwable.getMessage();
             return respondWith(status, message, throwable);
-        }
-
-        if (throwable instanceof FilterException) {
+        } else if (throwable instanceof FilterException) {
             message = throwable.getMessage();
             return respondWith(status, message, throwable);
         }
@@ -112,6 +106,7 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
                 .withTransactionId(get("transaction_id"))
                 .withResponse(response)
                 .withField(MESSAGE, reason)
+                .withField(STACKTRACE, Arrays.asList(Thread.currentThread().getStackTrace()).toString())
                 .withException(t);
 
         int status = response.getStatus();

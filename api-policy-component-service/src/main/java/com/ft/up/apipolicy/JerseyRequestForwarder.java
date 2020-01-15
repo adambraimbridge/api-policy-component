@@ -31,13 +31,9 @@ public class JerseyRequestForwarder implements RequestForwarder {
     private final Client client;
     private final EndpointConfiguration varnish;
 
-//    private FluentLoggingWrapper log;
-
     public JerseyRequestForwarder(Client client, EndpointConfiguration varnish) {
         this.client = client;
         this.varnish = varnish;
-//        log = new FluentLoggingWrapper();
-//        log.withClassName(this.getClass().toString());
     }
 
     @Override

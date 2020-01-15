@@ -25,7 +25,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.apache.commons.lang.StringUtils.*;
-import static org.apache.commons.lang.exception.ExceptionUtils.getStackTrace;
+import static org.apache.commons.lang.exception.ExceptionUtils.*;
 
 public class FluentLoggingWrapper {
 
@@ -81,7 +81,7 @@ public class FluentLoggingWrapper {
 
     public FluentLoggingWrapper withException(Throwable t) {
         if (nonNull(t)) {
-            withField(EXCEPTION, t.getMessage());
+            withField(EXCEPTION, getMessage(t));
 
             if (logger.isDebugEnabled()) {
                 withField(STACKTRACE, getStackTrace(t));
