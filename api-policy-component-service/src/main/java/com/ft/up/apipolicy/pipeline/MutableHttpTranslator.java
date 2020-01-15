@@ -34,7 +34,7 @@ public class MutableHttpTranslator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MutableHttpTranslator.class);
 
-    private FluentLoggingWrapper log;
+//    private FluentLoggingWrapper log;
 
     // So we don't blindly pass on headers that should be set by THIS application on the request/response
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList(
@@ -48,12 +48,14 @@ public class MutableHttpTranslator {
     ));
 
     public MutableHttpTranslator() {
-        log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
+//        log = new FluentLoggingWrapper();
+//        log.withClassName(this.getClass().toString());
     }
 
 
     public MutableRequest translateFrom(HttpServletRequest realRequest) {
+        FluentLoggingWrapper log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString());
         log.withMethodName("translateFrom")
                 .withRequest(realRequest)
                 .withField(FluentLoggingWrapper.URI, realRequest.getRequestURI())
@@ -77,13 +79,13 @@ public class MutableHttpTranslator {
                     policies = getPolicies(headersValuesList);
                     headers.add(POLICY_HEADER_NAME, policies.toString());
                 } else if (HEADER_BLACKLIST.contains(headerName)) {
-                    logBlacklistedHeader(headerName, headersValuesList, log, transactionId);
+                    logBlacklistedHeader(headerName, headersValuesList, transactionId);
                     blacklistedHeaders.addAll(headerName, headersValuesList);
                 } else if (("Host").equals(headerName)) { // for Containerisation
                     headers.add(headerName, "public-services");
                 } else {
                     headers.addAll(headerName.toLowerCase(), headersValuesList);
-                    logPassedHeaders(headerName, headersValuesList, "Passed Up: ", log, transactionId);
+                    logPassedHeaders(headerName, headersValuesList, "Passed Up: ", transactionId);
                 }
             }
 
@@ -142,7 +144,11 @@ public class MutableHttpTranslator {
         return request;
     }
 
-    private void logBlacklistedHeader(String headerName, List<String> values, FluentLoggingWrapper log, String transactionId) {
+    private void logBlacklistedHeader(String headerName, List<String> values, String transactionId) {
+        FluentLoggingWrapper log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString())
+                .withMethodName("logBlacklistedHeader");
+
         if (LOGGER.isDebugEnabled() && !values.isEmpty()) {
             log.withField(MESSAGE, "Not Processed: " + headerName + "=" + values.toString())
                     .withTransactionId(transactionId)
@@ -150,7 +156,11 @@ public class MutableHttpTranslator {
         }
     }
 
-    private void logPassedHeaders(String headerName, List<String> values, String msgParam, FluentLoggingWrapper log, String transactionId) {
+    private void logPassedHeaders(String headerName, List<String> values, String msgParam, String transactionId) {
+        FluentLoggingWrapper log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString())
+                .withMethodName("logPassedHeaders");
+
         log.withField(MESSAGE, msgParam + headerName + "=" + values.toString())
                 .withTransactionId(transactionId)
                 .build().logDebug();
@@ -170,6 +180,9 @@ public class MutableHttpTranslator {
     }
 
     public ResponseBuilder translateTo(MutableResponse mutableResponse) {
+        FluentLoggingWrapper log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString());
+
         String tid = flattenHeaderToString(mutableResponse, TRANSACTION_ID_HEADER);
 
         if (!isBlank(tid)) {
@@ -189,9 +202,9 @@ public class MutableHttpTranslator {
                     .collect(toList());
 
             if (HEADER_BLACKLIST.contains(headerName)) {
-                logBlacklistedHeader(headerName, valuesAsStrings, log, tid);
+                logBlacklistedHeader(headerName, valuesAsStrings, tid);
             } else {
-                logPassedHeaders(headerName, valuesAsStrings, "Passed Down: ", log, tid);
+                logPassedHeaders(headerName, valuesAsStrings, "Passed Down: ", tid);
                 valuesAsStrings.forEach(value -> responseBuilder.header(headerName.toLowerCase(), value));
             }
         }

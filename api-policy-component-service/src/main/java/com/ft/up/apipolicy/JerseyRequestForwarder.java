@@ -64,8 +64,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
     }
 
     private MutableResponse constructMutableResponse(MutableRequest request, Builder resource) {
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
+
 
         Response clientResponse;
         String requestEntity = request.getRequestEntityAsString();
@@ -85,6 +84,8 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 }
             } catch (IllegalStateException e) {
                 // thrown if there is an IOException in hasEntity()
+                FluentLoggingWrapper log = new FluentLoggingWrapper();
+                log.withClassName(this.getClass().toString());
                 log.withMethodName("constructMutableResponse")
                         .withField(MESSAGE, "unable to obtain a response entity")
                         .withException(e)
@@ -96,6 +97,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
             result.setStatus(responseStatus);
             result.setHeaders(clientResponse.getHeaders());
         } finally {
+            FluentLoggingWrapper log = new FluentLoggingWrapper();
             log.withClassName(this.getClass().toString())
                     .withMethodName("constructMutableResponse")
                     .withTransactionId(request.getTransactionId())

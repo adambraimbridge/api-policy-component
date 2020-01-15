@@ -19,7 +19,7 @@ import static org.slf4j.MDC.get;
 
 public class PolicyBasedJsonFilter implements ApiFilter {
 
-    private FluentLoggingWrapper log;
+//    private FluentLoggingWrapper log;
 
     private static Pattern jsonPathToRegex(String jsonPath) {
         String regex = jsonPath.replaceAll("\\.", Matcher.quoteReplacement("\\."))
@@ -43,8 +43,8 @@ public class PolicyBasedJsonFilter implements ApiFilter {
      */
     public PolicyBasedJsonFilter(Map<String, Policy> filters) {
         filters.forEach((k, v) -> policyFilters.put(jsonPathToRegex(k), (v == null) ? null : v.toString()));
-        log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
+//        log = new FluentLoggingWrapper();
+//        log.withClassName(this.getClass().toString());
     }
 
     @Override
@@ -75,6 +75,8 @@ public class PolicyBasedJsonFilter implements ApiFilter {
             }
         }
 
+        FluentLoggingWrapper log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString());
         log.withMethodName("isAllowedPath")
                 .withTransactionId(get("transaction_id"))
                 .withField(MESSAGE, path + " is not allowed by any policies among " + policies.toString())

@@ -51,7 +51,7 @@ logging:
     org.eclipse.jetty: "OFF"
     org.glassfish.jersey.client: "OFF"
     sun.net.www.protocol.http: "OFF"
-    com.ft.api.util.transactionid: INFO
+    com.ft.api.util.transactionid: "OFF"
     com.ft.api.util.buildinfo: "OFF"
     com.ft.bodyprocessing: WARN
     #    Switch the two below to INFO instead of "OFF" if you want to see stack traces NOT in JSON format

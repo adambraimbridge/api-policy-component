@@ -4,9 +4,7 @@ import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableHttpTranslator;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.ft.up.apipolicy.util.FluentLoggingWrapper;
 import com.google.common.base.Joiner;
-import org.slf4j.MDC;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ClientErrorException;
@@ -14,7 +12,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -23,27 +20,21 @@ import java.util.regex.Pattern;
 import static com.ft.api.jaxrs.errors.ServerError.status;
 import static com.ft.up.apipolicy.pipeline.HttpPipeline.POLICY_HEADER_NAME;
 import static com.ft.up.apipolicy.pipeline.MutableResponse.VARY_HEADER;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.*;
 import static java.util.Collections.singletonMap;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.ResponseBuilder;
 import static javax.ws.rs.core.Response.serverError;
-import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.slf4j.MDC.get;
 
 public class RequestHandler {
 
     public static final Joiner COMMA_DELIMITED = Joiner.on(", ");
     private MutableHttpTranslator translator;
     private Set<KnownEndpoint> knownEndpoints;
-    private FluentLoggingWrapper log;
 
     public RequestHandler(MutableHttpTranslator translator, Set<KnownEndpoint> knownEndpoints) {
         this.translator = translator;
         this.knownEndpoints = knownEndpoints;
-        log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
     }
 
     public Response handleRequest(HttpServletRequest request, UriInfo uriInfo) {

@@ -11,7 +11,7 @@ import static org.slf4j.MDC.get;
 
 public class PolicyBrandsResolver {
 
-    private FluentLoggingWrapper log;
+//    private FluentLoggingWrapper log;
 
     private Map<String, PolicyFilterParameter> policyFilterParameterMap;
 
@@ -23,8 +23,8 @@ public class PolicyBrandsResolver {
             policyFilterParameterMap.put(policyFilterParameter.getPolicy(), policyFilterParameter);
         }
 
-        log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
+//        log = new FluentLoggingWrapper();
+//        log.withClassName(this.getClass().toString());
     }
 
     public Map<String, PolicyFilterParameter> getPolicyFilterParameterMap() {
@@ -32,6 +32,9 @@ public class PolicyBrandsResolver {
     }
 
     public void applyQueryParams(MutableRequest request) {
+
+        FluentLoggingWrapper log = new FluentLoggingWrapper();
+        log.withClassName(this.getClass().toString());
 
         Set<String> policySet = request.getPolicies();
 

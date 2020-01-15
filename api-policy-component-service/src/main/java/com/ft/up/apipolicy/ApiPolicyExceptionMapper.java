@@ -41,7 +41,7 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
 
     public static final String GENERIC_MESSAGE = "server error";
 
-    private FluentLoggingWrapper log;
+//    private FluentLoggingWrapper log;
 
     @Override
     public Response toResponse(Throwable throwable) {
@@ -100,7 +100,7 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
     }
 
     private void logResponse(Response response, String reason, Throwable t) {
-        log = new FluentLoggingWrapper()
+        FluentLoggingWrapper log = new FluentLoggingWrapper()
                 .withClassName(this.getClass().toString())
                 .withMethodName("toResponse")
                 .withTransactionId(get("transaction_id"))
