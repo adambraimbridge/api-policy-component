@@ -18,8 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.URI;
+import static com.ft.up.apipolicy.util.FluentLoggingWrapper.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -62,7 +61,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 .withTransactionId(request.getTransactionId())
                 .withRequest(request)
                 .withField(URI, request.getAbsolutePath())
-                .withField(MESSAGE, "Forwarding request")
+                .withField(MESSAGE, "Request")
                 .build().logInfo();
 
         return constructMutableResponse(request, resource);
@@ -101,6 +100,15 @@ public class JerseyRequestForwarder implements RequestForwarder {
             result.setStatus(responseStatus);
             result.setHeaders(clientResponse.getHeaders());
         } finally {
+            log.withClassName(this.getClass().toString())
+                    .withMethodName("constructMutableResponse")
+                    .withTransactionId(request.getTransactionId())
+                    .withResponse(clientResponse)
+                    .withField(PATH, request.getAbsolutePath())
+                    .withField(URI, clientResponse.getLocation())
+                    .withField(MESSAGE, "Response")
+                    .withField(STATUS, clientResponse.getStatus())
+                    .build().logInfo();
             clientResponse.close();
         }
 

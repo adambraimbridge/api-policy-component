@@ -20,9 +20,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -121,8 +119,8 @@ public class JerseyRequestForwarderTest {
     }
 
     private void verifyMocks(){
-        verify(response).getHeaders();
-        verify(response).getStatus();
+        verify(response, atLeastOnce()).getHeaders();
+        verify(response, atLeastOnce()).getStatus();
         verify(target).request();
         verify(invocation).invoke();
         verify(builder).header("X-Test-Header", "EXAMPLE");

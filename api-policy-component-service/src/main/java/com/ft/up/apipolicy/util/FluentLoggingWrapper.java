@@ -129,13 +129,12 @@ public class FluentLoggingWrapper {
 
     private void withHttpServletRequestHeaders(MutableRequest request) {
         MultivaluedMap<String, String> headers = request.getHeaders();
-        String policyHeaders = flattenHeaderToString(request, POLICY_HEADER_NAME);
         if (nonNull(headers)) {
-            withField(USER_AGENT, headers.get("user-agent"));
-            withField(ACCEPT, headers.get("accept"));
-            withField(CONTENT_TYPE, headers.get("content-type"));
-            withField(CACHE_CONTROL, headers.get("cache-control"));
-            withField(POLICY_HEADER_NAME, policyHeaders);
+            withField(USER_AGENT, flattenHeaderToString(request, USER_AGENT));
+            withField(ACCEPT, flattenHeaderToString(request, ACCEPT));
+            withField(CONTENT_TYPE, flattenHeaderToString(request, CONTENT_TYPE));
+            withField(CACHE_CONTROL, flattenHeaderToString(request, CACHE_CONTROL));
+            withField(POLICY_HEADER_NAME, flattenHeaderToString(request, POLICY_HEADER_NAME));
         }
     }
 
@@ -163,8 +162,7 @@ public class FluentLoggingWrapper {
     }
 
     private FluentLoggingWrapper withOutboundHeaders(Response response) {
-        String contentTypeHeader = flattenHeaderToString(response, CONTENT_TYPE);
-        withField(CONTENT_TYPE, contentTypeHeader);
+        withField(CONTENT_TYPE, flattenHeaderToString(response, CONTENT_TYPE));
         withField(USER_AGENT, getOutboundUserAgentHeader());
         withField(ACCEPT, APPLICATION_JSON_TYPE.toString());
         return this;
