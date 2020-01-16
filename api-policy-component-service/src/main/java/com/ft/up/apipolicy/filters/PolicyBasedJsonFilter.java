@@ -7,19 +7,19 @@ import com.ft.up.apipolicy.pipeline.ApiFilter;
 import com.ft.up.apipolicy.pipeline.HttpPipelineChain;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
-import com.ft.up.apipolicy.util.FluentLoggingWrapper;
+import com.ft.up.apipolicy.util.FluentLoggingBuilder;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.MESSAGE;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static org.slf4j.MDC.get;
 
 public class PolicyBasedJsonFilter implements ApiFilter {
 
-//    private FluentLoggingWrapper log;
+    private static final String CLASS_NAME = PolicyBasedJsonFilter.class.toString();
 
     private static Pattern jsonPathToRegex(String jsonPath) {
         String regex = jsonPath.replaceAll("\\.", Matcher.quoteReplacement("\\."))
@@ -43,8 +43,6 @@ public class PolicyBasedJsonFilter implements ApiFilter {
      */
     public PolicyBasedJsonFilter(Map<String, Policy> filters) {
         filters.forEach((k, v) -> policyFilters.put(jsonPathToRegex(k), (v == null) ? null : v.toString()));
-//        log = new FluentLoggingWrapper();
-//        log.withClassName(this.getClass().toString());
     }
 
     @Override
@@ -75,9 +73,7 @@ public class PolicyBasedJsonFilter implements ApiFilter {
             }
         }
 
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
-        log.withMethodName("isAllowedPath")
+        FluentLoggingBuilder.getNewInstance(CLASS_NAME, "isAllowedPath")
                 .withTransactionId(get("transaction_id"))
                 .withField(MESSAGE, path + " is not allowed by any policies among " + policies.toString())
                 .build().logDebug();

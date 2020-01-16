@@ -14,19 +14,18 @@ import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.Arrays;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.*;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.*;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 
-public class FluentLoggingWrapperTest {
-    private FluentLoggingWrapper log;
+public class FluentLoggingBuilderTest {
+    private static final String CLASS_NAME = FluentLoggingBuilderTest.class.toString();
+    private FluentLoggingBuilder log;
 
     @Before
     public void setup() {
-        log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString())
-                .withMethodName("testOperation");
+        log = FluentLoggingBuilder.getNewInstance(CLASS_NAME,"testOperation");
     }
 
     @Test
@@ -212,7 +211,7 @@ public class FluentLoggingWrapperTest {
 
     private boolean containsBasicJSONFields(String content) {
         return content.contains("\"systemcode\":\"api-policy-component\"")
-                && content.contains("\"class\":\"class com.ft.up.apipolicy.util.FluentLoggingWrapperTest\"")
+                && content.contains("\"class\":\"class com.ft.up.apipolicy.util.FluentLoggingBuilderTest\"")
                 && content.contains("\"operation\":\"testOperation\"");
     }
 }

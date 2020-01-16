@@ -4,7 +4,7 @@ import com.ft.up.apipolicy.configuration.EndpointConfiguration;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
 import com.ft.up.apipolicy.pipeline.MutableResponse;
 import com.ft.up.apipolicy.pipeline.RequestForwarder;
-import com.ft.up.apipolicy.util.FluentLoggingWrapper;
+import com.ft.up.apipolicy.util.FluentLoggingBuilder;
 import org.apache.commons.lang.StringUtils;
 
 import javax.ws.rs.client.Client;
@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.*;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -28,6 +28,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 public class JerseyRequestForwarder implements RequestForwarder {
 
+    private static final String CLASS_NAME = JerseyRequestForwarder.class.toString();
     private final Client client;
     private final EndpointConfiguration varnish;
 
@@ -38,8 +39,6 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
     @Override
     public MutableResponse forwardRequest(MutableRequest request) {
-
-
         UriBuilder builder = UriBuilder.fromPath(request.getAbsolutePath())
                 .scheme("http")
                 .host(varnish.getHost())
@@ -51,9 +50,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
         resource = extractHeaders(request, resource);
 
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString())
-                .withMethodName("forwardRequest")
+        FluentLoggingBuilder.getNewInstance(CLASS_NAME, "forwardRequest")
                 .withTransactionId(request.getTransactionId())
                 .withRequest(request)
                 .withField(URI, request.getAbsolutePath())
@@ -84,9 +81,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
                 }
             } catch (IllegalStateException e) {
                 // thrown if there is an IOException in hasEntity()
-                FluentLoggingWrapper log = new FluentLoggingWrapper();
-                log.withClassName(this.getClass().toString());
-                log.withMethodName("constructMutableResponse")
+                FluentLoggingBuilder.getNewInstance(CLASS_NAME, "constructMutableResponse")
                         .withField(MESSAGE, "unable to obtain a response entity")
                         .withException(e)
                         .build().logError();
@@ -97,9 +92,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
             result.setStatus(responseStatus);
             result.setHeaders(clientResponse.getHeaders());
         } finally {
-            FluentLoggingWrapper log = new FluentLoggingWrapper();
-            log.withClassName(this.getClass().toString())
-                    .withMethodName("constructMutableResponse")
+            FluentLoggingBuilder.getNewInstance(CLASS_NAME, "constructMutableResponse")
                     .withTransactionId(request.getTransactionId())
                     .withResponse(clientResponse)
                     .withField(PATH, request.getAbsolutePath())
@@ -114,14 +107,12 @@ public class JerseyRequestForwarder implements RequestForwarder {
     }
 
     private int handleResponseStatus(Response clientResponse, MutableResponse result, byte[] responseEntity) {
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
 
         int responseStatus = clientResponse.getStatus();
         if ((responseStatus >= 500)
                 && ((responseEntity == null) || (responseEntity.length == 0))) {
 
-            log.withMethodName("handleResponseStatus")
+            FluentLoggingBuilder.getNewInstance(CLASS_NAME, "handleResponseStatus")
                     .withField(MESSAGE, "server error response has no entity")
                     .build().logDebug();
 
@@ -170,9 +161,7 @@ public class JerseyRequestForwarder implements RequestForwarder {
 
     private void logForwarderCustomMessage(String methodName, String customMessage,
                                            Map<String, List<String>> logArguments, String transactionId) {
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString())
-                .withMethodName(methodName)
+        FluentLoggingBuilder.getNewInstance(CLASS_NAME, methodName)
                 .withTransactionId(transactionId)
                 .withField(MESSAGE, customMessage + logArguments.keySet().toString() +
                         " : " + logArguments.values().toString())

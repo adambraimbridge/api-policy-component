@@ -27,9 +27,9 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.apache.commons.lang.StringUtils.*;
 import static org.apache.commons.lang.exception.ExceptionUtils.*;
 
-public class FluentLoggingWrapper {
+public class FluentLoggingBuilder {
 
-    private final static Logger logger = LoggerFactory.getLogger(FluentLoggingWrapper.class);
+    private final static Logger logger = LoggerFactory.getLogger(FluentLoggingBuilder.class);
 
     public static final String SYSTEM_CODE = "systemcode";
     public static final String CONTENT_TYPE = "content-type";
@@ -51,17 +51,21 @@ public class FluentLoggingWrapper {
     public static final String APPLICATION_NAME = "api-policy-component";
     public static final String RUNBOOK_URI = "https://runbooks.in.ft.com/api-policy-component";
 
-
     private Map<String, Object> items;
     private String methodName;
     private String loggingClassName;
 
+    public static FluentLoggingBuilder getNewInstance(String loggingClassName, String methodName) {
+        return new FluentLoggingBuilder(loggingClassName, methodName);
+    }
 
-    public FluentLoggingWrapper() {
+    private FluentLoggingBuilder(String loggingClassName, String methodName) {
+        this.loggingClassName = loggingClassName;
+        this.methodName = methodName;
         items = new HashMap<>();
     }
 
-    public FluentLoggingWrapper withField(final String key, final Object val) {
+    public FluentLoggingBuilder withField(final String key, final Object val) {
         if (isBlank(key) || isNull(val) || isBlank(valueOf(val))) {
             return this;
         }
@@ -69,17 +73,17 @@ public class FluentLoggingWrapper {
         return this;
     }
 
-    public FluentLoggingWrapper withMethodName(final String name) {
-        methodName = name;
-        return this;
-    }
+//    public FluentLoggingBuilder withMethodName(final String name) {
+//        methodName = name;
+//        return this;
+//    }
+//
+//    public FluentLoggingBuilder withClassName(final String name) {
+//        loggingClassName = name;
+//        return this;
+//    }
 
-    public FluentLoggingWrapper withClassName(final String name) {
-        loggingClassName = name;
-        return this;
-    }
-
-    public FluentLoggingWrapper withException(Throwable t) {
+    public FluentLoggingBuilder withException(Throwable t) {
         if (nonNull(t)) {
             withField(EXCEPTION, getMessage(t));
 
@@ -93,7 +97,7 @@ public class FluentLoggingWrapper {
         return this;
     }
 
-    public FluentLoggingWrapper withInboundHeaders(HttpHeaders headers) {
+    public FluentLoggingBuilder withInboundHeaders(HttpHeaders headers) {
         if (nonNull(headers)) {
             withField(ACCEPT, headers.getHeaderString(headers.ACCEPT));
             withField(USER_AGENT, headers.getHeaderString(headers.USER_AGENT));
@@ -101,7 +105,7 @@ public class FluentLoggingWrapper {
         return this;
     }
 
-    public FluentLoggingWrapper withRequest(HttpServletRequest request) {
+    public FluentLoggingBuilder withRequest(HttpServletRequest request) {
         if (nonNull(request)) {
             withField(PROTOCOL, request.getProtocol());
             withField(HOST, request.getLocalAddr());
@@ -118,7 +122,7 @@ public class FluentLoggingWrapper {
         withField(USER_AGENT, request.getHeader("user-agent"));
     }
 
-    public FluentLoggingWrapper withRequest(MutableRequest request) {
+    public FluentLoggingBuilder withRequest(MutableRequest request) {
         if (nonNull(request)) {
             withField(METHOD, request.getHttpMethod());
             withHttpServletRequestHeaders(request);
@@ -153,7 +157,7 @@ public class FluentLoggingWrapper {
         }
     }
 
-    public FluentLoggingWrapper withResponse(Response response) {
+    public FluentLoggingBuilder withResponse(Response response) {
         if (nonNull(response)) {
             withField(STATUS, valueOf(response.getStatus()));
         }
@@ -161,14 +165,14 @@ public class FluentLoggingWrapper {
         return this;
     }
 
-    private FluentLoggingWrapper withOutboundHeaders(Response response) {
+    private FluentLoggingBuilder withOutboundHeaders(Response response) {
         withField(CONTENT_TYPE, flattenHeaderToString(response, CONTENT_TYPE));
         withField(USER_AGENT, getOutboundUserAgentHeader());
         withField(ACCEPT, APPLICATION_JSON_TYPE.toString());
         return this;
     }
 
-    public FluentLoggingWrapper withResponse(MutableResponse response) {
+    public FluentLoggingBuilder withResponse(MutableResponse response) {
         if (nonNull(response)) {
             withField(STATUS, valueOf(response.getStatus()));
         }
@@ -176,7 +180,7 @@ public class FluentLoggingWrapper {
         return this;
     }
 
-    private FluentLoggingWrapper withOutboundHeaders(MutableResponse response) {
+    private FluentLoggingBuilder withOutboundHeaders(MutableResponse response) {
         String contentTypeHeader = flattenHeaderToString(response, CONTENT_TYPE);
         withField(CONTENT_TYPE, contentTypeHeader);
         withField(USER_AGENT, getOutboundUserAgentHeader());
@@ -184,7 +188,7 @@ public class FluentLoggingWrapper {
         return this;
     }
 
-    public FluentLoggingWrapper withTransactionId(final String transactionId) {
+    public FluentLoggingBuilder withTransactionId(final String transactionId) {
         String tid = null;
         if (!isBlank(transactionId) && transactionId.contains("transaction_id=")) {
             tid = transactionId;
@@ -196,7 +200,7 @@ public class FluentLoggingWrapper {
         return this;
     }
 
-    public FluentLoggingWrapper withUriInfo(UriInfo ui) {
+    public FluentLoggingBuilder withUriInfo(UriInfo ui) {
         if (nonNull(ui)) {
             withField(URI, ui.getAbsolutePath().toString());
             withField(PATH, ui.getPath());
@@ -204,7 +208,7 @@ public class FluentLoggingWrapper {
         return this;
     }
 
-    public FluentLoggingWrapper withUri(java.net.URI uri) {
+    public FluentLoggingBuilder withUri(java.net.URI uri) {
         if (nonNull(uri)) {
             withField(URI, uri.toString());
             withField(PATH, uri.getPath());

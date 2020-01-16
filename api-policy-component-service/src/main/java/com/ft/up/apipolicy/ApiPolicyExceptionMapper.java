@@ -2,7 +2,7 @@ package com.ft.up.apipolicy;
 
 import com.ft.up.apipolicy.filters.FilterException;
 import com.ft.up.apipolicy.resources.UnsupportedRequestException;
-import com.ft.up.apipolicy.util.FluentLoggingWrapper;
+import com.ft.up.apipolicy.util.FluentLoggingBuilder;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
@@ -13,8 +13,8 @@ import javax.ws.rs.ext.Provider;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.STACKTRACE;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.MESSAGE;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.STACKTRACE;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.String.format;
 import static javax.servlet.http.HttpServletResponse.*;
@@ -40,8 +40,9 @@ import static org.slf4j.MDC.get;
 public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
 
     public static final String GENERIC_MESSAGE = "server error";
+    private static final String CLASS_NAME = ApiPolicyExceptionMapper.class.toString();
 
-//    private FluentLoggingWrapper log;
+//    private FluentLoggingBuilder log;
 
     @Override
     public Response toResponse(Throwable throwable) {
@@ -100,9 +101,7 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
     }
 
     private void logResponse(Response response, String reason, Throwable t) {
-        FluentLoggingWrapper log = new FluentLoggingWrapper()
-                .withClassName(this.getClass().toString())
-                .withMethodName("toResponse")
+        FluentLoggingBuilder logBuilder = FluentLoggingBuilder.getNewInstance(CLASS_NAME, "toResponse")
                 .withTransactionId(get("transaction_id"))
                 .withResponse(response)
                 .withField(MESSAGE, reason)
@@ -112,11 +111,11 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
         int status = response.getStatus();
 
         if (status == 404) {
-            log.build().logDebug();
+            logBuilder.build().logDebug();
         } else if (400 <= status && status < 500) {
-            log.build().logWarn();
+            logBuilder.build().logWarn();
         } else {
-            log.build().logError();
+            logBuilder.build().logError();
         }
 
     }

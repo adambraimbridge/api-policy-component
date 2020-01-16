@@ -1,7 +1,7 @@
 package com.ft.up.apipolicy.pipeline;
 
 import com.ft.api.jaxrs.errors.ServerError;
-import com.ft.up.apipolicy.util.FluentLoggingWrapper;
+import com.ft.up.apipolicy.util.FluentLoggingBuilder;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +16,8 @@ import java.util.*;
 
 import static com.ft.api.util.transactionid.TransactionIdUtils.TRANSACTION_ID_HEADER;
 import static com.ft.up.apipolicy.pipeline.HttpPipeline.POLICY_HEADER_NAME;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.flattenHeaderToString;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.MESSAGE;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.flattenHeaderToString;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.list;
 import static java.util.stream.Collectors.toList;
@@ -33,8 +33,7 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 public class MutableHttpTranslator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MutableHttpTranslator.class);
-
-//    private FluentLoggingWrapper log;
+    private static final String CLASS_NAME = MutableHttpTranslator.class.toString();
 
     // So we don't blindly pass on headers that should be set by THIS application on the request/response
     public Set<String> HEADER_BLACKLIST = new TreeSet<>(Arrays.asList(
@@ -48,18 +47,14 @@ public class MutableHttpTranslator {
     ));
 
     public MutableHttpTranslator() {
-//        log = new FluentLoggingWrapper();
-//        log.withClassName(this.getClass().toString());
     }
 
 
     public MutableRequest translateFrom(HttpServletRequest realRequest) {
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
-        log.withMethodName("translateFrom")
+        FluentLoggingBuilder log = FluentLoggingBuilder.getNewInstance(CLASS_NAME, "translateFrom")
                 .withRequest(realRequest)
-                .withField(FluentLoggingWrapper.URI, realRequest.getRequestURI())
-                .withField(FluentLoggingWrapper.PATH, realRequest.getContextPath());
+                .withField(FluentLoggingBuilder.URI, realRequest.getRequestURI())
+                .withField(FluentLoggingBuilder.PATH, realRequest.getContextPath());
 
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         MultivaluedMap<String, String> blacklistedHeaders = new MultivaluedHashMap<>();
@@ -145,23 +140,17 @@ public class MutableHttpTranslator {
     }
 
     private void logBlacklistedHeader(String headerName, List<String> values, String transactionId) {
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString())
-                .withMethodName("logBlacklistedHeader");
-
         if (LOGGER.isDebugEnabled() && !values.isEmpty()) {
-            log.withField(MESSAGE, "Not Processed: " + headerName + "=" + values.toString())
+            FluentLoggingBuilder.getNewInstance(CLASS_NAME, "logBlacklistedHeader")
+                    .withField(MESSAGE, "Not Processed: " + headerName + "=" + values.toString())
                     .withTransactionId(transactionId)
                     .build().logDebug();
         }
     }
 
     private void logPassedHeaders(String headerName, List<String> values, String msgParam, String transactionId) {
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString())
-                .withMethodName("logPassedHeaders");
-
-        log.withField(MESSAGE, msgParam + headerName + "=" + values.toString())
+        FluentLoggingBuilder.getNewInstance(CLASS_NAME, "logPassedHeaders")
+                .withField(MESSAGE, msgParam + headerName + "=" + values.toString())
                 .withTransactionId(transactionId)
                 .build().logDebug();
     }
@@ -180,16 +169,21 @@ public class MutableHttpTranslator {
     }
 
     public ResponseBuilder translateTo(MutableResponse mutableResponse) {
-        FluentLoggingWrapper log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
+
+        // TODO: what to do with this logger?
+//        FluentLoggingBuilder log = new FluentLoggingBuilder();
+//        log.withClassName(this.getClass().toString());
 
         String tid = flattenHeaderToString(mutableResponse, TRANSACTION_ID_HEADER);
 
-        if (!isBlank(tid)) {
-            log.withTransactionId(tid);
-        }
-        log.withMethodName("translateTo")
-                .withResponse(mutableResponse);
+
+        // TODO: what to do with this logger?
+//
+//        if (!isBlank(tid)) {
+//            log.withTransactionId(tid);
+//        }
+//        log.withMethodName("translateTo")
+//                .withResponse(mutableResponse);
 
         ResponseBuilder responseBuilder = status(mutableResponse.getStatus());
 
