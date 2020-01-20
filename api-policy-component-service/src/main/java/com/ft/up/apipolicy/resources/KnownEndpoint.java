@@ -38,4 +38,9 @@ public class KnownEndpoint implements Comparable<KnownEndpoint> {
     public Pattern getUriPattern() {
         return uriPattern;
     }
+
+    @Override
+	public String toString() {
+    	return "KnownEndpoint: " + uriPattern;
+	}
 }

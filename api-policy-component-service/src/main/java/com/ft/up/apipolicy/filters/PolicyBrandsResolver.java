@@ -2,29 +2,25 @@ package com.ft.up.apipolicy.filters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ft.up.apipolicy.pipeline.MutableRequest;
-import com.ft.up.apipolicy.util.FluentLoggingWrapper;
+import com.ft.up.apipolicy.util.FluentLoggingBuilder;
 
 import java.util.*;
 
-import static com.ft.up.apipolicy.util.FluentLoggingWrapper.MESSAGE;
+import static com.ft.up.apipolicy.util.FluentLoggingBuilder.MESSAGE;
 import static org.slf4j.MDC.get;
 
 public class PolicyBrandsResolver {
 
-    private FluentLoggingWrapper log;
-
+    private static final String CLASS_NAME = PolicyBrandsResolver.class.toString();
     private Map<String, PolicyFilterParameter> policyFilterParameterMap;
 
     public PolicyBrandsResolver(@JsonProperty("policyFilterParameterList") List<PolicyFilterParameter> policyFilterParameterList) {
 
-        policyFilterParameterMap = new HashMap<String, PolicyFilterParameter>();
+        policyFilterParameterMap = new HashMap<>();
 
-        for(PolicyFilterParameter policyFilterParameter : policyFilterParameterList){
+        for (PolicyFilterParameter policyFilterParameter : policyFilterParameterList) {
             policyFilterParameterMap.put(policyFilterParameter.getPolicy(), policyFilterParameter);
         }
-
-        log = new FluentLoggingWrapper();
-        log.withClassName(this.getClass().toString());
     }
 
     public Map<String, PolicyFilterParameter> getPolicyFilterParameterMap() {
@@ -35,8 +31,6 @@ public class PolicyBrandsResolver {
 
         Set<String> policySet = request.getPolicies();
 
-        log.withMethodName("applyQueryParams")
-                .withTransactionId(get("transaction_id"));
 
         Set<String> notKnownPolicies = new HashSet<String>();
         for (String policy : policySet) {
@@ -59,8 +53,10 @@ public class PolicyBrandsResolver {
             }
         }
         if (!notKnownPolicies.isEmpty()) {
-            log.withField(MESSAGE, "A policy in the request did not map to a known policy in the system : "
-                    + notKnownPolicies.toString()).build().logWarn();
+            FluentLoggingBuilder.getNewInstance(CLASS_NAME, "applyQueryParams")
+                    .withTransactionId(get("transaction_id"))
+                    .withField(MESSAGE, "A policy in the request did not map to a known policy in the system : "
+                            + notKnownPolicies.toString()).build().logWarn();
         }
     }
 }
