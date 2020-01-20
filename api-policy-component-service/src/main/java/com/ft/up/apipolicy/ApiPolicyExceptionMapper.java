@@ -42,8 +42,6 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
     public static final String GENERIC_MESSAGE = "server error";
     private static final String CLASS_NAME = ApiPolicyExceptionMapper.class.toString();
 
-//    private FluentLoggingBuilder log;
-
     @Override
     public Response toResponse(Throwable throwable) {
 
