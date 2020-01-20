@@ -52,7 +52,7 @@ public class ApiPolicyExceptionMapper implements ExceptionMapper<Throwable> {
         int status = SC_INTERNAL_SERVER_ERROR;
         message = GENERIC_MESSAGE;
 
-        if (exception instanceof NotFoundException) {
+        if (throwable instanceof NotFoundException) {
             message = "404 Not Found";
 
             return respondWith(SC_NOT_FOUND, message, throwable);
