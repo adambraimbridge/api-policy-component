@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ft.up.apipolicycomponent</groupId>
   <artifactId>api-policy-component</artifactId>
-  <version>1.73.3</version>
+  <version>1.73.2</version>
   <packaging>pom</packaging>
   <modules>
     <module>api-policy-component-service</module>
