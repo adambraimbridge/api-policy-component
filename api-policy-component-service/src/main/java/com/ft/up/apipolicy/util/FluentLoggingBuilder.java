@@ -35,7 +35,7 @@ public class FluentLoggingBuilder {
     public static final String CONTENT_TYPE = "content-type";
     public static final String CACHE_CONTROL = "cache-control";
     public static final String STATUS = "status";
-    public static final String USER_AGENT = "userAgent";
+    public static final String USER_AGENT = "user-agent";
     public static final String EXCEPTION = "exception_message";
     public static final String STACKTRACE = "stacktrace_log";
     public static final String CLIENT = "client";
