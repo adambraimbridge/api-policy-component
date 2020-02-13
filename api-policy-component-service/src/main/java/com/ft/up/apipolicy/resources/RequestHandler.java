@@ -8,14 +8,17 @@ import com.google.common.base.Joiner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -42,8 +45,9 @@ public class RequestHandler {
     public Response handleRequest(HttpServletRequest request, UriInfo uriInfo) {
         MutableRequest mutableRequest = translator.translateFrom(request);
 
-        MultivaluedMap<String, String> queryParameters = uriInfo.getQueryParameters();
-        String queryParametersString = flattenMultivalueMapToUrl(queryParameters);
+        MultivaluedMap<String, String> queryParameters = Optional.ofNullable(uriInfo.getQueryParameters())
+                .orElse(new MultivaluedHashMap<>());
+        String queryParametersString = toHttpQueryString(queryParameters);
 
         String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath() + queryParametersString;
         System.out.println(pathPart);
@@ -95,18 +99,18 @@ public class RequestHandler {
         throw new UnsupportedRequestException(path, request.getHttpMethod());
     }
 
-    private String flattenMultivalueMapToUrl(MultivaluedMap<String,String> map) {
-        String str = "";
-        for (String key : map.keySet()) {
-            List<String> values = map.get(key);
-            if (values.size() > 1) {
-                for (String v: values) {
-                    str = key + "[]=" + v + "&";
-                }
-            } else {
-                str = key + "=" + values.get(0) + "&";
-            }
-        }
-        return str;
+    private String toHttpQueryString(MultivaluedMap<String, String> map) {
+        return map.entrySet()
+                .stream()
+                .map(e -> {
+                    String k = e.getKey();
+                    List<String> v = e.getValue();
+                    String queryParamType = v.size() > 1 ? "[]=" : "=";
+                    return v.stream()
+                            .map(item -> k + queryParamType + item)
+                            .collect(Collectors.joining("&"));
+
+                })
+                .collect(Collectors.joining("&"));
     }
 }
