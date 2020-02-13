@@ -50,7 +50,6 @@ public class RequestHandler {
         String queryParametersString = toHttpQueryString(queryParameters);
 
         String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath() + queryParametersString;
-        System.out.println(pathPart);
 
         MutableResponse response;
         try {
