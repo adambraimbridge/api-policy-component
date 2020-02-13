@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import static com.ft.api.jaxrs.errors.ServerError.status;
 import static com.ft.up.apipolicy.pipeline.HttpPipeline.POLICY_HEADER_NAME;
 import static com.ft.up.apipolicy.pipeline.MutableResponse.VARY_HEADER;
@@ -40,7 +42,12 @@ public class RequestHandler {
     public Response handleRequest(HttpServletRequest request, UriInfo uriInfo) {
         MutableRequest mutableRequest = translator.translateFrom(request);
 
-        String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath();
+        MultivaluedMap<String, String> queryParameters = uriInfo.getQueryParameters();
+        String queryParametersString = flattenMultivalueMapToUrl(queryParameters);
+
+        String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath() + queryParametersString;
+        System.out.println(pathPart);
+
         MutableResponse response;
         try {
             response = handleRequest(mutableRequest, pathPart);
@@ -86,5 +93,20 @@ public class RequestHandler {
             }
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
+    }
+
+    private String flattenMultivalueMapToUrl(MultivaluedMap<String,String> map) {
+        String str = "";
+        for (String key : map.keySet()) {
+            List<String> values = map.get(key);
+            if (values.size() > 1) {
+                for (String v: values) {
+                    str = key + "[]=" + v + "&";
+                }
+            } else {
+                str = key + "=" + values.get(0) + "&";
+            }
+        }
+        return str;
     }
 }
