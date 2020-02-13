@@ -9,6 +9,7 @@ ARG SONATYPE_PASSWORD
 ARG GIT_TAG
 
 ENV MAVEN_HOME=/root/.m2
+ENV TAG=$GIT_TAG
 
 RUN apk --update add git maven curl \
   # Set Nexus credentials in settings.xml file
@@ -17,7 +18,7 @@ RUN apk --update add git maven curl \
   # Generate docker tag
   && cd api-policy-component-service \
   && HASH=$(git log -1 --pretty=format:%H) \
-  && TAG=$GIT_TAG \
+  && TAG=$(git tag --sort=committerdate | tail -1) \
   && VERSION=${TAG:-untagged} \
   && sed -i "s/<parent>//; s/<\/parent>//; s/<artifactId>api-policy-component<\/artifactId>//" ./pom.xml \
   # Set Maven artifact version
@@ -43,5 +44,5 @@ CMD exec java $JAVA_OPTS \
          -Ddw.varnish.timeout=$JERSEY_TIMEOUT_DURATION \
          -Ddw.checkingVulcanHealth=$CHECKING_VULCAN_HEALTH \
          -Ddw.logging.appenders[0].logFormat="%m%n" \
-         -DgitTag=$GIT_TAG \
+         -DgitTag=$TAG \
          -jar api-policy-component-service.jar server config.yml
