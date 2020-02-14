@@ -8,14 +8,19 @@ import com.google.common.base.Joiner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MultivaluedMap;
 
 import static com.ft.api.jaxrs.errors.ServerError.status;
 import static com.ft.up.apipolicy.pipeline.HttpPipeline.POLICY_HEADER_NAME;
@@ -40,7 +45,15 @@ public class RequestHandler {
     public Response handleRequest(HttpServletRequest request, UriInfo uriInfo) {
         MutableRequest mutableRequest = translator.translateFrom(request);
 
-        String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath();
+        MultivaluedMap<String, String> queryParameters = Optional.ofNullable(uriInfo.getQueryParameters())
+                .orElse(new MultivaluedHashMap<>());
+        String queryParametersString = toHttpQueryString(queryParameters);
+        if (queryParametersString.length() > 0) {
+            queryParametersString = "?" + queryParametersString;
+        }
+
+        String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath() + queryParametersString;
+
         MutableResponse response;
         try {
             response = handleRequest(mutableRequest, pathPart);
@@ -86,5 +99,20 @@ public class RequestHandler {
             }
         }
         throw new UnsupportedRequestException(path, request.getHttpMethod());
+    }
+
+    private String toHttpQueryString(MultivaluedMap<String, String> map) {
+        return map.entrySet()
+                .stream()
+                .map(e -> {
+                    String k = e.getKey();
+                    List<String> v = e.getValue();
+                    String queryParamType = v.size() > 1 ? "[]=" : "=";
+                    return v.stream()
+                            .map(item -> k + queryParamType + item)
+                            .collect(Collectors.joining("&"));
+
+                })
+                .collect(Collectors.joining("&"));
     }
 }

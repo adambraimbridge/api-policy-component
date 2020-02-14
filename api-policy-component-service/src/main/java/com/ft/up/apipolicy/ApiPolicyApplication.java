@@ -103,9 +103,9 @@ public class ApiPolicyApplication extends Application<ApiPolicyConfiguration> {
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/notifications.*", "lists-notifications", notificationsFilter()));
 
-        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists",
-                stripProvenance,
-                stripLastModifiedDate));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists/.*", "lists", stripProvenance, stripLastModifiedDate));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists?curated.*", "lists", stripProvenance, stripLastModifiedDate));
+        knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/lists.*", "lists", new ApiFilter[]{}));
 
         knownWildcardEndpoints.add(createEndpoint(environment, configuration, "^/internalcontent/.*", "internalcontent",
                 canBeDistributedAccessFilter,
