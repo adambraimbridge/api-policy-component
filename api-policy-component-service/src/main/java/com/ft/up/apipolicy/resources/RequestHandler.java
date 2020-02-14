@@ -48,6 +48,9 @@ public class RequestHandler {
         MultivaluedMap<String, String> queryParameters = Optional.ofNullable(uriInfo.getQueryParameters())
                 .orElse(new MultivaluedHashMap<>());
         String queryParametersString = toHttpQueryString(queryParameters);
+        if (queryParametersString.length() > 0) {
+            queryParametersString = "?" + queryParametersString;
+        }
 
         String pathPart = uriInfo.getBaseUri().getPath() + uriInfo.getPath() + queryParametersString;
 
